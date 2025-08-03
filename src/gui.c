@@ -1504,6 +1504,9 @@ static void guiReadPads()
 // screen handlers. Fade transition code written by Maximus32
 static void guiShow()
 {
+    // 为了能让手动模式正常预加载，需要恒定为13
+    if (bdmManualTrigger)
+        transIndex = 13;
     // is there a transmission effect going on or are
     // we in a normal rendering state?
     if (screenHandlerTarget) {
@@ -1781,8 +1784,7 @@ void guiMainLoop(void)
 
         if (mainScreenInitDone) {
             //  handle inputs and render screen
-            if (!bdmManualTrigger)
-                guiShow();
+            guiShow();
 
             if (artLoadDelayTime > 0) {
                 artLoadDelayTime--;
@@ -1811,8 +1813,7 @@ void guiMainLoop(void)
                 guiRenderGreeting(greetingAlpha);
             } else {
                 // 不是启动画面时，要显示Gui。手动启动BDM时直接黑屏，盖住寻找硬盘的过程
-                if (!bdmManualTrigger)
-                    guiShow();
+                guiShow();
             }
         }
 
