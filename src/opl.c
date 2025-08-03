@@ -274,7 +274,7 @@ static void itemInitSupport(item_list_t *support)
 
 static void itemExecSelect(struct menu_item *curMenu)
 {  
-    if (mainScreenInitDone)
+    if (mainScreenInitDone && !bdmManualTrigger)
     {
         sfxPlay(SFX_CONFIRM);
         item_list_t *support = curMenu->userdata;

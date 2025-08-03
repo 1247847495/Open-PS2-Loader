@@ -1766,6 +1766,7 @@ void guiMainLoop(void)
                                 if (!gEnableUSB)
                                     artLoadDelayTime *= 2;
                             }
+                            BdmStarted = 1;
                         }
                         refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
                     }
@@ -1793,7 +1794,6 @@ void guiMainLoop(void)
                     if (bdmManualTrigger) {
                         guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                         bdmManualTrigger = 0;
-                        BdmStarted = 1;
                     }
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
