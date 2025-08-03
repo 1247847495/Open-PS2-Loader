@@ -1676,9 +1676,13 @@ void guiMainLoop(void)
     //// debug
     //int delayFrameCount = 0;
 
-    // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
-    if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
-        artLoadDelayTime *= 2;
+    // 自动模式时，需要预加载art图片
+    if ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)) {
+        // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
+        if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
+            artLoadDelayTime *= 2;
+    } else
+        artLoadDelayTime = 0; // 手动模式时，不需要art预加载
 
     while (!gTerminate) {
         // 各种弹窗提示
@@ -1711,7 +1715,7 @@ void guiMainLoop(void)
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
             // 启动画面的延迟期间，就要guiShow预加载art图片了
-            if (greetingAlpha >= 0x00 && ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)))
+            if (greetingAlpha >= 0x00 && artLoadDelayTime)
                 guiShow();
             // 所有设备准备就绪，才可以结束延迟
             if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
@@ -1755,18 +1759,19 @@ void guiMainLoop(void)
                 if (gBDMStartMode || gHDDStartMode || gETHStartMode) {
                     // 第一次启动，或手动启动BDM时，从全黑开始过度
                     if (greetingAlpha >= 0x00 || bdmManualTrigger) {
-                        if (bdmManualTrigger)
-                            guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
+                        // 手动启动BDM时，重置一次art预加载时间
+                        if (bdmManualTrigger) {
+                            if (!artLoadDelayTime) {
+                                artLoadDelayTime = 30;
+                                if (!gEnableUSB)
+                                    artLoadDelayTime *= 2;
+                            }
+                        }
                         refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
                     }
                 }
                 mainScreenInitDone = 1;
 
-                // 手动启动BDM后的变量处理
-                if (bdmManualTrigger) {
-                    bdmManualTrigger = 0;
-                    BdmStarted = 1;
-                }
                 // BDM自动模式时，启动变量直接改为1
                 if ((gBDMStartMode == START_MODE_AUTO) && !BdmStarted)
                     BdmStarted = 1;
@@ -1775,14 +1780,23 @@ void guiMainLoop(void)
 
         if (mainScreenInitDone) {
             //  handle inputs and render screen
-            guiShow();
+            if (!bdmManualTrigger)
+                guiShow();
+
             if (artLoadDelayTime > 0) {
                 artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
                 if (greetingAlpha >= 0x00)
                     guiRenderGreeting(greetingAlpha);
-                if (artLoadDelayTime <= 0)
+                if (artLoadDelayTime <= 0) {
+                    // 手动启动BDM后的变量处理
+                    if (bdmManualTrigger) {
+                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
+                        bdmManualTrigger = 0;
+                        BdmStarted = 1;
+                    }
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
+                }
             } else {
                 // Read the pad states to prepare for input processing in the screen handler
                 guiReadPads();
