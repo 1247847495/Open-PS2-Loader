@@ -1504,9 +1504,6 @@ static void guiReadPads()
 // screen handlers. Fade transition code written by Maximus32
 static void guiShow()
 {
-    // 为了能让手动模式正常预加载，需要恒定为13
-    if (bdmManualTrigger)
-        transIndex = 13;
     // is there a transmission effect going on or are
     // we in a normal rendering state?
     if (screenHandlerTarget) {
@@ -1547,9 +1544,14 @@ static void guiShow()
             screenHandler = screenHandlerTarget;
             screenHandlerTarget = NULL;
         }
-    } else
+    } else {
         // render with the set screen handler
         screenHandler->renderScreen();
+
+        // 为了能让手动模式正常预加载art，需要黑屏盖住
+        if (bdmManualTrigger)
+            rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
+    }
 }
 
 void guiIntroLoop(void)
@@ -1616,11 +1618,10 @@ void reFindBDM()
 {
     if (bdmManualTrigger) {
         if (!artLoadDelayTime) {
-            artLoadDelayTime = 120;
+            artLoadDelayTime = 60;
             //if (!gEnableUSB)
             //    artLoadDelayTime *= 1.5f;
         }
-        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
     }
     //int curLongDelayFrame = defaultDelayFrame;
     //int curShortDelayFrame = ShortDelayTime;
@@ -1728,6 +1729,8 @@ void guiMainLoop(void)
             // 启动画面的延迟期间，就要guiShow预加载art图片了
             if (greetingAlpha >= 0x00 && artLoadDelayTime)
                 guiShow();
+            else if (bdmManualTrigger && artLoadDelayTime)
+                guiShow();
             // 所有设备准备就绪，才可以结束延迟
             if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
                 //// debug  打印debug信息
@@ -1795,8 +1798,10 @@ void guiMainLoop(void)
                     guiRenderGreeting(greetingAlpha);
                 if (artLoadDelayTime <= 0) {
                     // 手动启动BDM后的变量处理
-                    if (bdmManualTrigger)
+                    if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
+                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
+                    }
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
             } else {
