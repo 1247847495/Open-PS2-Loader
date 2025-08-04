@@ -1614,6 +1614,14 @@ int artLoadDelayTime = 30;
 
 void reFindBDM()
 {
+    if (bdmManualTrigger) {
+        if (!artLoadDelayTime) {
+            artLoadDelayTime = 30;
+            //if (!gEnableUSB)
+            //    artLoadDelayTime *= 1.5f;
+        }
+        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
+    }
     //int curLongDelayFrame = defaultDelayFrame;
     //int curShortDelayFrame = ShortDelayTime;
     //// 如果百分百能找到设备，则延迟时间设到5分钟或更长
@@ -1763,14 +1771,8 @@ void guiMainLoop(void)
                     // 第一次启动，或手动启动BDM时，从全黑开始过度
                     if (greetingAlpha >= 0x00 || bdmManualTrigger) {
                         // 手动启动BDM时，重置一次art预加载时间
-                        if (bdmManualTrigger) {
-                            if (!artLoadDelayTime) {
-                                artLoadDelayTime = 30;
-                                if (!gEnableUSB)
-                                    artLoadDelayTime *= 2;
-                            }
+                        if (bdmManualTrigger)
                             BdmStarted = 1;
-                        }
                         refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
                     }
                 }
@@ -1793,10 +1795,8 @@ void guiMainLoop(void)
                     guiRenderGreeting(greetingAlpha);
                 if (artLoadDelayTime <= 0) {
                     // 手动启动BDM后的变量处理
-                    if (bdmManualTrigger) {
-                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
-                        bdmManualTrigger = 0;
-                    }
+                    if (bdmManualTrigger)
+                        bdmManualTrigger = 0; // 用于结束guishow的黑屏
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
             } else {
