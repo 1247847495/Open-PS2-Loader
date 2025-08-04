@@ -1586,6 +1586,15 @@ void guiIntroLoop(void)
                     endIntro = 1;
             }else
                 endIntro = 1;
+
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "mass0:debug-introLoop.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "introLoop is over:%d\r\n", endIntro);
+                fclose(debugFile);
+            }
         }
 
         guiDrawOverlays();
@@ -1802,6 +1811,14 @@ void guiMainLoop(void)
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
                         guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                     }
+                    // debug  打印debug信息
+                    char debugFileDir[64];
+                    strcpy(debugFileDir, "mass0:debug-introLoop.txt");
+                    FILE *debugFile = fopen(debugFileDir, "ab+");
+                    if (debugFile != NULL) {
+                        fprintf(debugFile, "boot success!\r\n\r\n");
+                        fclose(debugFile);
+                    }
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
             } else {
@@ -1811,6 +1828,8 @@ void guiMainLoop(void)
                 if (greetingAlpha >= 0x00) {
                     guiRenderGreeting(greetingAlpha);
                     greetingAlpha -= 0x04;
+                } else {
+                    sysExecExit();
                 }
             }
         } else {
