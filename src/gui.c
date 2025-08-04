@@ -1616,7 +1616,7 @@ void reFindBDM()
 {
     if (bdmManualTrigger) {
         if (!artLoadDelayTime) {
-            artLoadDelayTime = 30;
+            artLoadDelayTime = 120;
             //if (!gEnableUSB)
             //    artLoadDelayTime *= 1.5f;
         }
