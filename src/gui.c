@@ -1618,9 +1618,9 @@ void reFindBDM()
 {
     if (bdmManualTrigger) {
         if (!artLoadDelayTime) {
-            artLoadDelayTime = 40;
+            artLoadDelayTime = 50;
             if (!gEnableUSB)
-                artLoadDelayTime *= 1.8f;
+                artLoadDelayTime *= 1.5f;
         }
     }
     //int curLongDelayFrame = defaultDelayFrame;
