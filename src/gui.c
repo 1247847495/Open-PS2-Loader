@@ -1620,7 +1620,7 @@ void reFindBDM()
         if (!artLoadDelayTime) {
             artLoadDelayTime = 50;
             if (!gEnableUSB)
-                artLoadDelayTime *= 1.5f;
+                artLoadDelayTime *= 1.4f;
         }
     }
     //int curLongDelayFrame = defaultDelayFrame;
