@@ -1828,8 +1828,8 @@ void guiMainLoop(void)
                 if (greetingAlpha >= 0x00) {
                     guiRenderGreeting(greetingAlpha);
                     greetingAlpha -= 0x04;
-                } else {
-                    sysExecExit();
+                    if (greetingAlpha < 0x00)
+                        sysExecExit();
                 }
             }
         } else {
