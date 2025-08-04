@@ -1708,6 +1708,8 @@ void guiMainLoop(void)
     while (!gTerminate) {
         // 各种弹窗提示
         if (greetingAlpha < 0x00) {
+            //guiWarning("auto reset", 3);
+            sysExecExit();
             // 如果txt被创建，则弹出提示框
             if (txtFileCreated) {
                 txtFileCreated = 0; // 防止重复弹窗
