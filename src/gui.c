@@ -118,7 +118,7 @@ void guiReloadScreenExtents()
 void guiInit(void)
 {
     guiFrameId = 0;
-    guiInactiveFrames = 0;
+    guiInactiveFrames = 1;
 
     gFrameHook = NULL;
     gTerminate = 0;
@@ -734,10 +734,11 @@ reselect_video_mode:
             bgmStop();
 
         applyConfig(themeID, langID, 1);
-        sfxInit(0);
 
-        if (gEnableBGM && !isBgmPlaying())
+        if (gEnableBGM && !isBgmPlaying()) {
+            sfxInit(0);
             bgmStart();
+        }
     }
 
     if (previousVMode != gVMode) {
@@ -1503,12 +1504,12 @@ static void guiReadPads()
 // screen handlers. Fade transition code written by Maximus32
 static void guiShow()
 {
-    if (transIndex == 13)
-        fntRefreshCache(); // 刷新字模缓存
-
     // is there a transmission effect going on or are
     // we in a normal rendering state?
     if (screenHandlerTarget) {
+        if (transIndex == 13)
+            fntRefreshCache(); // 刷新字模缓存
+
         u8 alpha;
         const u8 transition_frames = 26;
         if (transIndex < (transition_frames / 2)) {
@@ -1535,6 +1536,7 @@ static void guiShow()
         //    // Advance the effect
         //    transIndex++;
         //}
+
         // Advance the effect
         transIndex++;
 
@@ -1542,14 +1544,18 @@ static void guiShow()
             screenHandler = screenHandlerTarget;
             screenHandlerTarget = NULL;
         }
-    } else
+    } else {
         // render with the set screen handler
         screenHandler->renderScreen();
+
+        // 为了能让手动模式正常预加载art，需要黑屏盖住
+        if (bdmManualTrigger)
+            rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
+    }
 }
 
 void guiIntroLoop(void)
 {
-    int greetingAlpha = 0x80;
     const int fadeFrameCount = 0x80 / 2;
     const int fadeDuration = (fadeFrameCount * 1000) / 55; // Average between 50 and 60 fps
     clock_t tFadeDelayEnd = 0;
@@ -1559,7 +1565,7 @@ void guiIntroLoop(void)
 
         //guiShow();
 
-        guiRenderGreeting(greetingAlpha);
+        guiRenderGreeting(0x80);
 
         // Initialize boot sound
         if (gInitComplete && !tFadeDelayEnd && gEnableBootSND) {
@@ -1569,10 +1575,26 @@ void guiIntroLoop(void)
             tFadeDelayEnd = clock() + (sfxGetSoundDuration(SFX_BOOT) - fadeDuration) * (CLOCKS_PER_SEC / 1000);
         }
 
-        if (gInitComplete && (clock() >= tFadeDelayEnd))
+        if (gInitComplete)
         {
             // 初始化结束时，退出循环
-            endIntro = 1;
+            if (gEnableBootSND) {
+                // 防止clock()异常时导致无限加载
+                if (clock() >= tFadeDelayEnd)
+                    endIntro = 1;
+                else if (clock() <= 0)
+                    endIntro = 1;
+            }else
+                endIntro = 1;
+
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "mass0:debug-introLoop.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "introLoop is over:%d\r\n", endIntro);
+                fclose(debugFile);
+            }
         }
 
         guiDrawOverlays();
@@ -1599,9 +1621,17 @@ int endIntroDelayFrame = 0;
 int txtFileCreated = 0;
 int txtFileRebuilded = 0;
 int bdmTimeOut = 0;
+int artLoadDelayTime = 30;
 
 void reFindBDM()
 {
+    if (bdmManualTrigger) {
+        if (!artLoadDelayTime) {
+            artLoadDelayTime = 50;
+            if (!gEnableUSB)
+                artLoadDelayTime *= 1.4f;
+        }
+    }
     //int curLongDelayFrame = defaultDelayFrame;
     //int curShortDelayFrame = ShortDelayTime;
     //// 如果百分百能找到设备，则延迟时间设到5分钟或更长
@@ -1649,7 +1679,7 @@ void guiMainLoop(void)
     int greetingAlpha = 0x80;
     endIntroDelayFrame = defaultDelayFrame;
 
-    // 所有设备准备就绪，或BDM关闭或手动模式，就没有启动延迟
+    // 所有设备准备就绪，或BDM关闭或手动模式，就给最低启动延迟，为了预加载背景图和封面
     if ((gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound))
         endIntroDelayFrame = 0;
     if (!gBDMStartMode || ((gBDMStartMode == START_MODE_MANUAL) && !BdmStarted))
@@ -1667,9 +1697,19 @@ void guiMainLoop(void)
     //// debug
     //int delayFrameCount = 0;
 
+    // 自动模式时，需要预加载art图片
+    if ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)) {
+        // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
+        if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
+            artLoadDelayTime *= 2;
+    } else
+        artLoadDelayTime = 0; // 手动模式时，不需要art预加载
+
     while (!gTerminate) {
         // 各种弹窗提示
         if (greetingAlpha < 0x00) {
+            //guiWarning("auto reset", 3);
+            sysExecExit();
             // 如果txt被创建，则弹出提示框
             if (txtFileCreated) {
                 txtFileCreated = 0; // 防止重复弹窗
@@ -1697,6 +1737,11 @@ void guiMainLoop(void)
 
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
+            // 启动画面的延迟期间，就要guiShow预加载art图片了
+            if (greetingAlpha >= 0x00 && artLoadDelayTime)
+                guiShow();
+            else if (bdmManualTrigger && artLoadDelayTime)
+                guiShow();
             // 所有设备准备就绪，才可以结束延迟
             if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
                 //// debug  打印debug信息
@@ -1739,17 +1784,14 @@ void guiMainLoop(void)
                 if (gBDMStartMode || gHDDStartMode || gETHStartMode) {
                     // 第一次启动，或手动启动BDM时，从全黑开始过度
                     if (greetingAlpha >= 0x00 || bdmManualTrigger) {
-                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13, 1);
+                        // 手动启动BDM时，重置一次art预加载时间
+                        if (bdmManualTrigger)
+                            BdmStarted = 1;
                         refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
                     }
                 }
                 mainScreenInitDone = 1;
 
-                // 手动启动BDM后的变量处理
-                if (bdmManualTrigger) {
-                    bdmManualTrigger = 0;
-                    BdmStarted = 1;
-                }
                 // BDM自动模式时，启动变量直接改为1
                 if ((gBDMStartMode == START_MODE_AUTO) && !BdmStarted)
                     BdmStarted = 1;
@@ -1760,20 +1802,42 @@ void guiMainLoop(void)
             //  handle inputs and render screen
             guiShow();
 
-            // Read the pad states to prepare for input processing in the screen handler
-            guiReadPads();
-            // 把intro界面淡出移到mainloop里，提升加载体验。
-            if (greetingAlpha >= 0x00) {
-                guiRenderGreeting(greetingAlpha);
-                greetingAlpha -= 0x04;
+            if (artLoadDelayTime > 0) {
+                artLoadDelayTime--;
+                // 启动画面的延迟期间，预加载art图片
+                if (greetingAlpha >= 0x00)
+                    guiRenderGreeting(greetingAlpha);
+                if (artLoadDelayTime <= 0) {
+                    // 手动启动BDM后的变量处理
+                    if (bdmManualTrigger) {
+                        bdmManualTrigger = 0; // 用于结束guishow的黑屏
+                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13, 1);
+                    }
+                    // debug  打印debug信息
+                    char debugFileDir[64];
+                    strcpy(debugFileDir, "mass0:debug-introLoop.txt");
+                    FILE *debugFile = fopen(debugFileDir, "ab+");
+                    if (debugFile != NULL) {
+                        fprintf(debugFile, "boot success!\r\n\r\n");
+                        fclose(debugFile);
+                    }
+                    sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
+                }
+            } else {
+                // Read the pad states to prepare for input processing in the screen handler
+                guiReadPads();
+                // 把intro界面淡出移到mainloop里，提升加载体验。
+                if (greetingAlpha >= 0x00) {
+                    guiRenderGreeting(greetingAlpha);
+                    greetingAlpha -= 0x04;
+                }
             }
         } else {
             if (greetingAlpha >= 0x00) {
                 guiRenderGreeting(greetingAlpha);
             } else {
                 // 不是启动画面时，要显示Gui。手动启动BDM时直接黑屏，盖住寻找硬盘的过程
-                if (!bdmManualTrigger)
-                    guiShow();
+                guiShow();
             }
         }
 
@@ -1822,9 +1886,6 @@ void guiSwitchScreenFadeIn(int target, int _transIndex, int _soundOn)
     }
     transIndex = _transIndex;
     screenHandlerTarget = &screenHandlers[target];
-    // 跳过音效播放，会导致bdm菜单修正失效？不知道什么鬼
-    if (_soundOn != 0)
-        sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
 }
 
 struct gui_update_t *guiOpCreate(gui_op_type_t type)
@@ -1845,9 +1906,9 @@ void guiUpdateScrollSpeed(void)
     // default delay is 7
     // fast - 80 ms
     // medium - 160 ms
-    // slow - 400 ms
-    setButtonDelay(KEY_UP, !gScrollSpeed ? 400 : (160 / gScrollSpeed)); // 0,1,2 -> 400, 160, 80
-    setButtonDelay(KEY_DOWN, !gScrollSpeed ? 400 : (160 / gScrollSpeed));
+    // slow - 600 ms
+    setButtonDelay(KEY_UP, !gScrollSpeed ? 600 : (160 / gScrollSpeed)); // 0,1,2 -> 600, 160, 80
+    setButtonDelay(KEY_DOWN, !gScrollSpeed ? 600 : (160 / gScrollSpeed));
 }
 
 void guiUpdateScreenScale(void)
