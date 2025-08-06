@@ -820,6 +820,9 @@ void bdmResolveLBA_UDMA(bdm_device_data_t *pDeviceData)
     //     // Set the UDMA mode to highest available.
     //     hddSetTransferMode(0x40, pDeviceData->ataHighestUDMAMode);
     // }
+    //// 根据全局DMA设置，来重设DMA传输模式，加快Art图片的读取速度
+    //if (gDmaMode >= 3 && gDmaMode <= 10)
+    //    hddSetTransferMode(0x40, gDmaMode - 3);
 }
 
 //static int bdmHddCheckDone = 0;
