@@ -160,6 +160,7 @@ int gSFXVolume;
 int gBootSndVolume;
 int gBGMVolume;
 char gDefaultBGMPath[128];
+int gDmaSource;
 int gCheatSource;
 int gGSMSource;
 int gPadEmuSource;

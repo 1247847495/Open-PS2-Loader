@@ -397,6 +397,8 @@ struct UIItem diaCompatConfig[] = {
 
     {UI_LABEL, 0, 1, 1, -1, -30, 0, {.label = {NULL, _STR_DMA_MODE}}},
     {UI_SPACER},
+    {UI_ENUM, COMPAT_DMASOURCE, 1, 1, -1, 0, 0, {.intvalue = {0, 0}}},
+    {UI_SPACER},
     {UI_ENUM, COMPAT_DMA, 1, 1, -1, 0, 0, {.intvalue = {0, 0}}},
     {UI_SPLITTER},
 

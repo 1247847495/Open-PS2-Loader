@@ -70,6 +70,7 @@ static char hexDiscID[15];
 static char configSource[128];
 
 // forward declarations.
+static void guiGameLoadDMAConfig(config_set_t *configSet, config_set_t *configGame);
 static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGame);
 static void guiGameLoadCheatsConfig(config_set_t *configSet, config_set_t *configGame);
 #ifdef PADEMU
@@ -953,23 +954,55 @@ void guiGameSavePadMacroGlobalConfig(config_set_t *configGame)
 }
 #endif
 
+
+// DMA
+static void guiGameSetDMASettingsState(void)
+{
+    int previousSource = gDmaSource;
+
+    diaGetInt(diaCompatConfig, COMPAT_DMASOURCE, &gDmaSource);
+
+    // update GUI to display per-game or global settings if changed
+    if (previousSource != gDmaSource && gDmaSource == SETTINGS_GLOBAL) {
+        config_set_t *configSet = gameMenuLoadConfig(diaCompatConfig);
+        configRemoveKey(configSet, CONFIG_ITEM_DMASOURCE);
+        guiGameLoadDMAConfig(configSet, configGetByType(CONFIG_GAME));
+    } else if (previousSource != gDmaSource && gDmaSource == SETTINGS_PERGAME) {
+        config_set_t *configSet = gameMenuLoadConfig(diaCompatConfig);
+        configSetInt(configSet, CONFIG_ITEM_DMASOURCE, gDmaSource);
+        guiGameLoadDMAConfig(configSet, configGetByType(CONFIG_GAME));
+    }
+
+    diaGetInt(diaCompatConfig, COMPAT_DMA, &dmaMode);
+}
+
+static int guiGameDMAUpdater(int modified)
+{
+    if (modified) {
+        guiGameSetDMASettingsState();
+    }
+
+    return 0;
+}
+
 void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configSet)
 {
-    int i;
-
+    // configure the enumerations
+    const char *settingsSource[] = {_l(_STR_GLOBAL_SETTINGS), _l(_STR_PERGAME_SETTINGS), NULL};
+    diaSetEnum(diaCompatConfig, COMPAT_DMASOURCE, settingsSource);
     if (support->flags & MODE_FLAG_COMPAT_DMA) {
         int ataHighestUDMAMode = getHighestUdmaMode();
         if (ataHighestUDMAMode == 5) {
-            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4", "UDMA 5 检测到的最高模式", "UDMA 6", "UDMA 7 极速模式", NULL};
+            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 官方最高模式", "UDMA 5 检测到的最高模式", "UDMA 6", "UDMA 7 极速模式", NULL};
             diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
         } else if (ataHighestUDMAMode == 6) {
-            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4", "UDMA 5", "UDMA 6 检测到的最高模式", "UDMA 7 极速模式", NULL};
+            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 官方最高模式", "UDMA 5", "UDMA 6 检测到的最高模式", "UDMA 7 极速模式", NULL};
             diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
         } else if (ataHighestUDMAMode == 7) {
-            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4", "UDMA 5", "UDMA 6", "UDMA 7 极速模式", NULL};
+            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 官方最高模式", "UDMA 5", "UDMA 6", "UDMA 7 检测到的最高模式", NULL};
             diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
         } else {
-            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 检测到的最高模式", "UDMA 5", "UDMA 6", "UDMA 7 极速模式", NULL};
+            const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 官方最高模式", "UDMA 5", "UDMA 6", "UDMA 7 极速模式", NULL};
             diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
         }
     } else {
@@ -977,12 +1010,10 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
         diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
     }
 
-
-
-    int result = diaExecuteDialog(diaCompatConfig, -1, 1, NULL);
+    int result = diaExecuteDialog(diaCompatConfig, -1, 1, &guiGameDMAUpdater);
     if (result) {
         compatMode = 0;
-        for (i = 0; i < COMPAT_MODE_COUNT; ++i) {
+        for (int i = 0; i < COMPAT_MODE_COUNT; ++i) {
             int mdpart;
             diaGetInt(diaCompatConfig, COMPAT_MODE_BASE + i, &mdpart);
             compatMode |= (mdpart ? 1 : 0) << i;
@@ -1018,16 +1049,20 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
         compatMode |= (mdpart ? 1 : 0) << i;
     }
 
+    /// DMA ///
     if (support->flags & MODE_FLAG_COMPAT_DMA) {
+        diaGetInt(diaCompatConfig, COMPAT_DMASOURCE, &gDmaSource);
         diaGetInt(diaCompatConfig, COMPAT_DMA, &dmaMode);
 
-        //// 将默认UDMA模式设为最高UDMA模式+1
-        //if (dmaMode != (getHighestUdmaMode() + 1 + 3))
-        //  将默认UDMA模式设为UDMA 7
-        if (dmaMode != 10)
-            result = configSetInt(configSet, CONFIG_ITEM_DMA, dmaMode);
-        else
-            configRemoveKey(configSet, CONFIG_ITEM_DMA);
+        if (gDmaSource == SETTINGS_PERGAME) {
+            result = configSetInt(configSet, CONFIG_ITEM_DMASOURCE, gDmaSource);
+            //  将默认UDMA模式设为UDMA 4
+            if (dmaMode != 4 + 3)
+                result = configSetInt(configSet, CONFIG_ITEM_DMA, dmaMode);
+            else
+                configRemoveKey(configSet, CONFIG_ITEM_DMA);
+        } else if (gDmaSource == SETTINGS_GLOBAL)
+            configSetInt(configGame, CONFIG_ITEM_DMA, dmaMode);
     }
 
     if (compatMode != 0)
@@ -1036,6 +1071,7 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
         configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
 
     /// GSM ///
+    diaGetInt(diaGSConfig, GSMCFG_GSMSOURCE, &gGSMSource);
     diaGetInt(diaGSConfig, GSMCFG_ENABLEGSM, &EnableGSM);
     diaGetInt(diaGSConfig, GSMCFG_GSMVMODE, &GSMVMode);
     diaGetInt(diaGSConfig, GSMCFG_GSMXOFFSET, &GSMXOffset);
@@ -1128,6 +1164,9 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
 void guiGameRemoveGlobalSettings(config_set_t *configGame)
 {
     if (menuCheckParentalLock() == 0) {
+        // DMA
+        configRemoveKey(configGame, CONFIG_ITEM_DMA);
+
         // Cheats
         configRemoveKey(configGame, CONFIG_ITEM_ENABLECHEAT);
         configRemoveKey(configGame, CONFIG_ITEM_CHEATMODE);
@@ -1162,6 +1201,9 @@ void guiGameRemoveSettings(config_set_t *configSet)
         configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
         configRemoveKey(configSet, CONFIG_ITEM_DNAS);
         configRemoveKey(configSet, CONFIG_ITEM_ALTSTARTUP);
+
+        // DMA
+        configRemoveKey(configSet, CONFIG_ITEM_DMASOURCE);
 
         // GSM
         configRemoveKey(configSet, CONFIG_ITEM_GSMSOURCE);
@@ -1203,6 +1245,32 @@ void guiGameTestSettings(int id, item_list_t *support, config_set_t *configSet)
 {
     guiGameSaveConfig(configSet, support);
     support->itemLaunch(support, id, configSet);
+}
+
+static void guiGameLoadDMAConfig(config_set_t* configSet, config_set_t* configGame)
+{
+    // set global settings.
+    gDmaSource = 0;
+
+    //   将默认UDMA模式设为UDMA 4
+    dmaMode = 4 + 3;
+
+    if (support->flags & MODE_FLAG_COMPAT_DMA) {
+        configGetInt(configGame, CONFIG_ITEM_DMA, &dmaMode)
+
+        // override global with per-game settings if available and selected.
+        configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
+        if (gDmaSource == SETTINGS_PERGAME) {
+            if (!configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode))
+                dmaMode = 4 + 3;
+        }
+
+        // set gui settings.
+        diaSetInt(diaCompatConfig, COMPAT_DMASOURCE, gDmaSource);
+        diaSetInt(diaCompatConfig, COMPAT_DMA, dmaMode);
+    } else
+        diaSetInt(diaCompatConfig, COMPAT_DMA, 0);
+
 }
 
 static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGame)
@@ -1467,7 +1535,6 @@ static void guiGameLoadOSDLanguageConfig(config_set_t *configSet, config_set_t *
 // loads defaults if no config found
 void guiGameLoadConfig(item_list_t *support, config_set_t *configSet)
 {
-    int i;
     config_set_t *configGame = configGetByType(CONFIG_GAME);
 
     configSource[0] = '\0';
@@ -1478,21 +1545,11 @@ void guiGameLoadConfig(item_list_t *support, config_set_t *configSet)
     else if (configSourceID == CONFIG_SOURCE_DLOAD)
         snprintf(configSource, sizeof(configSource), _l(_STR_DOWNLOADED_DEFAULTS));
 
-    //// 将默认UDMA模式设为最高UDMA模式+1
-    //dmaMode = getHighestUdmaMode() + 1 + 3; // defaulting to HighestUdmaMode
-    //  将默认UDMA模式设为UDMA 7
-    dmaMode = 10;
-    
-    if (support->flags & MODE_FLAG_COMPAT_DMA) {
-        configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
-        diaSetInt(diaCompatConfig, COMPAT_DMA, dmaMode);
-    }
-    else
-        diaSetInt(diaCompatConfig, COMPAT_DMA, 0);
+    guiGameLoadDMAConfig(configSet, configGame);
 
     compatMode = 0;
     configGetInt(configSet, CONFIG_ITEM_COMPAT, &compatMode);
-    for (i = 0; i < COMPAT_MODE_COUNT; ++i)
+    for (int i = 0; i < COMPAT_MODE_COUNT; ++i)
         diaSetInt(diaCompatConfig, COMPAT_MODE_BASE + i, (compatMode & (1 << i)) > 0 ? 1 : 0);
 
     guiGameLoadGSMConfig(configSet, configGame);
