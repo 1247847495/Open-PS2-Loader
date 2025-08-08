@@ -52,7 +52,7 @@ gui_strings:
 - label: SHOW_ADVANCED_OPTS
   string: 进阶设置
 - label: NO_ITEMS
-  string: <无数值>
+  string: <不可用>
 - label: SETTINGS_SAVED
   string: 设置已保存到%s
 - label: ERROR_SAVING_SETTINGS
@@ -417,7 +417,7 @@ gui_strings:
 - label: DL_DEFAULTS
   string: 下载默认值
 - label: NET_UPDATE
-  string: 网络更新
+  string: 下载游戏设置
 - label: NET_UPDATE_ALL
   string: 覆盖现有记录
 - label: NET_UPDATE_FAILED
