@@ -1007,6 +1007,7 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
         }
     } else {
         const char *dmaModes[] = {NULL};
+        diaSetEnum(diaCompatConfig, COMPAT_DMASOURCE, dmaModes);
         diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
     }
 

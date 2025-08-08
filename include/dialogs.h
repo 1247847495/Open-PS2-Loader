@@ -9,6 +9,7 @@ enum UI_ITEMS {
 
     UICFG_THEME = 10,
     UICFG_LANG,
+    UICFG_TXTRENAME,
     UICFG_SCROLL,
     UICFG_BGCOL,
     UICFG_UICOL,
@@ -196,7 +197,6 @@ enum UI_ITEMS {
 #else
     COMPAT_MODE_BASE = 200,
 #endif
-    UICFG_TXTRENAME,
 };
 
 #define COMPAT_NOEXIT       0x70000000
