@@ -1249,28 +1249,23 @@ void guiGameTestSettings(int id, item_list_t *support, config_set_t *configSet)
 
 static void guiGameLoadDMAConfig(config_set_t* configSet, config_set_t* configGame)
 {
-    // set global settings.
-    gDmaSource = 0;
-
     //   将默认UDMA模式设为UDMA 4
     dmaMode = 4 + 3;
 
-    if (support->flags & MODE_FLAG_COMPAT_DMA) {
-        configGetInt(configGame, CONFIG_ITEM_DMA, &dmaMode)
+    // set global settings.
+    gDmaSource = 0;
+    configGetInt(configGame, CONFIG_ITEM_DMA, &dmaMode);
 
-        // override global with per-game settings if available and selected.
-        configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
-        if (gDmaSource == SETTINGS_PERGAME) {
-            if (!configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode))
-                dmaMode = 4 + 3;
-        }
+    // override global with per-game settings if available and selected.
+    configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
+    if (gDmaSource == SETTINGS_PERGAME) {
+        if (!configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode))
+            dmaMode = 4 + 3;
+    }
 
-        // set gui settings.
-        diaSetInt(diaCompatConfig, COMPAT_DMASOURCE, gDmaSource);
-        diaSetInt(diaCompatConfig, COMPAT_DMA, dmaMode);
-    } else
-        diaSetInt(diaCompatConfig, COMPAT_DMA, 0);
-
+    // set gui settings.
+    diaSetInt(diaCompatConfig, COMPAT_DMASOURCE, gDmaSource);
+    diaSetInt(diaCompatConfig, COMPAT_DMA, dmaMode);
 }
 
 static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGame)
@@ -1545,7 +1540,10 @@ void guiGameLoadConfig(item_list_t *support, config_set_t *configSet)
     else if (configSourceID == CONFIG_SOURCE_DLOAD)
         snprintf(configSource, sizeof(configSource), _l(_STR_DOWNLOADED_DEFAULTS));
 
-    guiGameLoadDMAConfig(configSet, configGame);
+    if (support->flags & MODE_FLAG_COMPAT_DMA) {
+        guiGameLoadDMAConfig(configSet, configGame);
+    } else
+        diaSetInt(diaCompatConfig, COMPAT_DMA, 0);
 
     compatMode = 0;
     configGetInt(configSet, CONFIG_ITEM_COMPAT, &compatMode);
