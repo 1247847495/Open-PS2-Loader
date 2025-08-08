@@ -978,7 +978,7 @@ static void guiGameSetDMASettingsState(void)
 
 static int guiGameDMAUpdater(int modified)
 {
-    if (true) {
+    if (modified) {
         guiGameSetDMASettingsState();
     }
 
