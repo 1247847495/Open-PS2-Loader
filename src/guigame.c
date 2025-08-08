@@ -988,9 +988,9 @@ static int guiGameDMAUpdater(int modified)
 void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configSet)
 {
     // configure the enumerations
-    const char *settingsSource[] = {_l(_STR_GLOBAL_SETTINGS), _l(_STR_PERGAME_SETTINGS), NULL};
-    diaSetEnum(diaCompatConfig, COMPAT_DMASOURCE, settingsSource);
     if (support->flags & MODE_FLAG_COMPAT_DMA) {
+        const char *settingsSource[] = {_l(_STR_GLOBAL_SETTINGS), _l(_STR_PERGAME_SETTINGS), NULL};
+        diaSetEnum(diaCompatConfig, COMPAT_DMASOURCE, settingsSource);
         int ataHighestUDMAMode = getHighestUdmaMode();
         if (ataHighestUDMAMode == 5) {
             const char *dmaModes[] = {"MDMA 0", "MDMA 1", "MDMA 2", "UDMA 0", "UDMA 1", "UDMA 2", "UDMA 3", "UDMA 4 官方最高模式", "UDMA 5 检测到的最高模式", "UDMA 6", "UDMA 7 极速模式", NULL};
