@@ -1050,6 +1050,11 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
         compatMode |= (mdpart ? 1 : 0) << i;
     }
 
+    if (compatMode != 0)
+        result = configSetInt(configSet, CONFIG_ITEM_COMPAT, compatMode);
+    else
+        configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
+
     /// DMA ///
     if (true) {
         diaGetInt(diaCompatConfig, COMPAT_DMASOURCE, &gDmaSource);
@@ -1057,19 +1062,14 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
 
         if (gDmaSource == SETTINGS_PERGAME) {
             result = configSetInt(configSet, CONFIG_ITEM_DMASOURCE, gDmaSource);
-            //  将默认UDMA模式设为UDMA 4
-            if (dmaMode != 4 + 3)
+            //  将默认UDMA模式设为UDMA 4（dmaMode值为7）
+            if (dmaMode != 7)
                 result = configSetInt(configSet, CONFIG_ITEM_DMA, dmaMode);
             else
                 configRemoveKey(configSet, CONFIG_ITEM_DMA);
         } else if (gDmaSource == SETTINGS_GLOBAL)
             configSetInt(configGame, CONFIG_ITEM_DMA, dmaMode);
     }
-
-    if (compatMode != 0)
-        result = configSetInt(configSet, CONFIG_ITEM_COMPAT, compatMode);
-    else
-        configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
 
     /// GSM ///
     diaGetInt(diaGSConfig, GSMCFG_GSMSOURCE, &gGSMSource);
@@ -1250,8 +1250,8 @@ void guiGameTestSettings(int id, item_list_t *support, config_set_t *configSet)
 
 static void guiGameLoadDMAConfig(config_set_t* configSet, config_set_t* configGame)
 {
-    //   将默认UDMA模式设为UDMA 4
-    dmaMode = 4 + 3;
+    // 将默认UDMA模式设为UDMA 4（dmaMode值为7）
+    dmaMode = 7;
 
     // set global settings.
     gDmaSource = 0;
@@ -1261,7 +1261,7 @@ static void guiGameLoadDMAConfig(config_set_t* configSet, config_set_t* configGa
     configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
     if (gDmaSource == SETTINGS_PERGAME) {
         if (!configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode))
-            dmaMode = 4 + 3;
+            dmaMode = 7;
     }
 
     // set gui settings.
