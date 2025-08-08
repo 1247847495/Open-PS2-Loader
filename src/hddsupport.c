@@ -337,6 +337,14 @@ void hddLoadSupportModules(void)
         configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &gDmaMode);
         if (gDmaMode >= 3 && gDmaMode <= 10)
             hddSetTransferMode(0x40, gDmaMode - 3);
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "HDD传输模式校准为UDMA %d\r\n", gDmaMode - 3);
+            fclose(debugFile);
+        }
     }
 }
 
@@ -528,15 +536,12 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     char gid[5];
     configGetDiscIDBinary(configSet, gid);
 
-    // Query the drive for the highest UDMA mode.
-    int ataHighestUDMAMode = fileXioDevctl("xhdd0:", ATA_DEVCTL_GET_HIGHEST_UDMA_MODE, NULL, 0, NULL, 0);
-    if (ataHighestUDMAMode < 0 || ataHighestUDMAMode > 7)
-        ataHighestUDMAMode = 4;
-
-    // 默认为7，理论上没问题，除非兼容性太烂
-    int dmaType = 0x40, dmaMode = 10, compatMode = 0;
-    configGetInt(configSet, CONFIG_ITEM_COMPAT, &compatMode);
-    configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
+    int dmaType = 0x40, dmaMode = 7; // 默认为UDMA 4，与官方一致
+    configGetInt(configSet, COMPAT_DMASOURCE, &gDmaSource);
+    if (gDmaSource == SETTINGS_GLOBAL)
+        configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &dmaMode);
+    else
+        configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
 
     // Set DMA mode and spindown time.
     if (dmaMode < 3)
@@ -544,15 +549,14 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     else
         dmaMode -= 3;
 
-    //// debug  打印debug信息，找到gpt信息
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "mass0:debug-UDMA.txt");
-    //// sprintf(debugFileDir, "%sdebug.txt", prefix);
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "游戏以UDMA %d模式启动了！\r\n\r\n", dmaMode);
-    //    fclose(debugFile);
-    //}
+    // debug
+    char debugFileDir[64];
+    strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "游戏以UDMA %d模式启动了！\r\n\r\n", dmaMode);
+        fclose(debugFile);
+    }
 
     hddSetTransferMode(dmaType, dmaMode);
     // gHDDSpindown [0..20] -> spindown [0..240] -> seconds [0..1200]
