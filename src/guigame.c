@@ -1031,8 +1031,15 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
             guiShowNetCompatUpdateSingle(id, support, configSet);
 
         diaGetInt(diaCompatConfig, COMPAT_DMA, &dmaMode);
+        diaGetInt(diaCompatConfig, COMPAT_DMASOURCE, &gDmaSource);
         diaGetString(diaCompatConfig, COMPAT_GAMEID, hexid, sizeof(hexid));
         diaGetString(diaCompatConfig, COMPAT_ALTSTARTUP, altStartup, sizeof(altStartup));
+
+        // 根据全局DMA设置，来重设DMA传输模式，加快Art图片的读取速度
+        if (support->flags & MODE_FLAG_COMPAT_DMA) {
+            if (gDmaSource == SETTINGS_GLOBAL && dmaMode >= 3 && dmaMode <= 10)
+                hddSetTransferMode(0x40, dmaMode - 3);
+        }
     }
 }
 
