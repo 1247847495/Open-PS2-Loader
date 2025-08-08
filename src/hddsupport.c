@@ -537,8 +537,8 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     configGetDiscIDBinary(configSet, gid);
 
     int dmaType = 0x40, dmaMode = 7; // 默认为UDMA 4，与官方一致
-    configGetInt(configSet, COMPAT_DMASOURCE, &gDmaSource);
-    if (gDmaSource == SETTINGS_GLOBAL)
+    configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
+    if (gDmaSource == 0)
         configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &dmaMode);
     else
         configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
