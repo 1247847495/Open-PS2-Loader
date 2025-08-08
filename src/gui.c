@@ -574,7 +574,7 @@ reConfig:
             guiShowBlockDeviceConfig();
 
             // 反回上个界面，并选中块设备
-            UiId = 51;       // 块设备的uiid
+            UiId = BLOCKDEVICE_BUTTON; // 块设备的uiid
             goto reConfig;
         } else {
             applyConfig(-1, -1, 0);
