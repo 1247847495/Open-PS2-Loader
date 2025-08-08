@@ -1252,15 +1252,16 @@ static void guiGameLoadDMAConfig(config_set_t* configSet, config_set_t* configGa
 {
     // 将默认UDMA模式设为UDMA 4（dmaMode值为7）
     dmaMode = 7;
-
-    // set global settings.
     gDmaSource = 0;
-    configGetInt(configGame, CONFIG_ITEM_DMA, &dmaMode);
 
-    // override global with per-game settings if available and selected.
     configGetInt(configSet, CONFIG_ITEM_DMASOURCE, &gDmaSource);
+    // set per-game settings.
     if (gDmaSource == SETTINGS_PERGAME) {
         if (!configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode))
+            dmaMode = 7;
+    } else {
+        // set global settings.
+        if (!configGetInt(configGame, CONFIG_ITEM_DMA, &dmaMode))
             dmaMode = 7;
     }
 
