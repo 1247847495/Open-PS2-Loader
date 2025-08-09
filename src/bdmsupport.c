@@ -834,7 +834,7 @@ void bdmResolveLBA_UDMA(bdm_device_data_t *pDeviceData)
     strcpy(debugFileDir, "mass0:debug-UDMA.txt");
     FILE *debugFile = fopen(debugFileDir, "ab+");
     if (debugFile != NULL) {
-        fprintf(debugFile, "HDD传输模式校准为UDMA %d\r\n", gDmaMode - 3);
+        fprintf(debugFile, "BDMHDD启动时：传输模式校准为UDMA %d\r\n", gDmaMode - 3);
         fclose(debugFile);
     }
 }

@@ -1040,6 +1040,14 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
             if (gDmaSource == SETTINGS_GLOBAL && dmaMode >= 3 && dmaMode <= 10)
                 hddSetTransferMode(0x40, dmaMode - 3);
         }
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "修改DMA模式时：传输模式校准为UDMA %d\r\n", dmaMode - 3);
+            fclose(debugFile);
+        }
     }
 }
 
