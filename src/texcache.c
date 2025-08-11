@@ -265,7 +265,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (skipQr) {
-        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         return prevCache;
     }
 
@@ -312,6 +311,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
-    guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
     return prevCache;
 }
