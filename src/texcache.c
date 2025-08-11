@@ -134,8 +134,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceRefreshPrevTexCache = 0;
 
     // 已经完成一轮Qr
-    if (artQrCount && (prevGuiFrameId != guiFrameId))
+    if (artQrCount && (prevGuiFrameId != guiFrameId)) {
         artQrDone = 1;
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
+    }
 
     if (artQrDone) {
         // Qr之后会CD一段时间，才能再次Qr
@@ -308,7 +310,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fprintf(debugFile, "guiFrameId:%d  ArtCount:%d\r\n", guiFrameId, artQrCount);
         //    fclose(debugFile);
         //}
-        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
     }
     return prevCache;
 }
