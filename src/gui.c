@@ -1492,7 +1492,7 @@ static void guiDrawOverlays()
     //     fntRenderString(gTheme->fonts[0], 0, screenHeight - 24, ALIGN_NONE, 0, 0, blurttext, GS_SETREG_RGBA(255, 255, 0, 128));
 }
 
-void guiReadPads()
+static void guiReadPads()
 {
     if (readPads())
         guiInactiveFrames = 0;

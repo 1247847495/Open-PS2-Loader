@@ -69,7 +69,6 @@ extern int txtFileRebuilded;
 
 void guiSwitchScreen(int target);
 void guiSwitchScreenFadeIn(int target, int _transIndex);
-void guiReadPads();
 
 void guiReloadScreenExtents();
 
