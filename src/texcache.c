@@ -229,7 +229,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         } else if (!strncmp("BG", cache->suffix, 2)) {
             PrevCacheID_BG = *cacheId;
         }
-        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
