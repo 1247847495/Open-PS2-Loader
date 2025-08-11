@@ -234,6 +234,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
+                guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
                 return prevCache;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
@@ -265,6 +266,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (skipQr) {
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         return prevCache;
     }
 
