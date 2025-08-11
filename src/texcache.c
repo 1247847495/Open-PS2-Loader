@@ -301,7 +301,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         prevGuiFrameId = guiFrameId;
         artQrCount++;
 
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         ioPutRequest(IO_CACHE_LOAD_ART, req);
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         //// debug  打印debug信息
         //char debugFileDir[64];
         //strcpy(debugFileDir, "smb:debug-TexCache.txt");
@@ -311,5 +313,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
+    guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
     return prevCache;
 }
