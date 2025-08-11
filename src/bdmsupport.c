@@ -844,8 +844,6 @@ void bdmResolveLBA_UDMA(bdm_device_data_t *pDeviceData)
 //static int bdmHddRetryCount = 0;
 int bdmUpdateDeviceData(item_list_t *itemList)
 {
-    char path[16] = {0};
-
     // If bdm mode is disabled bail out as we don't want to update the visibility state of the device pages.
     if (gBDMStartMode == START_MODE_DISABLED)
         return 0;
@@ -857,6 +855,7 @@ int bdmUpdateDeviceData(item_list_t *itemList)
     int visible = itemList->owner != NULL ? ((opl_io_module_t *)itemList->owner)->menuItem.visible : 0;
 
     // Format the device path and try to open the device.
+    char path[16] = {0};
     sprintf(path, "mass%d:/", itemList->mode);
     int dir = fileXioDopen(path);
     // LOG("opendir %s -> %d\n", path, dir);
