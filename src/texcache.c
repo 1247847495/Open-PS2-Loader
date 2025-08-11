@@ -134,10 +134,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceRefreshPrevTexCache = 0;
 
     // 已经完成一轮Qr
-    if (artQrCount && (prevGuiFrameId != guiFrameId)) {
+    if (artQrCount && (prevGuiFrameId != guiFrameId))
         artQrDone = 1;
-        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
-    }
 
     if (artQrDone) {
         // Qr之后会CD一段时间，才能再次Qr
@@ -231,11 +229,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         } else if (!strncmp("BG", cache->suffix, 2)) {
             PrevCacheID_BG = *cacheId;
         }
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
+                guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
                 return prevCache;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
@@ -247,6 +247,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 } else if (!strncmp("BG", cache->suffix, 2)) {
                     PrevCacheID_BG = *cacheId;
                 }
+                guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
                 return NULL;
             } else {
                 entry->lastUsed = guiFrameId;
@@ -258,6 +259,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 } else if (!strncmp("BG", cache->suffix, 2)) {
                     PrevCacheID_BG = *cacheId;
                 }
+                guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
                 return &entry->texture;
             }
         }
@@ -265,8 +267,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr)
+    if (skipQr) {
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         return prevCache;
+    }
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i, rtime = guiFrameId;
@@ -301,6 +305,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         prevGuiFrameId = guiFrameId;
         artQrCount++;
 
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
         ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
