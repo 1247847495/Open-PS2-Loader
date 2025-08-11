@@ -130,7 +130,6 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
         ForceRefreshPrevTexCache = 0;
 
@@ -309,6 +308,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fprintf(debugFile, "guiFrameId:%d  ArtCount:%d\r\n", guiFrameId, artQrCount);
         //    fclose(debugFile);
         //}
+        guiReadPads(); // 尝试解决加载图片时导致光标跳两次的问题
     }
     return prevCache;
 }
