@@ -575,33 +575,20 @@ int texLoadInternal(GSTEXTURE *texture, int texId)
 
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 {
-    return ERR_BAD_FILE;
     char filePath[256];
 
     LOG("texDiscoverLoad(%s)\n", path);
 
     if (texId != -1)
-        snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "png");
+        snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
     else
-        snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
+        snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-    int fd = open(filePath, O_RDONLY);
+    fd = open(filePath, O_RDONLY);
     if (fd > 0) {
         // File found, load it
         close(fd);
-        return (texLoad(texture, filePath) >= 0) ? 0 : ERR_BAD_FILE;
-    } else {
-        if (texId != -1)
-            snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
-        else
-            snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
-
-        fd = open(filePath, O_RDONLY);
-        if (fd > 0) {
-            // File found, load it
-            close(fd);
-            return (texJpgLoad(texture, filePath) >= 0) ? 0 : ERR_BAD_FILE;
-        }
+        return (texJpgLoad(texture, filePath) >= 0) ? 0 : ERR_BAD_FILE;
     }
 
     return ERR_BAD_FILE;
