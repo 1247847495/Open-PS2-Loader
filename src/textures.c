@@ -4,6 +4,7 @@
 #include "include/ioman.h"
 #include <png.h>
 #include <libjpg_ps2_addons.h>
+#include <timer.h>
 #include "include/pad.h"
 
 extern void *load0_png;
