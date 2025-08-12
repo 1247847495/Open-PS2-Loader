@@ -333,7 +333,7 @@ int readPads()
     oldpaddata = paddata;
     paddata = 0;
 
-    // in ms.  searchTexTime不能算按作按住按键的时间，所以要进行修正
+    // in ms.  searchTexTime不能算作按住按键的时间，所以要进行修正
     u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - searchTexTime;
     time_since_last = newtime - curtime;
     curtime = newtime + searchTexTime;
