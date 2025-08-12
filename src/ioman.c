@@ -210,8 +210,7 @@ int ioPutRequest(int type, void *data)
     if (!ioGetHandler(type))
         return IO_ERR_INVALID_HANDLER;
 
-    if (type != IO_CACHE_LOAD_ART)
-        WaitSema(gEndSemaId);
+    WaitSema(gEndSemaId);
 
     // We don't have to lock the tip of the queue...
     // If it exists, it won't be touched, if it does not exist, it is not being processed
@@ -231,8 +230,7 @@ int ioPutRequest(int type, void *data)
     req->type = type;
     req->data = data;
 
-    if (type != IO_CACHE_LOAD_ART)
-        SignalSema(gEndSemaId);
+    SignalSema(gEndSemaId);
 
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
     WakeupThread(gIOThreadId);
