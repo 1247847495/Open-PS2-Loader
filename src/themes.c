@@ -1182,8 +1182,8 @@ static int thmLoadResource(GSTEXTURE *texture, int texId, const char *themePath,
 {
     int success = -1;
 
-    //if (themePath != NULL)
-    //    success = texDiscoverLoad(texture, themePath, texId); // only set success here
+    if (themePath != NULL)
+        success = texDiscoverLoad(texture, themePath, texId); // only set success here
 
     if ((success < 0) && useDefault)
         texLoadInternal(texture, texId); // we don't mind the result of "default"
