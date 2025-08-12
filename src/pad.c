@@ -334,9 +334,9 @@ int readPads()
     paddata = 0;
 
     // in ms.
-    u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
-    time_since_last = newtime - curtime > searchTexTime ? newtime - curtime - searchTexTime : 0;
-    curtime = newtime;
+    u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - searchTexTime;
+    time_since_last = newtime - curtime;
+    curtime = newtime + searchTexTime;
     searchTexTime = 0; // 重置图片搜索时间
 
     int rslt = 0;
