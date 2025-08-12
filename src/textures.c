@@ -584,7 +584,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     else
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-    int fd = open(filePath, O_RDONLY);
+    int fd = -2;
     // debug
     char debugFileDir[64];
     strcpy(debugFileDir, "mass0:debug-texload.txt");
