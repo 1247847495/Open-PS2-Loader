@@ -1019,13 +1019,9 @@ void menuHandleInputMain()
     } else if (getKey(KEY_RIGHT)) {
         menuNextH();
     } else if (getKey(KEY_UP)) {
-        // so the exit press wont propagate twice
-        readPads();
         menuPrevV();
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
-        // so the exit press wont propagate twice
-        readPads();
     } else if (getKeyOn(KEY_CROSS)) {
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
