@@ -19,6 +19,8 @@
 #define KEY_L1       14
 #define KEY_R2       15
 #define KEY_L2       16
+// gettimer给出的时间除以这个，换算成毫秒
+#define CLOCKS_PER_MILISEC 147456
 
 int startPads();
 int readPads();
@@ -44,5 +46,7 @@ void padStoreSettings(int *buffer);
 
 /** Restore's the button delay from specified integer array (has to have 16 items) */
 void padRestoreSettings(int *buffer);
+
+extern u64 searchTexTime; // 搜索art图片的时间
 
 #endif

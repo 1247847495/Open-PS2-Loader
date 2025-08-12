@@ -18,9 +18,6 @@
 
 #define MAX_PADS 1
 
-// gettimer给出的时间除以这个，换算成毫秒
-#define CLOCKS_PER_MILISEC 147456
-
 // 160 ms per repeat
 #define DEFAULT_PAD_DELAY 160
 
@@ -42,6 +39,9 @@ struct pad_data_t
     char actAlign[6];
     int actuators;
 };
+
+// 搜索图片时的卡顿时间
+u64 searchTexTime = 0;
 
 /// current time in miliseconds (last update time)
 static u64 curtime = 0;
@@ -335,8 +335,9 @@ int readPads()
 
     // in ms.
     u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
-    time_since_last = newtime - curtime;
+    time_since_last = newtime - curtime > searchTexTime ? newtime - curtime - searchTexTime : 0;
     curtime = newtime;
+    searchTexTime = 0; // 重置图片搜索时间
 
     int rslt = 0;
 
