@@ -575,6 +575,7 @@ int texLoadInternal(GSTEXTURE *texture, int texId)
 
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 {
+    return ERR_BAD_FILE;
     char filePath[256];
 
     LOG("texDiscoverLoad(%s)\n", path);
