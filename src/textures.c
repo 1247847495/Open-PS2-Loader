@@ -584,18 +584,10 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     else
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-    int fd = -2;
-    // debug
-    char debugFileDir[64];
-    strcpy(debugFileDir, "mass0:debug-texload.txt");
-    FILE *debugFile = fopen(debugFileDir, "ab+");
-    if (debugFile != NULL) {
-        fprintf(debugFile, "path:%s   dir:%d\r\n", filePath, fd);
-        fclose(debugFile);
-    }
-    if (fd > 0) {
+    FILE *fd = fopen(filePath, "rb");
+    if (fd) {
         // File found, load it
-        close(fd);
+        fclose(fd);
         return (texJpgLoad(texture, filePath) >= 0) ? 0 : ERR_BAD_FILE;
     }
 
