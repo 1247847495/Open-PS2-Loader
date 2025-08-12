@@ -5,6 +5,7 @@
 #include "include/gui.h"
 #include "include/util.h"
 #include "include/renderman.h"
+#include "include/pad.h"
 
 int ForceRefreshPrevTexCache = 0;
 int PrevCacheID_COV = -2;
@@ -234,6 +235,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
+                readPads();
                 return prevCache;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
