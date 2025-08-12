@@ -584,10 +584,8 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     else
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-    FILE *fd = fopen(filePath, "rb");
-    if (fd) {
+    if (access(filePath, F_OK) == 0) {
         // File found, load it
-        fclose(fd);
         return (texJpgLoad(texture, filePath) >= 0) ? 0 : ERR_BAD_FILE;
     }
 
