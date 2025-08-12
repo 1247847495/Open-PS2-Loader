@@ -584,7 +584,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     else
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-    fd = open(filePath, O_RDONLY);
+    int fd = open(filePath, O_RDONLY);
     if (fd > 0) {
         // File found, load it
         close(fd);
