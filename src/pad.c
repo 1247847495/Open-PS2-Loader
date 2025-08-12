@@ -433,7 +433,7 @@ int getKeyPressed(int id)
     // old v.s. new pad data
     int keyid = keyToPad[id];
 
-    return (paddata & keyid);
+    return (paddata & keyid) && (oldpaddata & keyid);
 }
 
 /** Sets the delay to wait for button repetition event to occur.
