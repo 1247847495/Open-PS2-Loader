@@ -686,7 +686,7 @@ void guiShowUIConfig(void)
     int previousVMode;
     int previousTheme;
 
-    const char *coverArtMode[] = {"性能模式(PNG)", "兼容模式(JPG & PNG)", NULL};
+    const char *coverArtMode[] = {"性能模式(仅支持PNG)", "兼容模式(JPG & PNG)", NULL};
 
 reselect_video_mode:
     previousVMode = gVMode;
