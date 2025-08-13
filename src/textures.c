@@ -105,6 +105,9 @@ extern void *apps_case_png;
 // Not related to screen size, just to limit at some point
 static int maxSize = 720 * 512 * 4;
 
+// 用来计算搜索图片的消耗时间
+static u64 beforeTime = 0;
+
 typedef struct
 {
     int id;
@@ -581,31 +584,37 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 
     LOG("texDiscoverLoad(%s)\n", path);
 
-    if (texId != -1)
+    if (texId != -1) {
         snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "png");
-    else
-        snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
-
-    // 开始搜索图片，记录时间
-    u64 beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
-    if (access(filePath, F_OK) == 0) {
-        if (texId == -1)
-            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-        // File found, load it
-        return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-    } else if (gEnableJpg) {
-        if (texId != -1)
+        if (access(filePath, F_OK) == 0) {
+            // File found, load it
+            return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
+        } else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
-        else
+
+            if (access(filePath, F_OK) == 0) {
+                // File found, load it
+                return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
+            }
+        }
+    } else {
+        snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
+        // 开始搜索图片，记录时间
+        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
+        if (access(filePath, F_OK) == 0) {
+            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+            // File found, load it
+            return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
+        } else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
-        if (access(filePath, F_OK) == 0) {
-            if (texId == -1)
+            if (access(filePath, F_OK) == 0) {
                 searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-            // File found, load it
-            return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
+                // File found, load it
+                return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
+            }
         }
+        searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
     }
-    searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
     return ERR_BAD_FILE;
 }
