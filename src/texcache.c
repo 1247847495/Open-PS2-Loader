@@ -5,6 +5,7 @@
 #include "include/gui.h"
 #include "include/util.h"
 #include "include/renderman.h"
+#include "include/pad.h"
 
 int ForceRefreshPrevTexCache = 0;
 int PrevCacheID_COV = -2;
