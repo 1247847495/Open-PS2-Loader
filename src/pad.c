@@ -43,6 +43,9 @@ struct pad_data_t
 // 搜索图片时的卡顿时间
 u64 searchTexTime = 0;
 
+// 是否正在自动重复按键
+int isRepeating = 0;
+
 /// current time in miliseconds (last update time)
 static u64 curtime = 0;
 static u64 time_since_last = 0;
@@ -356,8 +359,10 @@ int readPads()
             //    fclose(debugFile);
             //}
             delaycnt[i] -= time_since_last;
-        } else
+        } else {
             delaycnt[i] = getKeyDelay(i + 1, 0);
+            isRepeating = 0;
+        }
     }
     return rslt;
 }
@@ -382,11 +387,14 @@ int getKey(int id)
         return 1;
     }
 
-    if (!getKeyPressed(id))
+    if (!getKeyPressed(id)) {
+        isRepeating = 0;
         return 0;
+    }
 
     if (delaycnt[kid] <= 0) {
         delaycnt[kid] = getKeyDelay(id, 1);
+        isRepeating = 1;
         KeyPressedOnce = 1;
         DisableCron = 1;
         return 1;
@@ -422,6 +430,7 @@ int getKeyOff(int id)
     // old v.s. new pad data
     int keyid = keyToPad[id];
 
+    isRepeating = 0;
     return (!(paddata & keyid)) && (oldpaddata & keyid);
 }
 
