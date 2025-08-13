@@ -391,7 +391,8 @@ int getKey(int id)
 
     if (delaycnt[kid] <= 0) {
         delaycnt[kid] = getKeyDelay(id, 1);
-        isRepeating = 1;
+        if (!isRepeating)
+            isRepeating = 1;
         KeyPressedOnce = 1;
         DisableCron = 1;
         return 1;
