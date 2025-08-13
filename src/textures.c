@@ -592,7 +592,8 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     if (access(filePath, F_OK) == 0) {
         // File found, load it
         result = texLoad(texture, filePath);
-        searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+        if (texId == -1)
+            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
         return result >= 0 ? 0 : ERR_BAD_FILE;
     } else {
         if (texId != -1)
@@ -603,7 +604,8 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
         if (access(filePath, F_OK) == 0) {
             // File found, load it
             result = texJpgLoad(texture, filePath);
-            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+            if (texId == -1)
+                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
             return result >= 0 ? 0 : ERR_BAD_FILE;
         }
     }
