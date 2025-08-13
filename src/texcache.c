@@ -132,7 +132,7 @@ void cacheDestroyCache(image_cache_t *cache)
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
-    gScrollSpeed > 0 ? skipQr = isRepeating : skipQr = 0;
+    skipQr = gScrollSpeed > 0 ? isRepeating : 0;
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
