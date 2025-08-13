@@ -386,10 +386,8 @@ int getKey(int id)
         return 1;
     }
 
-    if (!getKeyPressed(id)) {
-        isRepeating = 0;
+    if (!getKeyPressed(id))
         return 0;
-    }
 
     if (delaycnt[kid] <= 0) {
         delaycnt[kid] = getKeyDelay(id, 1);
@@ -429,7 +427,6 @@ int getKeyOff(int id)
     // old v.s. new pad data
     int keyid = keyToPad[id];
 
-    isRepeating = 0;
     return (!(paddata & keyid)) && (oldpaddata & keyid);
 }
 
