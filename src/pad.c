@@ -361,7 +361,6 @@ int readPads()
             delaycnt[i] -= time_since_last;
         } else {
             delaycnt[i] = getKeyDelay(i + 1, 0);
-            isRepeating = 0;
         }
     }
     return rslt;
