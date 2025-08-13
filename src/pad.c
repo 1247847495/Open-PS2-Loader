@@ -22,7 +22,7 @@
 #define DEFAULT_PAD_DELAY 160
 
 // 触发按键滚动前的延迟时间
-#define DEFAULT_PAD_PRE_DELAY 500
+#define DEFAULT_PAD_PRE_DELAY 600
 
 struct pad_data_t
 {
