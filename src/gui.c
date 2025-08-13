@@ -702,7 +702,7 @@ reselect_video_mode:
     diaSetInt(diaUIConfig, UICFG_NOTIFICATIONS, gEnableNotifications);
     diaSetInt(diaUIConfig, UICFG_COVERART, gEnableArt);
     diaSetEnum(diaUIConfig, UICFG_COVERARTMODE, coverArtMode);
-    //diaSetInt(diaUIConfig, UICFG_COVERARTMODE, gEnableJpg);
+    diaSetInt(diaUIConfig, UICFG_COVERARTMODE, gEnableJpg);
     diaSetInt(diaUIConfig, UICFG_WIDESCREEN, gWideScreen);
     diaSetInt(diaUIConfig, UICFG_VMODE, gVMode);
     diaSetInt(diaUIConfig, UICFG_XOFF, gXOff);
