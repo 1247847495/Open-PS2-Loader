@@ -593,7 +593,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
         // File found, load it
         return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-    } else {
+    } else if (gEnableJpg) {
         if (texId != -1)
             snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
         else

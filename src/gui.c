@@ -686,6 +686,8 @@ void guiShowUIConfig(void)
     int previousVMode;
     int previousTheme;
 
+    const char *coverArtMode[] = {"性能模式(PNG)", "兼容模式(JPG & PNG)", NULL};
+
 reselect_video_mode:
     previousVMode = gVMode;
     previousTheme = thmGetGuiValue();
@@ -699,6 +701,8 @@ reselect_video_mode:
     diaSetInt(diaUIConfig, UICFG_AUTOREFRESH, gAutoRefresh);
     diaSetInt(diaUIConfig, UICFG_NOTIFICATIONS, gEnableNotifications);
     diaSetInt(diaUIConfig, UICFG_COVERART, gEnableArt);
+    diaSetEnum(diaUIConfig, UICFG_COVERARTMODE, coverArtMode);
+    diaSetInt(diaUIConfig, UICFG_COVERARTMODE, gEnableJpg);
     diaSetInt(diaUIConfig, UICFG_WIDESCREEN, gWideScreen);
     diaSetInt(diaUIConfig, UICFG_VMODE, gVMode);
     diaSetInt(diaUIConfig, UICFG_XOFF, gXOff);
@@ -721,6 +725,7 @@ reselect_video_mode:
         diaGetInt(diaUIConfig, UICFG_AUTOREFRESH, &gAutoRefresh);
         diaGetInt(diaUIConfig, UICFG_NOTIFICATIONS, &gEnableNotifications);
         diaGetInt(diaUIConfig, UICFG_COVERART, &gEnableArt);
+        diaGetInt(diaUIConfig, UICFG_COVERARTMODE, &gEnableJpg);
         diaGetInt(diaUIConfig, UICFG_WIDESCREEN, &gWideScreen);
         diaGetInt(diaUIConfig, UICFG_VMODE, &gVMode);
         diaGetInt(diaUIConfig, UICFG_XOFF, &gXOff);
