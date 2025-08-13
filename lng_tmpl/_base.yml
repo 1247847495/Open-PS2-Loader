@@ -417,7 +417,7 @@ gui_strings:
 - label: DL_DEFAULTS
   string: 下载默认值
 - label: NET_UPDATE
-  string: 下载游戏配置
+  string: 下载游戏配置文件
 - label: NET_UPDATE_ALL
   string: 覆盖现有记录
 - label: NET_UPDATE_FAILED
