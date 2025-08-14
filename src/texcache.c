@@ -15,6 +15,7 @@ int PrevCacheID_BG = -2;
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
 int cdFrames = 0; // 一轮Art图Qr后的CD时间(帧数)
+int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一次
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
@@ -158,9 +159,23 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFrames) {
-        if (cdFrames++ <= 100)
+        // 连按CD期间，再次按键，重置帧数
+        if (!guiInactiveFrames) {
+            if (!buttonPressedOnce) {
+                buttonPressedOnce = 1;
+                cdFrames = 1;
+            }
+        } else
+            buttonPressedOnce = 0;
+
+        // CD期间跳过Qr，防止卡顿，CD结束后恢复原状
+        if (cdFrames++ <= 30)
             skipQr = 1;
         else
+            cdFrames = 0;
+
+        // CD期间触发了自动连按，则直接结束CD
+        if (isRepeating)
             cdFrames = 0;
     }
 
