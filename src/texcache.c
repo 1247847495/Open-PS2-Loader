@@ -161,15 +161,16 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
-            cdFrames = 100;
-        } else
-            cdFrames = 50;
+            buttonPressedOnce = 1;
+            cdFrames = 5000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+        }
 
         // 连按CD期间，再次按键，重置帧数
         if (!guiInactiveFrames) {
             if (!buttonPressedOnce) {
                 buttonPressedOnce = 1;
                 cdFramesCount = 1;
+                cdFrames = 50;
             }
         } else
             buttonPressedOnce = 0;
