@@ -169,7 +169,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             buttonPressedOnce = 0;
 
         // CD期间跳过Qr，防止卡顿，CD结束后恢复原状
-        if (cdFrames++ <= 60)
+        if (cdFrames++ <= 50)
             skipQr = 1;
         else
             cdFrames = 0;
