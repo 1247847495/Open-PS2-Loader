@@ -561,14 +561,14 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         else
             dmaMode -= 3;
 
-        //// debug
-        //char debugFileDir[64];
-        //strcpy(debugFileDir, "mass0:debug-UDMA.txt");
-        //FILE *debugFile = fopen(debugFileDir, "ab+");
-        //if (debugFile != NULL) {
-        //    fprintf(debugFile, "游戏以UDMA %d模式启动了！\r\n\r\n", dmaMode);
-        //    fclose(debugFile);
-        //}
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "游戏以UDMA %d模式启动了！\r\n\r\n", dmaMode);
+            fclose(debugFile);
+        }
 
         hddSetTransferMode(dmaType, dmaMode);
         // gHDDSpindown [0..20] -> spindown [0..240] -> seconds [0..1200]
@@ -829,14 +829,14 @@ void bdmResolveLBA_UDMA(bdm_device_data_t *pDeviceData)
     configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &gDmaMode);
     if (gDmaMode >= 3 && gDmaMode <= 10) {
         hddSetTransferMode(0x40, gDmaMode - 3);
-        //// debug
-        //char debugFileDir[64];
-        //strcpy(debugFileDir, "mass0:debug-UDMA.txt");
-        //FILE *debugFile = fopen(debugFileDir, "ab+");
-        //if (debugFile != NULL) {
-        //    fprintf(debugFile, "BDMHDD启动时：传输模式校准为UDMA %d\r\n", gDmaMode - 3);
-        //    fclose(debugFile);
-        //}
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "BDMHDD启动时：传输模式校准为UDMA %d\r\n", gDmaMode - 3);
+            fclose(debugFile);
+        }
     }
 }
 
