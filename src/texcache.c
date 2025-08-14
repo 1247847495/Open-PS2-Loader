@@ -58,9 +58,9 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 阻止后台继续加载图片，避免卡顿，只加载前台图片
-    if (strncmp(curStartUp, req->value, 11)) {
-        cdFramesCount = 1; // 启动连按CD
+    // 阻止后台继续加载图片，触发连按CD时也不加载图片，避免卡顿
+    if (strncmp(curStartUp, req->value, 11) || cdFramesCount) {
+        cdFramesCount = 1; // 触发连按CD
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
@@ -162,7 +162,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 5000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 2000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
         }
 
         // 连按CD期间，再次按键，重置帧数
