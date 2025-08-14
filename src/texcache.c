@@ -14,7 +14,7 @@ int PrevCacheID_BG = -2;
 
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
-//int cdFrames = 0; // 一轮Art图Qr后的CD时间(帧数)
+int cdFrames = 0; // 一轮Art图Qr后的CD时间(帧数)
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
@@ -58,6 +58,7 @@ static void cacheLoadImage(void *data)
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
+        cdFrames = 1; // 启动连按CD
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
@@ -156,6 +157,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (isRepeating)
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
+    if (cdFrames) {
+        if (cdFrames++ <= 30)
+            skipQr = 1;
+        else
+            cdFrames = 0;
+    }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
