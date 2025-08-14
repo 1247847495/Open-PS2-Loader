@@ -18,6 +18,7 @@ int PrevCacheID_BG = -2;
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
+static char *curStartUp;
 
 typedef struct
 {
@@ -32,8 +33,10 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    return;
     load_image_request_t *req = data;
+
+    if (curStartUp != req->value)
+        return;
 
     // Safeguards...
     if (!req || !req->entry || !req->cache)
@@ -132,6 +135,7 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
+    curStartUp = value;
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
         if (isRepeating)
