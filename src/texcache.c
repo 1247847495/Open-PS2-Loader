@@ -33,8 +33,6 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    if (strncmp(curStartUp, ((load_image_request_t *)data)->value, 11))
-        return;
     load_image_request_t *req = data;
 
     ////  debug
@@ -45,6 +43,16 @@ static void cacheLoadImage(void *data)
     //    fprintf(debugFile, "curStartUp:%s\r\nreq->value:%s\r\ncurStartUp:%d\r\nreq->value:%d\r\n\r\n", curStartUp, req->value, curStartUp, req->value);
     //    fclose(debugFile);
     //}
+
+    // 阻止后台继续加载图片，避免卡顿，只加载前台图片
+    if (strncmp(curStartUp, req->value, 11)) {
+        GSTEXTURE *texture = &req->entry->texture;
+        texFree(texture);
+        req->entry->lastUsed = 0;
+        req->entry->qr = NULL;
+        free(req);
+        return;
+    }
 
     // Safeguards...
     if (!req || !req->entry || !req->cache)
