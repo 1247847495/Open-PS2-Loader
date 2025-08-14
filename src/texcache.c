@@ -5,6 +5,7 @@
 #include "include/gui.h"
 #include "include/util.h"
 #include "include/renderman.h"
+#include <timer.h>
 #include "include/pad.h"
 
 int ForceRefreshPrevTexCache = 0;
@@ -14,12 +15,14 @@ int PrevCacheID_BG = -2;
 
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
-int cdFrames = 0; // 一轮Art图Qr后的CD时间(帧数)
-int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一次
+//int cdFrames = 0; // 一轮Art图Qr后的CD时间(帧数)
+int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD一次
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
 static char *curStartUp;
+//u64 loadTexCdTime = 0;
+u64 loadTexStartTime = 0;
 
 typedef struct
 {
@@ -59,7 +62,7 @@ static void cacheLoadImage(void *data)
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
-        cdFrames = 1; // 启动连按CD
+        loadTexStartTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 启动连按CD
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
@@ -158,25 +161,25 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (isRepeating)
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
-    if (cdFrames) {
-        // 连按CD期间，再次按键，重置帧数
+    if (loadTexStartTime) {
+        // 连按CD期间，再次按键，重置时间
         if (!guiInactiveFrames) {
             if (!buttonPressedOnce) {
                 buttonPressedOnce = 1;
-                cdFrames = 1;
+                loadTexStartTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
             }
         } else
             buttonPressedOnce = 0;
 
         // CD期间跳过Qr，防止卡顿，CD结束后恢复原状
-        if (cdFrames++ <= 50)
+        if (GetTimerSystemTime() / CLOCKS_PER_MILISEC - loadTexStartTime - searchTexTime <= 160)
             skipQr = 1;
         else
-            cdFrames = 0;
+            loadTexStartTime = 0;
 
         // CD期间触发了自动连按，则直接结束CD
         if (isRepeating)
-            cdFrames = 0;
+            loadTexStartTime = 0;
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
