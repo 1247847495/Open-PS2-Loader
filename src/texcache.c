@@ -33,6 +33,8 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    if (strncmp(curStartUp, ((load_image_request_t)data)->value, 11))
+        return;
     load_image_request_t *req = data;
 
     ////  debug
@@ -43,8 +45,6 @@ static void cacheLoadImage(void *data)
     //    fprintf(debugFile, "curStartUp:%s\r\nreq->value:%s\r\ncurStartUp:%d\r\nreq->value:%d\r\n\r\n", curStartUp, req->value, curStartUp, req->value);
     //    fclose(debugFile);
     //}
-    if (strncmp(curStartUp, req->value, 11))
-        return;
 
     // Safeguards...
     if (!req || !req->entry || !req->cache)
