@@ -44,16 +44,6 @@ static void cacheLoadImage(void *data)
     //    fclose(debugFile);
     //}
 
-    // 阻止后台继续加载图片，避免卡顿，只加载前台图片
-    if (strncmp(curStartUp, req->value, 11)) {
-        GSTEXTURE *texture = &req->entry->texture;
-        texFree(texture);
-        req->entry->lastUsed = 0;
-        req->entry->qr = NULL;
-        free(req);
-        return;
-    }
-
     // Safeguards...
     if (!req || !req->entry || !req->cache)
         return;
@@ -65,6 +55,16 @@ static void cacheLoadImage(void *data)
     // the cache entry was already reused!
     if (req->cacheUID != req->entry->UID)
         return;
+
+    // 阻止后台继续加载图片，避免卡顿，只加载前台图片
+    if (strncmp(curStartUp, req->value, 11)) {
+        GSTEXTURE *texture = &req->entry->texture;
+        texFree(texture);
+        req->entry->lastUsed = guiFrameId;
+        req->entry->qr = NULL;
+        free(req);
+        return;
+    }
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
