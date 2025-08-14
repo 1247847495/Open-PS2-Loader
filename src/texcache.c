@@ -35,6 +35,14 @@ static void cacheLoadImage(void *data)
 {
     load_image_request_t *req = data;
 
+    //  debug
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-texCache.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "curStartUp:%s\r\nreq->value:%s\r\ncurStartUp:%d\r\nreq->value:%d\r\n\r\n", curStartUp, req->value, curStartUp, req->value);
+        fclose(debugFile);
+    }
     if (curStartUp != req->value)
         return;
 
@@ -321,6 +329,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fprintf(debugFile, "guiFrameId:%d  ArtCount:%d\r\n", guiFrameId, artQrCount);
         //    fclose(debugFile);
         //}
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "curStartUp:%s\r\nvalue:%s\r\n\r\n", curStartUp, value);
+            fclose(debugFile);
+        }
     }
     return prevCache;
 }
