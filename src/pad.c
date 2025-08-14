@@ -391,7 +391,7 @@ int getKey(int id)
 
     if (delaycnt[kid] <= 0) {
         delaycnt[kid] = getKeyDelay(id, 1);
-        if (kid == KEY_UP || kid == KEY_DOWN || kid == KEY_L1 || kid == KEY_R1)
+        if (id == KEY_UP || id == KEY_DOWN || id == KEY_L1 || id == KEY_R1)
             if (!isRepeating)
                 isRepeating = 1;
         KeyPressedOnce = 1;
