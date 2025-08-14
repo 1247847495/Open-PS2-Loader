@@ -158,7 +158,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFrames) {
-        if (cdFrames++ <= 30)
+        if (cdFrames++ <= 100)
             skipQr = 1;
         else
             cdFrames = 0;
