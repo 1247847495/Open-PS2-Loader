@@ -76,9 +76,8 @@ static void cacheLoadImage(void *data)
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
-        GSTEXTURE *texture = &req->entry->texture;
-        texFree(texture);
         req->entry->lastUsed = 0;
+        req->entry->UID = -1;
         req->entry->qr = NULL;
         free(req);
         return;
