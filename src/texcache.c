@@ -18,8 +18,7 @@ int PrevCacheID_BG = -2;
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
-int isBackLoadTex = 0; // 判断是否还有图片在后台加载
-static char *curStartUp; // 用来存放当前光标高亮的游戏的启动ID
+static char *curStartUp;
 
 typedef struct
 {
@@ -59,14 +58,12 @@ static void cacheLoadImage(void *data)
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
-        isBackLoadTex = 1;
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
         free(req);
         return;
-    } else
-        isBackLoadTex = 0;
+    }
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
@@ -159,7 +156,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (isRepeating)
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
-    skipQr = isBackLoadTex ? 1 : skipQr;
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
