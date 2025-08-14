@@ -33,7 +33,7 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    if (strncmp(curStartUp, ((load_image_request_t)data)->value, 11))
+    if (strncmp(curStartUp, ((load_image_request_t *)data)->value, 11))
         return;
     load_image_request_t *req = data;
 
