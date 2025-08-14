@@ -53,8 +53,17 @@ static void cacheLoadImage(void *data)
         return;
 
     // the cache entry was already reused!
-    if (req->cacheUID != req->entry->UID)
+    if (req->cacheUID != req->entry->UID) {
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "req->cacheUID:%d\r\nreq->entry->UID:%d\r\n\r\n", req->cacheUID, req->entry->UID);
+            fclose(debugFile);
+        }
         return;
+    }
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
