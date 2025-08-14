@@ -32,6 +32,7 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    return;
     load_image_request_t *req = data;
 
     // Safeguards...
