@@ -35,32 +35,50 @@ static void cacheLoadImage(void *data)
 {
     load_image_request_t *req = data;
 
-    ////  debug
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-texCache.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "curStartUp:%s\r\nreq->value:%s\r\ncurStartUp:%d\r\nreq->value:%d\r\n\r\n", curStartUp, req->value, curStartUp, req->value);
-    //    fclose(debugFile);
-    //}
-
     // Safeguards...
-    if (!req || !req->entry || !req->cache)
+    if (!req || !req->entry || !req->cache) {
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "!req:%d\r\n!req->entry:%d\r\n!req->cache:%d\r\n\r\n", !req, !req->entry, !req->cache);
+            fclose(debugFile);
+        }
         return;
+    }
 
     item_list_t *handler = req->list;
-    if (!handler)
+    if (!handler) {
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "!handler:%d\r\n\r\n", !handler);
+            fclose(debugFile);
+        }
         return;
+    }
 
     // the cache entry was already reused!
-    if (req->cacheUID != req->entry->UID)
+    if (req->cacheUID != req->entry->UID) {
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "req->cacheUID:%d\r\nreq->entry->UID:%d\r\n\r\n", req->cacheUID, req->entry->UID);
+            fclose(debugFile);
+        }
         return;
+    }
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
         GSTEXTURE *texture = &req->entry->texture;
         texFree(texture);
-        req->entry->lastUsed = guiFrameId;
+        req->entry->lastUsed = 0;
         req->entry->qr = NULL;
         free(req);
         return;
