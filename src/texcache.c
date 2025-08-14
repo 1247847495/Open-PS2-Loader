@@ -58,7 +58,6 @@ static void cacheLoadImage(void *data)
 
     // 阻止后台继续加载图片，避免卡顿，只加载前台图片
     if (strncmp(curStartUp, req->value, 11)) {
-        skipQr = 1; // 有图片在后台加载时，跳过Qr
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
