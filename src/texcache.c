@@ -154,12 +154,10 @@ void cacheDestroyCache(image_cache_t *cache)
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (strncmp(curStartUp, value, 11)) {
-        if (curStartUp != NULL)
-            if (ioHasPendingRequests())
-                cdFramesCount = 1; // 触发连按CD
-        curStartUp = value;
-    }
+    if (ioHasPendingRequests())
+        if (curStartUp && strncmp(curStartUp, value, 11))
+            cdFramesCount = 1; // 触发连按CD
+    curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
