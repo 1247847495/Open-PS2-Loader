@@ -173,7 +173,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
             FILE *debugFile = fopen(debugFileDir, "ab+");
             if (debugFile != NULL) {
-                fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
+                fprintf(debugFile, "curStartUp:%s_%s\r\n\r\n", curStartUp, cache->suffix);
                 fclose(debugFile);
             }
         }
@@ -198,7 +198,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
             FILE *debugFile = fopen(debugFileDir, "ab+");
             if (debugFile != NULL) {
-                fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
+                fprintf(debugFile, "curStartUp:%s_%s\r\n\r\n", curStartUp, cache->suffix);
                 fclose(debugFile);
             }
         }
