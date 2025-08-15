@@ -35,6 +35,10 @@ typedef struct
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    // 触发连按CD时阻止后台继续加载图片，避免卡顿
+    if (cdFramesCount)
+        return;
+
     load_image_request_t *req = data;
 
     ////  debug
@@ -60,7 +64,7 @@ static void cacheLoadImage(void *data)
 
     // 触发连按CD时阻止后台继续加载图片，避免卡顿
     if (cdFramesCount) {
-        req->entry->lastUsed = guiFrameId;
+        req->entry->lastUsed = 0;
         req->entry->UID = -1;
         req->entry->qr = NULL;
         free(req);
