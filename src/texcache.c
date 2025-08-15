@@ -12,7 +12,7 @@ int PrevCacheID_COV = -2;
 int PrevCacheID_ICO = -2;
 int PrevCacheID_BG = -2;
 
-//int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
+int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
 int cdFrames = 50; // 一轮Art图Qr后的CD时间(帧数)
 int cdFramesCount = 0;
@@ -20,7 +20,6 @@ int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
-static char *curStartUp;
 
 typedef struct
 {
@@ -59,7 +58,7 @@ static void cacheLoadImage(void *data)
         return;
 
     // 阻止后台继续加载图片，触发连按CD时也不加载图片，避免卡顿
-    if (strncmp(curStartUp, req->value, 11) || cdFramesCount) {
+    if (strncmp(menuGetCurStartUp(), req->value, 11) || cdFramesCount) {
         cdFramesCount = 1; // 触发连按CD
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
@@ -153,7 +152,6 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    curStartUp = value;
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
         if (isRepeating)
@@ -163,6 +161,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 50000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "artQrCount:%d\r\ncacheClearItem:%s_%s\r\n\r\n", artQrCount,menuGetCurStartUp(), cache->suffix);
+                fclose(debugFile);
+            }
         }
 
         // 连按CD期间，再次按键，重置帧数
@@ -170,7 +176,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             if (!buttonPressedOnce) {
                 buttonPressedOnce = 1;
                 cdFramesCount = 1;
-                cdFrames = 50000;
+                cdFrames = 50;
             }
         } else
             buttonPressedOnce = 0;
@@ -354,16 +360,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *UID = cache->nextUID++;
 
         //prevGuiFrameId = guiFrameId;
-        //artQrCount++;
-
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "cacheClearItem:%s_%s\r\n", curStartUp, cache->suffix);
-            fclose(debugFile);
-        }
+        artQrCount++;
 
         ioPutRequest(IO_CACHE_LOAD_ART, req);
     }
