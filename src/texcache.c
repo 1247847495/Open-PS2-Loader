@@ -152,6 +152,14 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
+    // 如果移动光标时，还有后台任务，就不要继续新增Qr
+    if (strncmp(curStartUp, value, 11)) {
+        if (curStartUp != NULL)
+            if (ioHasPendingRequests())
+                cdFramesCount = 1; // 触发连按CD
+        curStartUp = value;
+    }
+
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
         if (isRepeating)
@@ -160,7 +168,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 50; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
             //// debug  打印debug信息
             //char debugFileDir[64];
             //strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
@@ -190,14 +198,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // CD期间触发了自动连按，则直接结束CD
         if (isRepeating)
             cdFramesCount = 0;
-    }
-
-    // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (strncmp(curStartUp, value, 11)) {
-        if (curStartUp != NULL)
-            if (ioHasPendingRequests())
-                cdFramesCount = 1; // 触发连按CD
-        curStartUp = value;
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
