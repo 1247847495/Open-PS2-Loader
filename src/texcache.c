@@ -58,17 +58,17 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    //if (curStartUp != NULL) {
-    //    // 阻止后台继续加载图片，触发连按CD时也不加载图片，避免卡顿
-    //    if (strncmp(curStartUp, req->value, 11) || cdFramesCount) {
-    //        cdFramesCount = 1; // 触发连按CD
-    //        req->entry->lastUsed = 0;
-    //        req->entry->UID = -1;
-    //        req->entry->qr = NULL;
-    //        free(req);
-    //        return;
-    //    }
-    //}
+    if (curStartUp != NULL) {
+        // 阻止后台继续加载图片，触发连按CD时也不加载图片，避免卡顿
+        if (strncmp(curStartUp, req->value, 11) || cdFramesCount) {
+            //cdFramesCount = 1; // 触发连按CD
+            req->entry->lastUsed = 0;
+            req->entry->UID = -1;
+            req->entry->qr = NULL;
+            free(req);
+            return;
+        }
+    }
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
@@ -158,10 +158,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
     if (strncmp(curStartUp, value, 11)) {
         if (curStartUp != NULL)
-            if (ioHasPendingRequests()) {
-                ioRemoveRequests(IO_CACHE_LOAD_ART);
+            if (ioHasPendingRequests())
                 cdFramesCount = 1; // 触发连按CD
-            }
         curStartUp = value;
     }
 
