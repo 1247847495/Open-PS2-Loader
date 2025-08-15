@@ -159,7 +159,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (strncmp(curStartUp, value, 11)) {
         if (curStartUp != NULL)
             if (ioHasPendingRequests()) {
-                //ioRemoveRequests(IO_CACHE_LOAD_ART);
+                ioRemoveRequests(IO_CACHE_LOAD_ART);
                 cdFramesCount = 1; // 触发连按CD
             }
         curStartUp = value;
@@ -173,7 +173,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 50000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 5000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
             // debug  打印debug信息
             char debugFileDir[64];
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
