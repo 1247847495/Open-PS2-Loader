@@ -58,15 +58,15 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    //// 触发连按CD时阻止后台继续加载图片，避免卡顿
-    //if (cdFramesCount) {
-    //    req->entry->lastUsed = 0;
-    //    req->entry->UID = -1;
-    //    req->cacheUID = -1;
-    //    req->entry->qr = NULL;
-    //    free(req);
-    //    return;
-    //}
+    // 触发连按CD时阻止后台继续加载图片，避免卡顿
+    if (cdFramesCount) {
+        req->entry->lastUsed = 0;
+        req->entry->UID = -1;
+        req->cacheUID = -1;
+        req->entry->qr = NULL;
+        free(req);
+        return;
+    }
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
@@ -168,6 +168,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cacheId = -1;
             // debug  打印debug信息
             char debugFileDir[64];
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
