@@ -121,6 +121,4 @@ void menuRemoveHints(menu_item_t *menu);
 int menuSetParentalLockCheckState(int enabled);
 int menuCheckParentalLock(void);
 void refreshMenuPosition(void);
-
-char *menuGetCurStartUp(void); // 获取移动光标后，游戏的startup
 #endif

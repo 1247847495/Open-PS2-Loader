@@ -83,13 +83,6 @@ static s32 menuSemaId;
 static s32 menuListSemaId = -1;
 static ee_sema_t menuSema;
 
-// 获取移动光标后，游戏的startup
-static char *curStartUp;
-char *menuGetCurStartUp(void)
-{
-    return curStartUp;
-}
-
 static void menuRenameGame(submenu_list_t **submenu)
 {
     if (!selected_item->item->current) {
@@ -1027,14 +1020,8 @@ void menuHandleInputMain()
         menuNextH();
     } else if (getKey(KEY_UP)) {
         menuPrevV();
-        // 记录当前光标所选游戏的startup
-        item_list_t *list = selected_item->item->userdata;
-        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
-        // 记录当前光标所选游戏的startup
-        item_list_t *list = selected_item->item->userdata;
-        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKeyOn(KEY_CROSS)) {
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
@@ -1052,14 +1039,8 @@ void menuHandleInputMain()
         gRefreshAllModes = 1;
     } else if (getKey(KEY_L1)) {
         menuPrevPage();
-        // 记录当前光标所选游戏的startup
-        item_list_t *list = selected_item->item->userdata;
-        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKey(KEY_R1)) {
         menuNextPage();
-        // 记录当前光标所选游戏的startup
-        item_list_t *list = selected_item->item->userdata;
-        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKeyOn(KEY_L2)) { // home
         menuFirstPage();
     } else if (getKeyOn(KEY_R2)) { // end
