@@ -191,12 +191,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // CD期间跳过Qr，防止卡顿，CD结束后恢复原状
         if (cdFramesCount++ <= cdFrames)
             skipQr = 1;
-        else {
-            cdFramesCount = 0;
-        }
-
-        // CD期间触发了自动连按，则直接结束CD
-        if (isRepeating)
+        else
             cdFramesCount = 0;
 
         // 下次第一个加载背景图，如果没有就重试N次后退出
@@ -210,6 +205,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     skipQr = 1;
             } else
                 findBGCount = 0;
+        }
+
+        // CD期间触发了自动连按，则直接结束CD
+        if (isRepeating) {
+            cdFramesCount = 0;
+            findBGCount = 0;
+            skipQr = gScrollSpeed > 0 ? isRepeating : 0;
         }
         //// debug  打印debug信息
         //if (!cdFramesCount) {
