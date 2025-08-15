@@ -207,9 +207,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 findBGCount = 0;
         }
 
-        // CD期间触发了自动连按，则直接结束CD
-        if (isRepeating) {
-            cdFramesCount = 0;
+        // CD结束时处于自动连按状态，矫正一次Qr
+        if (!cdFramesCount && isRepeating) {
             findBGCount = 0;
             skipQr = gScrollSpeed > 0 ? isRepeating : 0;
         }
