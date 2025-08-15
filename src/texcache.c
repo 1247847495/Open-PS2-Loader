@@ -168,7 +168,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
-            cacheId = -1;
+            *cacheId = -1;
             // debug  打印debug信息
             char debugFileDir[64];
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
