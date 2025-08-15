@@ -168,7 +168,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
-                            // debug  打印debug信息
+            // debug  打印debug信息
             char debugFileDir[64];
             strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
             FILE *debugFile = fopen(debugFileDir, "ab+");
@@ -200,15 +200,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             cdFramesCount = 0;
 
         // 下次第一个加载背景图，如果没有就重试N次后退出
-        if (!cdFramesCount)
+        if (!cdFramesCount) {
             if (cache->suffix[0] != 'B') {
-                cdFramesCount = 10000;   
+                cdFramesCount = 10000;
                 if (++findBGCount >= 8) {
                     findBGCount = 0;
                     cdFramesCount = 0;
                 }
             } else
                 findBGCount = 0;
+        }
+
+        // debug  打印debug信息
+        if (!cdFramesCount) {
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "artQrCount:%d   UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, *UID, *cacheId, curStartUp, cache->suffix);
+                fclose(debugFile);
+            }
+        }
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
