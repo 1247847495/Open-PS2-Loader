@@ -162,7 +162,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 50; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
         }
 
         // 连按CD期间，再次按键，重置帧数
