@@ -598,14 +598,14 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             }
         }
     } else {
-        //// debug
-        //char debugFileDir[64];
-        //strcpy(debugFileDir, "smb:debug-texload.txt");
-        //FILE *debugFile = fopen(debugFileDir, "ab+");
-        //if (debugFile != NULL) {
-        //    fprintf(debugFile, "path:%s\r\n", path);
-        //    fclose(debugFile);
-        //}
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texload.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "path:%s\r\n", path);
+            fclose(debugFile);
+        }
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
         // 开始搜索图片，记录时间
         beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
