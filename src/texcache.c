@@ -60,8 +60,10 @@ static void cacheLoadImage(void *data)
 
     // 触发连按CD时阻止后台继续加载图片，避免卡顿
     if (cdFramesCount) {
+        GSTEXTURE *texture = &req->entry->texture;
+        texFree(texture);
         req->entry->lastUsed = 0;
-        req->entry->UID = -1;
+        //req->entry->UID = -1;
         req->cacheUID = -1;
         req->entry->qr = NULL;
         free(req);
