@@ -165,18 +165,18 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFramesCount) {
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", *UID, *cacheId, curStartUp, cache->suffix);
+            fclose(debugFile);
+        }
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
             *cacheId = -1;
-            // debug  打印debug信息
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "curStartUp:%s_%s\r\n\r\n", curStartUp, cache->suffix);
-                fclose(debugFile);
-            }
         }
 
         // 连按CD期间，再次按键，重置帧数
@@ -194,14 +194,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             skipQr = 1;
         else {
             cdFramesCount = 0;
-            // debug  打印debug信息
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "curStartUp:%s_%s\r\n\r\n", curStartUp, cache->suffix);
-                fclose(debugFile);
-            }
         }
 
         // CD期间触发了自动连按，则直接结束CD
