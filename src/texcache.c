@@ -160,8 +160,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
-    if (guiInactiveFrames)
-        if (isRepeating)
+    if (isRepeating)
+        if (guiInactiveFrames)
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFramesCount) {
