@@ -85,11 +85,6 @@ static ee_sema_t menuSema;
 
 // 获取移动光标后，游戏的startup
 static char *curStartUp;
-static void updateCurStartUp(void)
-{
-    item_list_t *list = selected_item->item->userdata;
-    curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
-}
 char *menuGetCurStartUp(void)
 {
     return curStartUp;
@@ -1026,17 +1021,20 @@ void menuRenderMain(void)
 
 void menuHandleInputMain()
 {
-    updateCurStartUp();
     if (getKey(KEY_LEFT)) {
         menuPrevH();
     } else if (getKey(KEY_RIGHT)) {
         menuNextH();
     } else if (getKey(KEY_UP)) {
         menuPrevV();
-        updateCurStartUp(); // 记录当前光标所选游戏的startup
+        // 记录当前光标所选游戏的startup
+        item_list_t *list = selected_item->item->userdata;
+        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
-        updateCurStartUp(); // 记录当前光标所选游戏的startup
+        // 记录当前光标所选游戏的startup
+        item_list_t *list = selected_item->item->userdata;
+        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKeyOn(KEY_CROSS)) {
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
@@ -1054,10 +1052,14 @@ void menuHandleInputMain()
         gRefreshAllModes = 1;
     } else if (getKey(KEY_L1)) {
         menuPrevPage();
-        updateCurStartUp(); // 记录当前光标所选游戏的startup
+        // 记录当前光标所选游戏的startup
+        item_list_t *list = selected_item->item->userdata;
+        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKey(KEY_R1)) {
         menuNextPage();
-        updateCurStartUp();        // 记录当前光标所选游戏的startup
+        // 记录当前光标所选游戏的startup
+        item_list_t *list = selected_item->item->userdata;
+        curStartUp = list->itemGetStartup(list, selected_item->item->current->item.id);
     } else if (getKeyOn(KEY_L2)) { // home
         menuFirstPage();
     } else if (getKeyOn(KEY_R2)) { // end
