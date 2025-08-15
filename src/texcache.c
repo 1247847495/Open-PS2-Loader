@@ -20,7 +20,7 @@ int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
-static char *curStartUp;
+//static char *curStartUp;
 
 typedef struct
 {
@@ -62,7 +62,7 @@ static void cacheLoadImage(void *data)
     if (cdFramesCount) {
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
-        //req->cacheUID = -1;
+        req->cacheUID = -1;
         req->entry->qr = NULL;
         free(req);
         return;
@@ -155,9 +155,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 {
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
     if (ioHasPendingRequests())
-        if (curStartUp && strncmp(curStartUp, value, 11))
+        if (prevGuiFrameId && prevGuiFrameId != guiFrameId)
             cdFramesCount = 1; // 触发连按CD
-    curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
@@ -165,14 +164,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             isRepeating = 0;
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFramesCount) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", *UID, *cacheId, curStartUp, cache->suffix);
-            fclose(debugFile);
-        }
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", *UID, *cacheId, curStartUp, cache->suffix);
+        //    fclose(debugFile);
+        //}
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
@@ -208,6 +207,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
         ForceRefreshPrevTexCache = 0;
 
+    prevGuiFrameId = guiFrameId;
     //// 已经完成一轮Qr
     //if (artQrCount && (prevGuiFrameId != guiFrameId))
     //    artQrDone = 1;
@@ -266,8 +266,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     GSTEXTURE *prevCache = NULL;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
-        if (ForceRefreshPrevTexCache == 1)
-            prevGuiFrameId = guiFrameId;
         // 根据图像类型，赋值上一次的缓存
         if (!strncmp("COV", cache->suffix, 3)) {
             if (PrevCacheID_COV >= 0)
