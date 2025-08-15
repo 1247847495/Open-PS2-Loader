@@ -12,7 +12,7 @@ int PrevCacheID_COV = -2;
 int PrevCacheID_ICO = -2;
 int PrevCacheID_BG = -2;
 
-//int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
+int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
 int cdFrames = 50; // 一轮Art图Qr后的CD时间(帧数)
 int cdFramesCount = 0;
@@ -158,8 +158,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
     if (strncmp(curStartUp, value, 11)) {
         if (curStartUp != NULL)
-            if (ioHasPendingRequests())
+            if (ioHasPendingRequests()) {
+                //ioRemoveRequests(IO_CACHE_LOAD_ART);
                 cdFramesCount = 1; // 触发连按CD
+            }
         curStartUp = value;
     }
 
@@ -371,7 +373,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *UID = cache->nextUID++;
 
         //prevGuiFrameId = guiFrameId;
-        //artQrCount++;
+        artQrCount++;
 
         ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
