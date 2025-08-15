@@ -154,8 +154,8 @@ void cacheDestroyCache(image_cache_t *cache)
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (ioHasPendingRequests())
-        if (prevGuiFrameId && prevGuiFrameId != guiFrameId)
+    if (prevGuiFrameId && prevGuiFrameId != guiFrameId)
+        if (ioHasPendingRequests())
             cdFramesCount = 1; // 触发连按CD
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
@@ -198,9 +198,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (isRepeating)
             cdFramesCount = 0;
 
-        //if (!cdFramesCount)
-        //    if (cache->suffix[0] != 'B')
-        //        cdFramesCount = 10000;
+        if (!cdFramesCount)
+            if (cache->suffix[0] != 'B')
+                cdFramesCount = 10000;
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
