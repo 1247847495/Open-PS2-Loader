@@ -162,7 +162,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 50000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 50; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
         }
 
         // 连按CD期间，再次按键，重置帧数
@@ -356,16 +356,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //prevGuiFrameId = guiFrameId;
         //artQrCount++;
 
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "cacheClearItem:%s_%s\r\n", curStartUp, cache->suffix);
-            fclose(debugFile);
-        }
-
         ioPutRequest(IO_CACHE_LOAD_ART, req);
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "smb:debug-TexCache.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "guiFrameId:%d  ArtCount:%d\r\n", guiFrameId, artQrCount);
+        //    fclose(debugFile);
+        //}
     }
     return prevCache;
 }
