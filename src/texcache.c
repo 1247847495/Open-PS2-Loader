@@ -62,7 +62,7 @@ static void cacheLoadImage(void *data)
     if (cdFramesCount) {
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
-        req->cacheUID = -1;
+        //req->cacheUID = -1;
         req->entry->qr = NULL;
         free(req);
         return;
