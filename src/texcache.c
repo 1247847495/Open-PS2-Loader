@@ -171,7 +171,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            cdFrames = 50000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
+                fclose(debugFile);
+            }
         }
 
         // 连按CD期间，再次按键，重置帧数
