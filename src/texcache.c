@@ -191,8 +191,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // CD期间跳过Qr，防止卡顿，CD结束后恢复原状
         if (cdFramesCount++ <= cdFrames)
             skipQr = 1;
-        else
+        else {
             cdFramesCount = 0;
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
+                fclose(debugFile);
+            }
+        }
 
         // CD期间触发了自动连按，则直接结束CD
         if (isRepeating)
