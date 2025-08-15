@@ -206,7 +206,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 if (++findBGCount >= 8) {
                     findBGCount = 0;
                     cdFramesCount = 0;
-                }
+                } else
+                    skipQr = 1;
             } else
                 findBGCount = 0;
         }
