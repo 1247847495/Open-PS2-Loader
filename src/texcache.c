@@ -58,17 +58,15 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 触发连按CD时阻止后台继续加载图片，避免卡顿
-    if (cdFramesCount) {
-        GSTEXTURE *texture = &req->entry->texture;
-        texFree(texture);
-        req->entry->lastUsed = 0;
-        //req->entry->UID = -1;
-        req->cacheUID = -1;
-        req->entry->qr = NULL;
-        free(req);
-        return;
-    }
+    //// 触发连按CD时阻止后台继续加载图片，避免卡顿
+    //if (cdFramesCount) {
+    //    req->entry->lastUsed = 0;
+    //    req->entry->UID = -1;
+    //    req->cacheUID = -1;
+    //    req->entry->qr = NULL;
+    //    free(req);
+    //    return;
+    //}
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
