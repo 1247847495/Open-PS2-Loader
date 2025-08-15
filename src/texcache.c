@@ -176,7 +176,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
             cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
-            *cacheId = -1;
         }
 
         // 连按CD期间，再次按键，重置帧数
@@ -199,6 +198,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // CD期间触发了自动连按，则直接结束CD
         if (isRepeating)
             cdFramesCount = 0;
+
+        if (!cdFramesCount)
+            if (cache->suffix[0] != 'B')
+                cdFramesCount = 10000;
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
