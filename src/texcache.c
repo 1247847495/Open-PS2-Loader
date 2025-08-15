@@ -58,13 +58,15 @@ static void cacheLoadImage(void *data)
         return;
 
     // 阻止后台继续加载图片，触发连按CD时也不加载图片，避免卡顿
-    if (strncmp(menuGetCurStartUp(), req->value, 11) || cdFramesCount) {
-        cdFramesCount = 1; // 触发连按CD
-        req->entry->lastUsed = 0;
-        req->entry->UID = -1;
-        req->entry->qr = NULL;
-        free(req);
-        return;
+    if (menuGetCurStartUp() != NULL) {
+        if (strncmp(menuGetCurStartUp(), req->value, 11) || cdFramesCount) {
+            cdFramesCount = 1; // 触发连按CD
+            req->entry->lastUsed = 0;
+            req->entry->UID = -1;
+            req->entry->qr = NULL;
+            free(req);
+            return;
+        }
     }
 
     // seems okay. we can proceed
