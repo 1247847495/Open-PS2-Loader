@@ -12,7 +12,7 @@ int PrevCacheID_COV = -2;
 int PrevCacheID_ICO = -2;
 int PrevCacheID_BG = -2;
 
-int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
+//int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
 int cdFrames = 50; // 一轮Art图Qr后的CD时间(帧数)
 int cdFramesCount = 0;
@@ -168,15 +168,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (cdFramesCount) {
         if (cdFramesCount == 1) {
             buttonPressedOnce = 1;
-            cdFrames = 5000; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
-            // debug  打印debug信息
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
-                fclose(debugFile);
-            }
+            cdFrames = 100; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+            //// debug  打印debug信息
+            //char debugFileDir[64];
+            //strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+            //FILE *debugFile = fopen(debugFileDir, "ab+");
+            //if (debugFile != NULL) {
+            //    fprintf(debugFile, "artQrCount:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, curStartUp, cache->suffix);
+            //    fclose(debugFile);
+            //}
         }
 
         // 连按CD期间，再次按键，重置帧数
@@ -368,7 +368,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *UID = cache->nextUID++;
 
         //prevGuiFrameId = guiFrameId;
-        artQrCount++;
+        //artQrCount++;
 
         ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
