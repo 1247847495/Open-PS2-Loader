@@ -20,7 +20,8 @@ int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
-//static char *curStartUp;
+static char *curStartUp;
+int findBGCount = 0; // 寻找背景图的次数
 
 typedef struct
 {
@@ -154,9 +155,9 @@ void cacheDestroyCache(image_cache_t *cache)
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (prevGuiFrameId && prevGuiFrameId != guiFrameId)
-        if (ioHasPendingRequests())
-            cdFramesCount = 1; // 触发连按CD
+    if (curStartUp && strncmp(curStartUp, value, 11) && ioHasPendingRequests())
+        cdFramesCount = 1; // 触发连按CD
+    curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (guiInactiveFrames)
@@ -198,16 +199,22 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (isRepeating)
             cdFramesCount = 0;
 
+        // 下次第一个加载背景图，如果没有就重试N次后退出
         if (!cdFramesCount)
-            if (cache->suffix[0] != 'B')
-                cdFramesCount = 10000;
+            if (cache->suffix[0] != 'B') {
+                cdFramesCount = 10000;   
+                if (++findBGCount >= 8) {
+                    findBGCount = 0;
+                    cdFramesCount = 0;
+                }
+            } else
+                findBGCount = 0;
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
         ForceRefreshPrevTexCache = 0;
 
-    prevGuiFrameId = guiFrameId;
     //// 已经完成一轮Qr
     //if (artQrCount && (prevGuiFrameId != guiFrameId))
     //    artQrDone = 1;
@@ -266,6 +273,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     GSTEXTURE *prevCache = NULL;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
+        if (ForceRefreshPrevTexCache == 1)
+            prevGuiFrameId = guiFrameId;
         // 根据图像类型，赋值上一次的缓存
         if (!strncmp("COV", cache->suffix, 3)) {
             if (PrevCacheID_COV >= 0)
