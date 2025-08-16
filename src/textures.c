@@ -615,14 +615,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
         } else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
-            // debug
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-texload.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "gEnableJpg:%d\r\n", gEnableJpg);
-                fclose(debugFile);
-            }
+
             if (access(filePath, F_OK) == 0) {
                 searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
                 // File found, load it
