@@ -183,7 +183,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             if (!buttonPressedOnce) {
                 buttonPressedOnce = 1;
                 cdFramesCount = 1;
-                cdFrames = 50;
+                cdFrames = 1000;
             }
         } else
             buttonPressedOnce = 0;
