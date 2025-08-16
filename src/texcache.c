@@ -294,42 +294,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (!strncmp("COV", cache->suffix, 3)) {
             if (PrevCacheID_COV >= 0)
                 prevCache = &cache->content[PrevCacheID_COV].texture;
-            // debug  打印debug信息
-            if (!cdFramesCount) {
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-prevCache.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "PrevCacheID_COV:%d\r\n", PrevCacheID_COV);
-                    fclose(debugFile);
-                }
-            }
         } else if (!strncmp("ICO", cache->suffix, 3)) {
             if (PrevCacheID_ICO >= 0)
                 prevCache = &cache->content[PrevCacheID_ICO].texture;
-            // debug  打印debug信息
-            if (!cdFramesCount) {
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-prevCache.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "PrevCacheID_ICO:%d\r\n", PrevCacheID_ICO);
-                    fclose(debugFile);
-                }
-            }
         } else if (!strncmp("BG", cache->suffix, 2)) {
             if (PrevCacheID_BG >= 0)
                 prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
-            // debug  打印debug信息
-            if (!cdFramesCount) {
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-prevCache.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "PrevCacheID_BG:%d\r\n", PrevCacheID_BG);
-                    fclose(debugFile);
-                }
-            }
         }
     }
 
