@@ -38,15 +38,6 @@ static void cacheLoadImage(void *data)
 {
     load_image_request_t *req = data;
 
-    ////  debug
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-texCache.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "req->cacheUID:%d\r\nreq->entry->UID:%d\r\n\r\n", req->cacheUID, req->entry->UID);
-    //    fclose(debugFile);
-    //}
-
     // Safeguards...
     if (!req || !req->entry || !req->cache)
         return;
@@ -61,6 +52,14 @@ static void cacheLoadImage(void *data)
 
     // 触发连按CD时阻止后台继续加载图片，避免卡顿
     if (cdFramesCount) {
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texCache.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "req->cacheUID:%d\r\nreq->entry->UID:%d\r\n\r\n", req->cacheUID, req->entry->UID);
+            fclose(debugFile);
+        }
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         //req->cacheUID = -1;
