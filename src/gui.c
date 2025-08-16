@@ -1429,7 +1429,7 @@ static void guiDrawOverlays()
     if (!pending) {
         // Fade out
         if (busyAlpha > 0x00)
-            busyAlpha -= 0x04;
+            busyAlpha -= 0x08;
     } else {
         // Fade in
         if (busyAlpha < 0x80)
