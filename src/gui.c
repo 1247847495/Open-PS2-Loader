@@ -1797,11 +1797,11 @@ void guiMainLoop(void)
             guiShow();
 
             if (artLoadDelayTime > 0) {
-                artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
                 if (greetingAlpha >= 0x00)
                     guiRenderGreeting(greetingAlpha);
-                if (artLoadDelayTime <= 0) {
+                if (!ioHasPendingRequests()) {
+                    artLoadDelayTime = 0;
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
