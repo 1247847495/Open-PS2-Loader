@@ -59,8 +59,8 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 触发跳过Qr时阻止后台继续加载图片，避免卡顿
-    if (skipQr) {
+    // 光标指向的游戏ID和后台加载的art图片不符时，停止加载图片，避免卡顿
+    if (curStartUp && strncmp(curStartUp, req->value, 11)) {
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         //req->cacheUID = -1;
@@ -163,6 +163,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (isRepeating) {
         if (guiInactiveFrames)
             isRepeating = 0;
+        findBGCount = 0;
         cdFramesCount = 0; // 强制结束连按CD
     }
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
