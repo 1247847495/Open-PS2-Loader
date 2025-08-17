@@ -59,8 +59,8 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 光标指向的游戏ID和后台加载的art图片不符时，停止加载图片，避免卡顿
-    if (curStartUp && strncmp(curStartUp, req->value, 11)) {
+    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    if ((curStartUp && strncmp(curStartUp, req->value, 11)) || (gScrollSpeed > 0 ? isRepeating : 0) || cdFramesCount) {
         req->entry->lastUsed = 0;
         req->entry->UID = -1;
         //req->cacheUID = -1;
