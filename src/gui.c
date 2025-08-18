@@ -1570,7 +1570,7 @@ void guiIntroLoop(void)
     while (!endIntro) {
         guiStartFrame();
 
-        //guiShow();
+        guiShow();
 
         guiRenderGreeting(0x80);
 
