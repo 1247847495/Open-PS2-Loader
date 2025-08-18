@@ -339,6 +339,8 @@ int readPads()
     oldpaddata = paddata;
     paddata = 0;
 
+    if (isRepeating || cdFramesCount)
+        searchTexTime = 0; // 如果已经进入了连按CD状态，就不需要修正图片搜索时间了
     // in ms.  searchTexTime不能算作按住按键的时间，所以要进行修正
     u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
     time_since_last = newtime - curtime - searchTexTime;

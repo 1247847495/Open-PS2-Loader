@@ -608,25 +608,21 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
         //}
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
         // 开始搜索图片，记录时间
-        if (!isRepeating && !cdFramesCount) // 如果已经进入了连按CD状态，就不需要修正图片搜索时间了
-            beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
+        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
         if (access(filePath, F_OK) == 0) {
-            if (!isRepeating && !cdFramesCount)                                          // 如果已经进入了连按CD状态，就不需要修正图片搜索时间了
-                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
             // File found, load it
             return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
         } else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
             if (access(filePath, F_OK) == 0) {
-                if (!isRepeating && !cdFramesCount)                                          // 如果已经进入了连按CD状态，就不需要修正图片搜索时间了
-                    searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
                 // File found, load it
                 return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
             }
         }
-        if (!isRepeating && !cdFramesCount)                                          // 如果已经进入了连按CD状态，就不需要修正图片搜索时间了
-            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+        searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
     }
     return ERR_BAD_FILE;
 }
