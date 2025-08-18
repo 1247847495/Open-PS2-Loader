@@ -183,9 +183,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         // 连按CD期间，再次按键，重置帧数
         if (!guiInactiveFrames) {
+            cdFramesCount = 1;
+            // 按下按键只重置一次的变量
             if (!buttonPressedOnce) {
                 buttonPressedOnce = 1;
-                cdFramesCount = 1;
                 cdFrames = 50;
             }
         } else
@@ -210,9 +211,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 findBGCount = 0;
         }
 
-        // CD结束时处于自动连按状态，矫正一次Qr
-        if (!cdFramesCount && isRepeating) {
+        // CD期间进入了自动连按状态，矫正一次Qr，结束cdFramesCount
+        if (isRepeating) {
             findBGCount = 0;
+            cdFramesCount = 0;
             skipQr = gScrollSpeed > 0 ? isRepeating : 0;
         }
         //// debug  打印debug信息
