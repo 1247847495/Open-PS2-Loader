@@ -50,6 +50,8 @@ static int showPartPopup = 0;
 static int showThmPopup;
 static int showLngPopup;
 
+static int introLoopDone = 0;
+
 static clock_t popupTimer;
 
 // forward decl.
@@ -1553,8 +1555,8 @@ static void guiShow()
         // render with the set screen handler
         screenHandler->renderScreen();
 
-        // 为了能让手动模式正常预加载art，需要黑屏盖住
-        if (bdmManualTrigger)
+        // 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
+        if (bdmManualTrigger || !introLoopDone)
             rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
 }
@@ -1816,6 +1818,7 @@ void guiMainLoop(void)
                 if (greetingAlpha >= 0x00) {
                     guiRenderGreeting(greetingAlpha);
                     greetingAlpha -= 0x04;
+                    introLoopDone = 1;
                 }
             }
         } else {
