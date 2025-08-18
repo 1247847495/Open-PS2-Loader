@@ -33,6 +33,26 @@ typedef struct
     char *value;
 } load_image_request_t;
 
+static void cacheClearItem(cache_entry_t *item, int freeTxt)
+{
+    if (freeTxt && item->texture.Mem) {
+        rmUnloadTexture(&item->texture);
+        free(item->texture.Mem);
+        if (item->texture.Clut)
+            free(item->texture.Clut);
+    }
+
+    memset(item, 0, sizeof(cache_entry_t));
+    item->texture.Mem = NULL;
+    item->texture.Vram = 0;
+    item->texture.Clut = NULL;
+    item->texture.VramClut = 0;
+    // item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
+    item->qr = NULL;
+    item->lastUsed = -1;
+    item->UID = 0;
+}
+
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
@@ -91,26 +111,6 @@ void cacheInit()
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
-}
-
-static void cacheClearItem(cache_entry_t *item, int freeTxt)
-{
-    if (freeTxt && item->texture.Mem) {
-        rmUnloadTexture(&item->texture);
-        free(item->texture.Mem);
-        if (item->texture.Clut)
-            free(item->texture.Clut);
-    }
-
-    memset(item, 0, sizeof(cache_entry_t));
-    item->texture.Mem = NULL;
-    item->texture.Vram = 0;
-    item->texture.Clut = NULL;
-    item->texture.VramClut = 0;
-    //item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
-    item->qr = NULL;
-    item->lastUsed = -1;
-    item->UID = 0;
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
