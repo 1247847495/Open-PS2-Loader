@@ -155,63 +155,56 @@ static int hddGetHDLGameInfo(struct GameDataEntry *game, hdl_game_info_t *ginfo,
         strncpy(ginfo->name, hdl_header->gamename, HDL_GAME_NAME_MAX);
         ginfo->name[HDL_GAME_NAME_MAX] = '\0';
 
-        //if (gHDDPrefix[5] != '+')
-        //    gHDDPrefix = "pfs0:OPL/";
-        //else
-        //    gHDDPrefix = "pfs0:+OPL/";
-
-        if (gTxtRename) {
+        if (gTxtRename && file) {
             ginfo->indexName[0] = '\0';
             ginfo->transName[0] = '\0';
             //  把获取的名字作为索引名，替换成txt中对应的中文名
             char fullName[256];
             char indexNameBuffer[256];
-            if (file != NULL) {
-                rewind(file);
-                int noLineBreaks = 0;
-                while (fgets(fullName, sizeof(fullName), file) != NULL) {
-                    if (fullName[strlen(fullName) - strlen("\r\n")] == '\r') // 检查是不是CRLF
-                        fullName[strlen(fullName) - strlen("\r\n")] = '\0';  // 避免transName的换行符被显示出来。
-                    else if (fullName[strlen(fullName) - strlen("\n")] == '\n')
-                        fullName[strlen(fullName) - strlen("\n")] = '\0';
-                    else if (fullName[strlen(fullName) - strlen("\r")] == '\r')
-                        fullName[strlen(fullName) - strlen("\r")] = '\0';
-                    else
-                        noLineBreaks = 1;
+            rewind(file);
+            int noLineBreaks = 0;
+            while (fgets(fullName, sizeof(fullName), file) != NULL) {
+                if (fullName[strlen(fullName) - strlen("\r\n")] == '\r') // 检查是不是CRLF
+                    fullName[strlen(fullName) - strlen("\r\n")] = '\0';  // 避免transName的换行符被显示出来。
+                else if (fullName[strlen(fullName) - strlen("\n")] == '\n')
+                    fullName[strlen(fullName) - strlen("\n")] = '\0';
+                else if (fullName[strlen(fullName) - strlen("\r")] == '\r')
+                    fullName[strlen(fullName) - strlen("\r")] = '\0';
+                else
+                    noLineBreaks = 1;
 
-                    if (strncmp(fullName, ginfo->name, strlen(ginfo->name)) == 0 && (fullName[strlen(ginfo->name)] == '.')) {                                                     // 寻找iso名字  是否存在于txt内作为索引名
-                        strcpy(ginfo->indexName, ginfo->name);                                                                                                                    // 存在，就赋值给索引数组                                                                                     // 将真正的游戏名变成index索引名
-                        if (fullName[strlen(ginfo->indexName) + 1] == '\r' || fullName[strlen(ginfo->indexName) + 1] == '\n' || fullName[strlen(ginfo->indexName) + 1] == '\0') { // 判断索引的译名是否为空
-                            ginfo->transName[0] = '\0';
-                            ginfo->name[HDL_GAME_NAME_MAX] = '\0';
-                            break;
-                        }
-                        strcpy(ginfo->transName, &fullName[strlen(ginfo->indexName) + 1]); // 赋值给翻译文本数组
-                        strcpy(ginfo->name, ginfo->transName);
-
-                        //// 给游戏名加结束符，防止换行符被显示出来
-                        // for (int i = 0; i < strlen(ginfo->transName); i++) {
-                        //     if (ginfo->transName[i] == '\r' || ginfo->transName[i] == '\n' || ginfo->transName[i] == '\0') {
-                        //         ginfo->transName[i] = '\0';
-                        //         strcpy(ginfo->name, ginfo->transName);
-                        //         break;
-                        //     }
-                        // }
+                if (strncmp(fullName, ginfo->name, strlen(ginfo->name)) == 0 && (fullName[strlen(ginfo->name)] == '.')) {                                                     // 寻找iso名字  是否存在于txt内作为索引名
+                    strcpy(ginfo->indexName, ginfo->name);                                                                                                                    // 存在，就赋值给索引数组                                                                                     // 将真正的游戏名变成index索引名
+                    if (fullName[strlen(ginfo->indexName) + 1] == '\r' || fullName[strlen(ginfo->indexName) + 1] == '\n' || fullName[strlen(ginfo->indexName) + 1] == '\0') { // 判断索引的译名是否为空
+                        ginfo->transName[0] = '\0';
+                        ginfo->name[HDL_GAME_NAME_MAX] = '\0';
                         break;
                     }
-                }
-                // 如果txt里没有此游戏的英文名索引，则添加到txt里
-                if (ginfo->indexName[0] == '\0' && ginfo->transName[0] == '\0') {
-                    // 添加索引之前，判断txt最后有没有换行符，没有则手动添加一个换行符。
-                    if (noLineBreaks)
-                        fwrite("\r\n", sizeof(char), 2, file);
+                    strcpy(ginfo->transName, &fullName[strlen(ginfo->indexName) + 1]); // 赋值给翻译文本数组
+                    strcpy(ginfo->name, ginfo->transName);
 
-                    ginfo->name[HDL_GAME_NAME_MAX] = '\0';
-                    strcpy(ginfo->indexName, ginfo->name); // 将真正的游戏名变成index索引名   index是否需要追加\0？
-                    // fprintf(file, "%s.\r\n", ginfo->indexName);  // <----这里是否需要追加\0，解决txt内还有隐藏文字的问题？
-                    sprintf(indexNameBuffer, "%s.\r\n", ginfo->indexName);
-                    fwrite(indexNameBuffer, sizeof(char), strlen(indexNameBuffer), file);
+                    //// 给游戏名加结束符，防止换行符被显示出来
+                    // for (int i = 0; i < strlen(ginfo->transName); i++) {
+                    //     if (ginfo->transName[i] == '\r' || ginfo->transName[i] == '\n' || ginfo->transName[i] == '\0') {
+                    //         ginfo->transName[i] = '\0';
+                    //         strcpy(ginfo->name, ginfo->transName);
+                    //         break;
+                    //     }
+                    // }
+                    break;
                 }
+            }
+            // 如果txt里没有此游戏的英文名索引，则添加到txt里
+            if (ginfo->indexName[0] == '\0' && ginfo->transName[0] == '\0') {
+                // 添加索引之前，判断txt最后有没有换行符，没有则手动添加一个换行符。
+                if (noLineBreaks)
+                    fwrite("\r\n", sizeof(char), 2, file);
+
+                ginfo->name[HDL_GAME_NAME_MAX] = '\0';
+                strcpy(ginfo->indexName, ginfo->name); // 将真正的游戏名变成index索引名   index是否需要追加\0？
+                // fprintf(file, "%s.\r\n", ginfo->indexName);  // <----这里是否需要追加\0，解决txt内还有隐藏文字的问题？
+                sprintf(indexNameBuffer, "%s.\r\n", ginfo->indexName);
+                fwrite(indexNameBuffer, sizeof(char), strlen(indexNameBuffer), file);
             }
             // 防止txt无法写入时，出现的白屏问题
             if (ginfo->indexName[0] == '\0') {
@@ -300,27 +293,33 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
         if (head != NULL) {
             if ((game_list->games = malloc(sizeof(hdl_game_info_t) * count)) != NULL) {
                 memset(game_list->games, 0, sizeof(hdl_game_info_t) * count);
-
-                FILE *file;
-                char path[256];
-                if (strncasecmp(gHDDPrefix, "pfs", 3) == 0) {
-                    snprintf(path, 64, "%sGameListTranslator.txt", gHDDPrefix);
-                    file = fopen(path, "ab+, ccs=UTF-8");
-                    fseek(file, 0, SEEK_END);
-                    if (ftell(file) == 0) {
-                        txtFileCreated = 1;
-                        unsigned char bom[3] = {0xEF, 0xBB, 0xBF};
-                        fwrite(bom, sizeof(unsigned char), 3, file); // 写入BOM，避免文本打开后乱码
-                        fprintf(file, "注意事项：\r\n// 此OPL已支持将iso直接改为中文名！！！此功能仅作为备选方案。\r\n// 本txt主要用来把英文名映射成中文，避免因iso改成中文名后与其他OPL不兼容！\r\n--------------在“.”后面填写映射名称即可！-------------\r\n");
+                // 判断是否开启了txt映射
+                if (gTxtRename) {
+                    FILE *file = NULL;
+                    char path[256];
+                    if (strncasecmp(gHDDPrefix, "pfs", 3) == 0) {
+                        snprintf(path, 64, "%sGameListTranslator.txt", gHDDPrefix);
+                        file = fopen(path, "ab+, ccs=UTF-8");
+                        fseek(file, 0, SEEK_END);
+                        if (ftell(file) == 0) {
+                            txtFileCreated = 1;
+                            unsigned char bom[3] = {0xEF, 0xBB, 0xBF};
+                            fwrite(bom, sizeof(unsigned char), 3, file); // 写入BOM，避免文本打开后乱码
+                            fprintf(file, "注意事项：\r\n// 此OPL已支持将iso直接改为中文名！！！此功能仅作为备选方案。\r\n// 本txt主要用来把英文名映射成中文，避免因iso改成中文名后与其他OPL不兼容！\r\n--------------在“.”后面填写映射名称即可！-------------\r\n");
+                        }
+                    }
+                    for (i = 0, current = head; i < count; i++, current = current->next) {
+                        if ((ret = hddGetHDLGameInfo(current, &game_list->games[i], file)) != 0)
+                            break;
+                    }
+                    if (file)
+                        fclose(file);
+                } else {
+                    for (i = 0, current = head; i < count; i++, current = current->next) {
+                        if ((ret = hddGetHDLGameInfo(current, &game_list->games[i], NULL)) != 0)
+                            break;
                     }
                 }
-
-                for (i = 0, current = head; i < count; i++, current = current->next) {
-                    if ((ret = hddGetHDLGameInfo(current, &game_list->games[i], file)) != 0)
-                        break;
-                }
-
-                fclose(file);
 
                 if (ret) {
                     free(game_list->games);

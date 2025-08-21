@@ -339,7 +339,7 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
             base_game_info_t *game = &next->gameinfo;
             memset(game, 0, sizeof(base_game_info_t));
 
-            if (gTxtRename) {
+            if (gTxtRename && file) {
                 game->indexName[0] = '\0';
                 game->transName[0] = '\0';
             }
@@ -352,7 +352,7 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
                 strncpy(game->extension, &dirent->d_name[GAME_STARTUP_MAX + NameLen], sizeof(game->extension) - 1);
                 game->extension[sizeof(game->extension) - 1] = '\0';
 
-                if (gTxtRename) {
+                if (gTxtRename && file) {
                     // 查询缓存里的旧格式的游戏名
                     char fileName[160];
                     sprintf(fileName, "%s%s", game->name, game->extension);
@@ -394,7 +394,7 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
                 // use cached entry
                 memcpy(game, &cachedGInfo, sizeof(base_game_info_t));
 
-                if (gTxtRename) {
+                if (gTxtRename && file) {
                     // debug
                     // fprintf(debugFile, "new查到缓存；文件名：%s；索引名：%s\r\n", dirent->d_name, game->indexName);
 
@@ -453,9 +453,9 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
             game->sizeMB = 0;
             count++;
 
-            if (gTxtRename) {
+            if (gTxtRename && file) {
                 //// count and process games in txt
-                if (file != NULL && !skipTxtScan) {
+                if (!skipTxtScan) {
                     rewind(file);
                     int noLineBreaks = 0;
                     while (fgets(fullName, sizeof(fullName), file) != NULL) {
@@ -540,23 +540,34 @@ int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gam
     } else
         closedir(isoDir);
 
-    // TXT相关变量
-    int forceUpdateCache = 0;
-    char bdmHddTxtPath[256];
+    free(*list);
+    *list = NULL;
+    *fsize = -1;
+    *gamecount = 0;
 
     if (gTxtRename) {
+        // TXT相关变量
+        int forceUpdateCache = 0;
+        char bdmHddTxtPath[256];
+        FILE *file = NULL;
+        FILE *binFile = NULL;
+        char txtPath[256];
+        char binPath[256];
+        int txtFileChanged = 0;
+        u32 curTxtFileSize = 1;
+        u32 preTxtFileSize = 1;
+        char curModiTime[6];
+        char preModiTime[6];
+        struct txt_info txtInfo = {{0}, 0};
+        iox_stat_t fileStat;
+
         // 将bdm hdd的txt优先在U盘进行读写
         bdmHddTxtPath[0] = '0';
         if (strncmp(prefix, "mass", 4) == 0) {
             if (prefix[4] == '0') {
                 // 如果找到usb，且usb开关为关闭，则跳过扫描，不生成任何东西
-                if (usbFound && !gEnableUSB) {
-                    free(*list);
-                    *list = NULL;
-                    *fsize = -1;
-                    *gamecount = 0;
+                if (usbFound && !gEnableUSB)
                     return 0;
-                }
             } else if (usbFound && prefix[4] != '0') {
                 // 如果插了U盘，那么寻找bdm hdd硬盘
                 char bdmType[32];
@@ -646,53 +657,28 @@ int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gam
                 }
             }
         }
-    }
+        //// debug  在smb目录下打印debug信息，方便调试
+        // char debugFileDir[64];
+        // strcpy(debugFileDir, "smb:debug.txt");
+        ////sprintf(debugFileDir, "%sdebug.txt", prefix);
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
+        // char bdmType[32];
+        // sprintf(bdmType, "%s/", prefix);
+        // int massDir = fileXioDopen(bdmType);
+        // if (massDir >= 0) {
+        //     fileXioIoctl2(massDir, USBMASS_IOCTL_GET_DRIVERNAME, NULL, 0, &bdmType, sizeof(bdmType) - 1);
+        //     if (debugFile != NULL) {
+        //         fprintf(debugFile, "%s   bdmType:%s  usbFound:%d\r\n", prefix, bdmType, usbFound);
+        //         fclose(debugFile);
+        //     }
+        //     fileXioDclose(massDir);
+        // }
 
-    //// debug  在smb目录下打印debug信息，方便调试
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug.txt");
-    ////sprintf(debugFileDir, "%sdebug.txt", prefix);
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //char bdmType[32];
-    //sprintf(bdmType, "%s/", prefix);
-    //int massDir = fileXioDopen(bdmType);
-    //if (massDir >= 0) {
-    //    fileXioIoctl2(massDir, USBMASS_IOCTL_GET_DRIVERNAME, NULL, 0, &bdmType, sizeof(bdmType) - 1);
-    //    if (debugFile != NULL) {
-    //        fprintf(debugFile, "%s   bdmType:%s  usbFound:%d\r\n", prefix, bdmType, usbFound);
-    //        fclose(debugFile);
-    //    }
-    //    fileXioDclose(massDir);
-    //}
+        // debug 文件
+        // char debugFileDir[64];
+        // snprintf(debugFileDir, 256, "%sdebug.txt", prefix);
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
 
-    free(*list);
-    *list = NULL;
-    *fsize = -1;
-    *gamecount = 0;
-
-    // debug 文件
-    //char debugFileDir[64];
-    //snprintf(debugFileDir, 256, "%sdebug.txt", prefix);
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-
-    int fd, size, id = 0, result;
-    int count;
-    char path[256];
-
-    // TXT相关变量
-    FILE *file;
-    FILE *binFile;
-    char txtPath[256];
-    char binPath[256];
-    int txtFileChanged = 0;
-    u32 curTxtFileSize = 1;
-    u32 preTxtFileSize = 1;
-    char curModiTime[6];
-    char preModiTime[6];
-    struct txt_info txtInfo = {{0}, 0};
-    iox_stat_t fileStat;
-
-    if (gTxtRename) {
         // 创建txt文件
         txtFileChanged = 1;
 
@@ -777,125 +763,127 @@ int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gam
         // fprintf(debugFile, "curModiTime:%s   preModiTime:%s\r\n", curModiTime, preModiTime);
         // fprintf(debugFile, "curTxtFileSize:%d   preTxtFileSize:%d\r\n", curTxtFileSize, preTxtFileSize);
 
-    }
-    //else { // 关闭了txt映射时，需要删除txtinfo，下次开启时需要重新扫描txt
-    //    sprintf(binPath, "%stxtInfo.bin", prefix);
-    //    if (binFile = fopen(binPath, "rb")) {
-    //        fclose(binFile);
-    //        remove(binPath);
-    //    }
-    //}
+        // else { // 关闭了txt映射时，需要删除txtinfo，下次开启时需要重新扫描txt
+        //     sprintf(binPath, "%stxtInfo.bin", prefix);
+        //     if (binFile = fopen(binPath, "rb")) {
+        //         fclose(binFile);
+        //         remove(binPath);
+        //     }
+        // }
 
-    // temporary storage for the game names
-    struct game_list_t *dlist_head = NULL;
+        int fd, size, id = 0, result;
+        int count;
+        char path[256];
 
-    // count iso games in "cd" directory
-    snprintf(path, sizeof(path), "%sCD", prefix);
-    count = scanForISO(path, SCECdPS2CD, &dlist_head, file, txtFileChanged, curTxtFileSize);
+        // temporary storage for the game names
+        struct game_list_t *dlist_head = NULL;
 
-    // count iso games in "dvd" directory
-    snprintf(path, sizeof(path), "%sDVD", prefix);
-    if ((result = scanForISO(path, SCECdPS2DVD, &dlist_head, file, txtFileChanged, curTxtFileSize)) >= 0) {
-        count = count < 0 ? result : count + result;
-    }
+        // count iso games in "cd" directory
+        snprintf(path, sizeof(path), "%sCD", prefix);
+        count = scanForISO(path, SCECdPS2CD, &dlist_head, file, txtFileChanged, curTxtFileSize);
 
-    // count and process games in ul.cfg
-    snprintf(path, sizeof(path), "%sul.cfg", prefix);
-    fd = openFile(path, O_RDONLY);
-    if (fd >= 0) {
-        USBExtreme_game_entry_t GameEntry;
+        // count iso games in "dvd" directory
+        snprintf(path, sizeof(path), "%sDVD", prefix);
+        if ((result = scanForISO(path, SCECdPS2DVD, &dlist_head, file, txtFileChanged, curTxtFileSize)) >= 0) {
+            count = count < 0 ? result : count + result;
+        }
 
-        if (count < 0)
-            count = 0;
-        size = getFileSize(fd);
-        *fsize = size;
-        count += size / sizeof(USBExtreme_game_entry_t);
+        // count and process games in ul.cfg
+        snprintf(path, sizeof(path), "%sul.cfg", prefix);
+        fd = openFile(path, O_RDONLY);
+        if (fd >= 0) {
+            USBExtreme_game_entry_t GameEntry;
 
-        if (count > 0) {
-            if ((*list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count)) != NULL) {
-                memset(*list, 0, sizeof(base_game_info_t) * count);
+            if (count < 0)
+                count = 0;
+            size = getFileSize(fd);
+            *fsize = size;
+            count += size / sizeof(USBExtreme_game_entry_t);
 
-                while (size > 0) {
-                    base_game_info_t *g = &(*list)[id++];
+            if (count > 0) {
+                if ((*list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count)) != NULL) {
+                    memset(*list, 0, sizeof(base_game_info_t) * count);
 
-                    // populate game entry in list even if entry corrupted
-                    read(fd, &GameEntry, sizeof(USBExtreme_game_entry_t));
-                    size -= sizeof(USBExtreme_game_entry_t);
+                    while (size > 0) {
+                        base_game_info_t *g = &(*list)[id++];
 
-                    // to ensure no leaks happen, we copy manually and pad the strings
-                    memcpy(g->name, GameEntry.name, UL_GAME_NAME_MAX);
-                    g->name[UL_GAME_NAME_MAX] = '\0';
-                    memcpy(g->startup, GameEntry.startup, GAME_STARTUP_MAX);
-                    g->startup[GAME_STARTUP_MAX] = '\0';
-                    g->extension[0] = '\0';
-                    g->parts = GameEntry.parts;
-                    g->media = GameEntry.media;
-                    g->format = GAME_FORMAT_USBLD;
-                    g->sizeMB = 0;
+                        // populate game entry in list even if entry corrupted
+                        read(fd, &GameEntry, sizeof(USBExtreme_game_entry_t));
+                        size -= sizeof(USBExtreme_game_entry_t);
 
-                    // 直接从文件名中找到crc32的数值，绕过crc32检测
-                    DIR *d;
-                    struct dirent *dir;
-                    snprintf(path, sizeof(path), "%s", prefix);
-                    // 打开当前目录
-                    if ((d = opendir(path)) != NULL) {
-                        //char str1[12];
-                        //strncpy(str1, &dir->d_name[12], 11);
-                        //str1[11] = '\0';
-                        while ((dir = readdir(d)) != NULL) {
-                            if (strncmp(&dir->d_name[12], g->startup, 11) == 0) {
-                                memcpy(g->crc32name, &dir->d_name[3], 8);
-                                g->crc32name[8] = '\0';
-                                break;
+                        // to ensure no leaks happen, we copy manually and pad the strings
+                        memcpy(g->name, GameEntry.name, UL_GAME_NAME_MAX);
+                        g->name[UL_GAME_NAME_MAX] = '\0';
+                        memcpy(g->startup, GameEntry.startup, GAME_STARTUP_MAX);
+                        g->startup[GAME_STARTUP_MAX] = '\0';
+                        g->extension[0] = '\0';
+                        g->parts = GameEntry.parts;
+                        g->media = GameEntry.media;
+                        g->format = GAME_FORMAT_USBLD;
+                        g->sizeMB = 0;
+
+                        // 直接从文件名中找到crc32的数值，绕过crc32检测
+                        DIR *d;
+                        struct dirent *dir;
+                        snprintf(path, sizeof(path), "%s", prefix);
+                        // 打开当前目录
+                        if ((d = opendir(path)) != NULL) {
+                            // char str1[12];
+                            // strncpy(str1, &dir->d_name[12], 11);
+                            // str1[11] = '\0';
+                            while ((dir = readdir(d)) != NULL) {
+                                if (strncmp(&dir->d_name[12], g->startup, 11) == 0) {
+                                    memcpy(g->crc32name, &dir->d_name[3], 8);
+                                    g->crc32name[8] = '\0';
+                                    break;
+                                }
                             }
-                        }                       
-                    }
-                    closedir(d); // 关闭目录流
-                    // debug crc32name
-                    //snprintf(path, 256, "%sul.%s.%s.%s", prefix, g->crc32name, g->startup, "00");
-                    //sprintf(g->name, "%s", path);
-
-                    /* TODO: size calculation is very slow
-                    implmented some caching, or do not touch at all */
-
-                    // calculate total size for individual game
-                    /*int ulfd = 1;
-                    u8 part;
-                    unsigned int name_checksum = USBA_crc32(g->name);
-
-                    for (part = 0; part < g->parts && ulfd >= 0; part++) {
-                        snprintf(path, sizeof(path), "%sul.%08X.%s.%02x", prefix, name_checksum, g->startup, part);
-                        ulfd = openFile(path, O_RDONLY);
-                        if (ulfd >= 0) {
-                            g->sizeMB += (getFileSize(ulfd) >> 20);
-                            close(ulfd);
                         }
-                    }*/
+                        closedir(d); // 关闭目录流
+                        // debug crc32name
+                        // snprintf(path, 256, "%sul.%s.%s.%s", prefix, g->crc32name, g->startup, "00");
+                        // sprintf(g->name, "%s", path);
+
+                        /* TODO: size calculation is very slow
+                        implmented some caching, or do not touch at all */
+
+                        // calculate total size for individual game
+                        /*int ulfd = 1;
+                        u8 part;
+                        unsigned int name_checksum = USBA_crc32(g->name);
+
+                        for (part = 0; part < g->parts && ulfd >= 0; part++) {
+                            snprintf(path, sizeof(path), "%sul.%08X.%s.%02x", prefix, name_checksum, g->startup, part);
+                            ulfd = openFile(path, O_RDONLY);
+                            if (ulfd >= 0) {
+                                g->sizeMB += (getFileSize(ulfd) >> 20);
+                                close(ulfd);
+                            }
+                        }*/
+                    }
                 }
             }
+            close(fd);
+        } else if (count > 0) {
+            *list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count);
         }
-        close(fd);
-    } else if (count > 0) {
-        *list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count);
-    }
 
-    if (*list != NULL) {
-        // copy the dlist into the list
-        while ((id < count) && dlist_head) {
-            // copy one game, advance
-            struct game_list_t *cur = dlist_head;
-            dlist_head = dlist_head->next;
+        if (*list != NULL) {
+            // copy the dlist into the list
+            while ((id < count) && dlist_head) {
+                // copy one game, advance
+                struct game_list_t *cur = dlist_head;
+                dlist_head = dlist_head->next;
 
-            memcpy(&(*list)[id++], &cur->gameinfo, sizeof(base_game_info_t));
-            free(cur);
-        }
-    } else
-        count = 0;
+                memcpy(&(*list)[id++], &cur->gameinfo, sizeof(base_game_info_t));
+                free(cur);
+            }
+        } else
+            count = 0;
 
-    if (count > 0)
-        *gamecount = count;
+        if (count > 0)
+            *gamecount = count;
 
-    if (gTxtRename) {
         // txt操作完毕后，将大小保存起来。
         if (file != NULL) {
             fseek(file, 0, SEEK_END);
@@ -930,9 +918,124 @@ int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gam
             fwrite(&txtInfo, sizeof(txtInfo), 1, binFile);
             fclose(binFile);
         }
-    }
 
-    return count;
+        return count;
+    } else {
+        int fd, size, id = 0, result;
+        int count;
+        char path[256];
+
+        // temporary storage for the game names
+        struct game_list_t *dlist_head = NULL;
+
+        // count iso games in "cd" directory
+        snprintf(path, sizeof(path), "%sCD", prefix);
+        count = scanForISO(path, SCECdPS2CD, &dlist_head, NULL, 0, 1);
+
+        // count iso games in "dvd" directory
+        snprintf(path, sizeof(path), "%sDVD", prefix);
+        if ((result = scanForISO(path, SCECdPS2DVD, &dlist_head, NULL, 0, 1)) >= 0) {
+            count = count < 0 ? result : count + result;
+        }
+
+        // count and process games in ul.cfg
+        snprintf(path, sizeof(path), "%sul.cfg", prefix);
+        fd = openFile(path, O_RDONLY);
+        if (fd >= 0) {
+            USBExtreme_game_entry_t GameEntry;
+
+            if (count < 0)
+                count = 0;
+            size = getFileSize(fd);
+            *fsize = size;
+            count += size / sizeof(USBExtreme_game_entry_t);
+
+            if (count > 0) {
+                if ((*list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count)) != NULL) {
+                    memset(*list, 0, sizeof(base_game_info_t) * count);
+
+                    while (size > 0) {
+                        base_game_info_t *g = &(*list)[id++];
+
+                        // populate game entry in list even if entry corrupted
+                        read(fd, &GameEntry, sizeof(USBExtreme_game_entry_t));
+                        size -= sizeof(USBExtreme_game_entry_t);
+
+                        // to ensure no leaks happen, we copy manually and pad the strings
+                        memcpy(g->name, GameEntry.name, UL_GAME_NAME_MAX);
+                        g->name[UL_GAME_NAME_MAX] = '\0';
+                        memcpy(g->startup, GameEntry.startup, GAME_STARTUP_MAX);
+                        g->startup[GAME_STARTUP_MAX] = '\0';
+                        g->extension[0] = '\0';
+                        g->parts = GameEntry.parts;
+                        g->media = GameEntry.media;
+                        g->format = GAME_FORMAT_USBLD;
+                        g->sizeMB = 0;
+
+                        // 直接从文件名中找到crc32的数值，绕过crc32检测
+                        DIR *d;
+                        struct dirent *dir;
+                        snprintf(path, sizeof(path), "%s", prefix);
+                        // 打开当前目录
+                        if ((d = opendir(path)) != NULL) {
+                            // char str1[12];
+                            // strncpy(str1, &dir->d_name[12], 11);
+                            // str1[11] = '\0';
+                            while ((dir = readdir(d)) != NULL) {
+                                if (strncmp(&dir->d_name[12], g->startup, 11) == 0) {
+                                    memcpy(g->crc32name, &dir->d_name[3], 8);
+                                    g->crc32name[8] = '\0';
+                                    break;
+                                }
+                            }
+                        }
+                        closedir(d); // 关闭目录流
+                        // debug crc32name
+                        // snprintf(path, 256, "%sul.%s.%s.%s", prefix, g->crc32name, g->startup, "00");
+                        // sprintf(g->name, "%s", path);
+
+                        /* TODO: size calculation is very slow
+                        implmented some caching, or do not touch at all */
+
+                        // calculate total size for individual game
+                        /*int ulfd = 1;
+                        u8 part;
+                        unsigned int name_checksum = USBA_crc32(g->name);
+
+                        for (part = 0; part < g->parts && ulfd >= 0; part++) {
+                            snprintf(path, sizeof(path), "%sul.%08X.%s.%02x", prefix, name_checksum, g->startup, part);
+                            ulfd = openFile(path, O_RDONLY);
+                            if (ulfd >= 0) {
+                                g->sizeMB += (getFileSize(ulfd) >> 20);
+                                close(ulfd);
+                            }
+                        }*/
+                    }
+                }
+            }
+            close(fd);
+        } else if (count > 0) {
+            *list = (base_game_info_t *)malloc(sizeof(base_game_info_t) * count);
+        }
+
+        if (*list != NULL) {
+            // copy the dlist into the list
+            while ((id < count) && dlist_head) {
+                // copy one game, advance
+                struct game_list_t *cur = dlist_head;
+                dlist_head = dlist_head->next;
+
+                memcpy(&(*list)[id++], &cur->gameinfo, sizeof(base_game_info_t));
+                free(cur);
+            }
+        } else
+            count = 0;
+
+        if (count > 0)
+            *gamecount = count;
+
+        return count;
+    }
 }
 
 extern int probed_fd;
