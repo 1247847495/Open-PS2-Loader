@@ -1619,7 +1619,7 @@ int endIntroDelayFrame = 0;
 int txtFileCreated = 0;
 int txtFileRebuilded = 0;
 int bdmTimeOut = 0;
-int artLoadDelayTime = 30;
+int artLoadDelayTime = 50;
 
 void reFindBDM()
 {
@@ -1699,11 +1699,16 @@ void guiMainLoop(void)
     if ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)) {
         // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
         if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
-            artLoadDelayTime *= 2;
+            artLoadDelayTime *= 1.4f;
     } else
         artLoadDelayTime = 0; // 手动模式时，不需要art预加载
 
     while (!gTerminate) {
+        guiStartFrame();
+
+        //  handle inputs and render screen
+        guiShow();
+
         // 各种弹窗提示
         if (greetingAlpha < 0x00) {
             // 如果txt被创建，则弹出提示框
@@ -1729,15 +1734,8 @@ void guiMainLoop(void)
             }
         }
 
-        guiStartFrame();
-
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
-            // 启动画面的延迟期间，就要guiShow预加载art图片了
-            if (greetingAlpha >= 0x00 && artLoadDelayTime)
-                guiShow();
-            else if (bdmManualTrigger && artLoadDelayTime)
-                guiShow();
             // 所有设备准备就绪，才可以结束延迟
             if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
                 //// debug  打印debug信息
@@ -1795,9 +1793,6 @@ void guiMainLoop(void)
         }
 
         if (mainScreenInitDone) {
-            //  handle inputs and render screen
-            guiShow();
-
             if (artLoadDelayTime > 0) {
                 artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
@@ -1821,14 +1816,8 @@ void guiMainLoop(void)
                     introLoopDone = 1;
                 }
             }
-        } else {
-            if (greetingAlpha >= 0x00) {
-                guiRenderGreeting(greetingAlpha);
-            } else {
-                // 不是启动画面时，要显示Gui。手动启动BDM时直接黑屏，盖住寻找硬盘的过程
-                guiShow();
-            }
-        }
+        } else if (greetingAlpha >= 0x00)
+            guiRenderGreeting(greetingAlpha);
 
         // Render overlaying gui thingies :)
         guiDrawOverlays();
