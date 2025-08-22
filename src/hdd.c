@@ -301,7 +301,7 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
             if ((game_list->games = malloc(sizeof(hdl_game_info_t) * count)) != NULL) {
                 memset(game_list->games, 0, sizeof(hdl_game_info_t) * count);
 
-                FILE *file;
+                FILE *file = NULL;
                 char path[256];
                 if (strncasecmp(gHDDPrefix, "pfs", 3) == 0) {
                     snprintf(path, 64, "%sGameListTranslator.txt", gHDDPrefix);
