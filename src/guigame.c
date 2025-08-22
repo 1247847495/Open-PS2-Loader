@@ -1037,17 +1037,20 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
     }
     // 根据全局DMA设置，来重设DMA传输模式，加快Art图片的读取速度
     if (support->flags & MODE_FLAG_COMPAT_DMA) {
-        if (gDmaSource == SETTINGS_GLOBAL && dmaMode >= 3 && dmaMode <= 10) {
-            hddSetTransferMode(0x40, dmaMode - 3);
-            //// debug
-            // char debugFileDir[64];
-            // strcpy(debugFileDir, "mass0:debug-UDMA.txt");
-            // FILE *debugFile = fopen(debugFileDir, "ab+");
-            // if (debugFile != NULL) {
-            //     fprintf(debugFile, "修改DMA模式时：传输模式校准为UDMA %d\r\n", dmaMode - 3);
-            //     fclose(debugFile);
-            // }
+        if (gDmaSource == SETTINGS_GLOBAL) {
+            if (dmaMode >= 3 && dmaMode <= 10)
+                hddSetTransferMode(0x40, dmaMode - 3);
+            else if (dmaMode >= 0 && dmaMode <= 2)
+                hddSetTransferMode(0x20, dmaMode);
         }
+        //// debug
+        // char debugFileDir[64];
+        // strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
+        // if (debugFile != NULL) {
+        //     fprintf(debugFile, "修改DMA模式时：传输模式校准为UDMA %d\r\n", dmaMode - 3);
+        //     fclose(debugFile);
+        // }
     }
 }
 
