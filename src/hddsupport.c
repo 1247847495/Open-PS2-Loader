@@ -333,7 +333,7 @@ void hddLoadSupportModules(void)
         }
 
         // 根据全局DMA设置，来重设DMA传输模式，加快Art图片的读取速度
-        int gDmaMode = 7;
+        int gDmaMode = -1; // 获取配置失败时，不重设传输模式
         configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &gDmaMode);
         if (gDmaMode >= 3 && gDmaMode <= 10)
             hddSetTransferMode(0x40, gDmaMode - 3);
