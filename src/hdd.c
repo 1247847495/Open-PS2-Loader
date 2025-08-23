@@ -296,17 +296,13 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
                 // 判断是否开启了txt映射
                 if (gTxtRename) {
                     FILE *file = NULL;
-                    char path[256];
-                    if (strncasecmp(gHDDPrefix, "pfs", 3) == 0) {
-                        snprintf(path, 64, "%sGameListTranslator.txt", gHDDPrefix);
-                        file = fopen(path, "ab+, ccs=UTF-8");
-                        fseek(file, 0, SEEK_END);
-                        if (ftell(file) == 0) {
-                            txtFileCreated = 1;
-                            unsigned char bom[3] = {0xEF, 0xBB, 0xBF};
-                            fwrite(bom, sizeof(unsigned char), 3, file); // 写入BOM，避免文本打开后乱码
-                            fprintf(file, "注意事项：\r\n// 此OPL已支持将iso直接改为中文名！！！此功能仅作为备选方案。\r\n// 本txt主要用来把英文名映射成中文，避免因iso改成中文名后与其他OPL不兼容！\r\n--------------在“.”后面填写映射名称即可！-------------\r\n");
-                        }
+                    file = fopen("pfs0:OPL/GameListTranslator.txt", "ab+, ccs=UTF-8");
+                    fseek(file, 0, SEEK_END);
+                    if (ftell(file) == 0) {
+                        txtFileCreated = 1;
+                        unsigned char bom[3] = {0xEF, 0xBB, 0xBF};
+                        fwrite(bom, sizeof(unsigned char), 3, file); // 写入BOM，避免文本打开后乱码
+                        fprintf(file, "注意事项：\r\n// 此OPL已支持将iso直接改为中文名！！！此功能仅作为备选方案。\r\n// 本txt主要用来把英文名映射成中文，避免因iso改成中文名后与其他OPL不兼容！\r\n--------------在“.”后面填写映射名称即可！-------------\r\n");
                     }
                     for (i = 0, current = head; i < count; i++, current = current->next) {
                         if ((ret = hddGetHDLGameInfo(current, &game_list->games[i], file)) != 0)
