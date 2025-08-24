@@ -109,4 +109,6 @@ int texLoadInternal(GSTEXTURE *texture, int texId);
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId);
 void texFree(GSTEXTURE *texture);
 
+extern int ForceOffLoadingIcon = 0; // 搜索图片时候关闭loading图标，加载图片的时候才需要打开。
+
 #endif

@@ -578,6 +578,7 @@ int texLoadInternal(GSTEXTURE *texture, int texId)
     return texLoadAll(texture, NULL, texId);
 }
 
+int ForceOffLoadingIcon = 0; // 搜索图片时候关闭loading图标，加载图片的时候才需要打开。
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 {
     char filePath[256];
@@ -587,12 +588,14 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     if (texId != -1) {
         snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "png");
         if (access(filePath, F_OK) == 0) {
+            ForceOffLoadingIcon = 0;
             // File found, load it
             return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
         } else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
 
             if (access(filePath, F_OK) == 0) {
+                ForceOffLoadingIcon = 0;
                 // File found, load it
                 return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
             }
@@ -610,6 +613,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
         // 开始搜索图片，记录时间
         beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
         if (access(filePath, F_OK) == 0) {
+            ForceOffLoadingIcon = 0;
             searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
             // File found, load it
             return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
@@ -617,6 +621,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
 
             if (access(filePath, F_OK) == 0) {
+                ForceOffLoadingIcon = 0;
                 searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
                 // File found, load it
                 return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
