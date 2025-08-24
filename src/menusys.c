@@ -1023,10 +1023,14 @@ void menuHandleInputMain()
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
     } else if (getKeyOn(KEY_CROSS)) {
+        if (gSelectButton == KEY_CROSS)
+            ForceRefreshPrevTexCache = 1;
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
         selected_item->item->execTriangle(selected_item->item);
     } else if (getKeyOn(KEY_CIRCLE)) {
+        if (gSelectButton == KEY_CIRCLE)
+            ForceRefreshPrevTexCache = 1;
         selected_item->item->execCircle(selected_item->item);
     } else if (getKeyOn(KEY_SQUARE)) {
         selected_item->item->execSquare(selected_item->item);
