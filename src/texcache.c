@@ -56,6 +56,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    ForceOffLoadingIcon = 1; // 每个Qr在执行的时候要先把loading图标关闭，搜索到了图片再打开
     load_image_request_t *req = data;
 
     ////  debug
@@ -154,9 +155,15 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
+    // 没有io请求的时候，ForceOffLoadingIcon还原为默认值
+    if (!ioHasPendingRequests() && !cdFramesCount)
+        ForceOffLoadingIcon = 0;
+
     // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (curStartUp && strncmp(curStartUp, value, 11) && ioHasPendingRequests() && !isRepeating && !ForceRefreshPrevTexCache)
+    if (curStartUp && strncmp(curStartUp, value, 11) && ioHasPendingRequests() && !isRepeating && !ForceRefreshPrevTexCache) {
         cdFramesCount = 1; // 触发连按CD
+        ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
+    }
     curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
