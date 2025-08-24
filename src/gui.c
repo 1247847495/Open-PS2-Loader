@@ -1426,7 +1426,7 @@ static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' 
 static void guiDrawOverlays()
 {
     // are there any pending operations?
-    int pending = (!ForceOffLoadingIcon && (ioHasPendingRequests() || !mainScreenInitDone));
+    int pending = ((!ForceOffLoadingIcon && ioHasPendingRequests()) || !mainScreenInitDone);
     static int busyAlpha = 0x00; // Fully transparant
 
     if (!pending) {
