@@ -296,7 +296,10 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
                 // 判断是否开启了txt映射
                 if (gTxtRename) {
                     FILE *file = NULL;
-                    file = fopen("pfs0:OPL/GameListTranslator.txt", "ab+, ccs=UTF-8");
+                    if (gOPLPart[5] != '+')
+                        file = fopen("pfs0:OPL/GameListTranslator.txt", "ab+, ccs=UTF-8");
+                    else
+                        file = fopen("pfs0:GameListTranslator.txt", "ab+, ccs=UTF-8");
                     if (file) {
                         fseek(file, 0, SEEK_END);
                         if (ftell(file) == 0) {
