@@ -172,6 +172,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
         curStartUp = value;
     }
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-TexCacheUID.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", *UID, *cacheId, curStartUp, cache->suffix);
+        fclose(debugFile);
+    }
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (isRepeating) {
