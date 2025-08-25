@@ -297,7 +297,7 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
                 if (gTxtRename) {
                     FILE *file = NULL;
                     if (gHDDPrefix) {
-                        char txtPath[128] = {0};
+                        char txtPath[128];
                         snprintf(txtPath, 128, "%s/GameListTranslator.txt", gHDDPrefix);
                         file = fopen(txtPath, "ab+, ccs=UTF-8");
                         if (file) {
