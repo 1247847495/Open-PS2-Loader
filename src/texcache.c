@@ -171,11 +171,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
             } else {
                 // 激活基础CD，CD内再次按键，触发cdFramesCount
-                if (!baseCdCount)
+                if (!baseCdCount) {
                     baseCdCount = baseCd;
+                    buttonPressedOnce = 1;
+                }
                 if (texSearchFail) {
                     baseCdCount = baseCd / 3;
                     texSearchFail = 0;
+                    buttonPressedOnce = 1;
                 }
             }
         }
@@ -185,16 +188,21 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (baseCdCount) {
         baseCdCount--;
         if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
-            cdFramesCount = 1;       // 触发连按CD
-            ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
-            baseCdCount = 0;
-        }
+            if (!buttonPressedOnce) {
+                cdFramesCount = 1;       // 触发连按CD
+                ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
+                baseCdCount = 0;
+            }
+        } else
+            buttonPressedOnce = 0;
     }
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (isRepeating) {
-        if (!getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1))
+        if (!getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1)) {
             isRepeating = 0;
+            buttonPressedOnce = 0;
+        }
         findBGCount = 0;
         cdFramesCount = 0; // 强制结束连按CD
     }
