@@ -1571,7 +1571,7 @@ void guiIntroLoop(void)
     while (!endIntro) {
         guiStartFrame();
 
-        guiShow();
+        //guiShow();
 
         guiRenderGreeting(0x80);
 
@@ -1705,11 +1705,6 @@ void guiMainLoop(void)
         artLoadDelayTime = 0; // 手动模式时，不需要art预加载
 
     while (!gTerminate) {
-        guiStartFrame();
-
-        //  handle inputs and render screen
-        guiShow();
-
         // 各种弹窗提示
         if (greetingAlpha < 0x00) {
             // 如果txt被创建，则弹出提示框
@@ -1734,6 +1729,11 @@ void guiMainLoop(void)
                     guiMsgBox("请关闭不存在的块设备，以提升加载速度，预防死机！", 0, NULL);
             }
         }
+
+        guiStartFrame();
+
+        //  handle inputs and render screen
+        guiShow();
 
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
