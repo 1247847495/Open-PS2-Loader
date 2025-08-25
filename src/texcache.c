@@ -173,6 +173,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 // 激活基础CD，CD内再次按键，触发cdFramesCount
                 if (!baseCdCount)
                     baseCdCount = baseCd;
+                if (texSearchFail) {
+                    baseCdCount = baseCd / 3;
+                    texSearchFail = 0;
+                }
             }
         }
         curStartUp = value;

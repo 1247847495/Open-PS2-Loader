@@ -579,6 +579,7 @@ int texLoadInternal(GSTEXTURE *texture, int texId)
 }
 
 int ForceOffLoadingIcon = 0; // 搜索图片时候关闭loading图标，加载图片的时候才需要打开。
+int texSearchFail = 0; // 图片搜索不到
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 {
     char filePath[256];
@@ -628,6 +629,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             }
         }
         searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
+        texSearchFail = 1;
     }
     return ERR_BAD_FILE;
 }
