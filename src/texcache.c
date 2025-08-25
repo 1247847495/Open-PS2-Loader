@@ -22,7 +22,7 @@ int skipQr = 0; // 判断是否可以跳过请求Qr队列
 static char *curStartUp;
 int findBGCount = 0; // 寻找背景图的次数
 int forceSkipQr = 0; // 当加载游戏时，强行跳过Qr
-int baseCd = 30; // 快速按键触发cdFrameCount的基础帧数
+int baseCd = 40; // 快速按键触发cdFrameCount的基础帧数
 int baseCdCount = 0;  // 基础Cd的帧数计时器
 
 typedef struct
@@ -163,27 +163,31 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     // 启动id变化时，说明光标有移动
     // （可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
-    if (strncmp(curStartUp, value, 11)) {
-        if (curStartUp && !cdFramesCount && !isRepeating && !ForceRefreshPrevTexCache) {
-            // 如果移动光标时，还有后台任务，就不要继续新增Qr
-            if (ioHasPendingRequests()) {
-                cdFramesCount = 1;       // 触发连按CD
-                ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
-            } else {
-                // 激活基础CD，CD内再次按键，触发cdFramesCount
-                if (!baseCdCount) {
-                    baseCdCount = baseCd;
-                    buttonPressedOnce = 1;
-                }
-                if (texSearchFail) {
-                    baseCdCount = baseCd / 3;
-                    texSearchFail = 0;
-                    buttonPressedOnce = 1;
+    if (curStartUp) {
+        if (strncmp(curStartUp, value, 11)) {
+            if (!cdFramesCount && !isRepeating && !ForceRefreshPrevTexCache) {
+                // 如果移动光标时，还有后台任务，就不要继续新增Qr
+                if (ioHasPendingRequests()) {
+                    cdFramesCount = 1;       // 触发连按CD
+                    ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
+                } else {
+                    // 激活基础CD，CD内再次按键，触发cdFramesCount
+                    if (!baseCdCount) {
+                        baseCdCount = baseCd;
+                        buttonPressedOnce = 1;
+                    }
+                    if (texSearchFail) {
+                        baseCdCount = baseCd / 2;
+                        texSearchFail = 0;
+                        buttonPressedOnce = 1;
+                    }
                 }
             }
+            curStartUp = value;
         }
+    } else
         curStartUp = value;
-    }
+
     // 基础Cd触发后，cd内按键，会触发cdFramesCount
     if (baseCdCount) {
         baseCdCount--;
