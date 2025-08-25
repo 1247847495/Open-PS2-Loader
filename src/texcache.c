@@ -81,7 +81,7 @@ static void cacheLoadImage(void *data)
         return;
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    if ((curStartUp && strncmp(curStartUp, req->value, 11)) || (gScrollSpeed > 0 ? isRepeating : 0) || cdFramesCount) {
+    if (skipQr) {
         req->entry->lastUsed = -1;
         req->entry->UID = 0;
         req->entry->qr = NULL;
@@ -160,6 +160,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceOffLoadingIcon = 0;
 
     // 启动id变化时，说明光标有移动
+    // （可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (strncmp(curStartUp, value, 11)) {
         if (curStartUp) {
             // 如果移动光标时，还有后台任务，就不要继续新增Qr
@@ -374,7 +375,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || forceSkipQr)
+    if (forceSkipQr)
+        skipQr = 1;
+    if (skipQr)
         return prevCache;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
