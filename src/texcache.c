@@ -159,12 +159,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (!ioHasPendingRequests() && !cdFramesCount)
         ForceOffLoadingIcon = 0;
 
-    // 如果移动光标时，还有后台任务，就不要继续新增Qr
-    if (curStartUp && strncmp(curStartUp, value, 11) && ioHasPendingRequests() && !isRepeating && !ForceRefreshPrevTexCache) {
-        cdFramesCount = 1; // 触发连按CD
-        ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
+    // 启动id变化时，说明光标有移动
+    if (strncmp(curStartUp, value, 11)) {
+        if (curStartUp) {
+            // 如果移动光标时，还有后台任务，就不要继续新增Qr
+            if (ioHasPendingRequests() && !isRepeating && !ForceRefreshPrevTexCache) {
+                cdFramesCount = 1;       // 触发连按CD
+                ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
+            }
+            // 激活基础CD，CD内再次按键，触发cdFramesCount
+
+        }
+        curStartUp = value;
     }
-    curStartUp = value;
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (isRepeating) {
