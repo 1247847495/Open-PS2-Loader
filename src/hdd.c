@@ -298,7 +298,7 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
                     FILE *file = NULL;
                     if (gHDDPrefix) {
                         char txtPath[128];
-                        snprintf(txtPath, 128, "%s/GameListTranslator.txt", gHDDPrefix);
+                        snprintf(txtPath, 128, "%sGameListTranslator.txt", gHDDPrefix);
                         file = fopen(txtPath, "ab+, ccs=UTF-8");
                         if (file) {
                             fseek(file, 0, SEEK_END);
