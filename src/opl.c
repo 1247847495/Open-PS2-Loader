@@ -195,7 +195,7 @@ hdl_game_info_t *gAutoLaunchGame;
 base_game_info_t *gAutoLaunchBDMGame;
 bdm_device_data_t *gAutoLaunchDeviceData;
 char gOPLPart[128];
-char *gHDDPrefix = NULL;
+char *gHDDPrefix;
 char gExportName[32];
 
 int gXSensitivity;
