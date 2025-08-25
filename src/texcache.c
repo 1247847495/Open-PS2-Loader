@@ -22,7 +22,6 @@ int skipQr = 0; // 判断是否可以跳过请求Qr队列
 static char *curStartUp;
 int findBGCount = 0; // 寻找背景图的次数
 int forceSkipQr = 0; // 当加载游戏时，强行跳过Qr
-int testCount = 0;
 
 typedef struct
 {
@@ -83,14 +82,6 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if ((curStartUp && strncmp(curStartUp, req->value, 11)) || (gScrollSpeed > 0 ? isRepeating : 0) || cdFramesCount) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheCacheLoadImage.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "testCount:%d\r\n\r\n", ++testCount);
-            fclose(debugFile);
-        }
         req->entry->lastUsed = -1;
         req->entry->UID = 0;
         req->entry->qr = NULL;
@@ -169,19 +160,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceOffLoadingIcon = 0;
 
     // 启动id变化时，说明光标有移动
-    // （可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (strncmp(curStartUp, value, 11)) {
         if (curStartUp) {
             // 如果移动光标时，还有后台任务，就不要继续新增Qr
             if (ioHasPendingRequests() && !isRepeating && !ForceRefreshPrevTexCache) {
-                // debug  打印debug信息
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-TexCacheCacheGetTexture.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "testCount:%d\r\n\r\n", ++testCount);
-                    fclose(debugFile);
-                }
                 cdFramesCount = 1;       // 触发连按CD
                 ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
             }
