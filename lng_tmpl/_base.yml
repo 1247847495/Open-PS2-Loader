@@ -693,6 +693,6 @@ gui_strings:
 - label: CHEAT_SELECTION
   string: Cheat Selection
 - label: HDD_HINT
-  string: ！注意！APA和BDMHDD无法同时启用，只能选择一种
+  string: ！注意！APA和BDMHDD无法同时开启，只能选择一种
 - label: TXTRENAME
   string: 显示txt映射列表
