@@ -210,6 +210,8 @@ static int hddGetHDLGameInfo(struct GameDataEntry *game, hdl_game_info_t *ginfo,
             if (ginfo->indexName[0] == '\0') {
                 strncpy(ginfo->indexName, hdl_header->gamename, HDL_GAME_NAME_MAX);
                 ginfo->indexName[HDL_GAME_NAME_MAX] = '\0';
+                strncpy(ginfo->name, hdl_header->gamename, HDL_GAME_NAME_MAX);
+                ginfo->name[HDL_GAME_NAME_MAX] = '\0';
             }
         }
 

@@ -735,17 +735,17 @@ static void hddShutdown(item_list_t *itemList)
 
 static int hddLoadGameListCache(hdl_games_list_t *cache)
 {
+    if (!gHDDGameListCache)
+        return 1;
+
     char filename[256];
     FILE *file;
     hdl_game_info_t *games;
     int result, size, count;
 
-    if (!gHDDGameListCache)
-        return 1;
-
     hddFreeHDLGamelist(cache);
 
-    sprintf(filename, "%sgames.bin", gHDDPrefix);
+    sprintf(filename, gTxtRename ? "%stxtCache.bin" : "%sCache.bin", gHDDPrefix);
     file = fopen(filename, "rb");
     if (file != NULL) {
         fseek(file, 0, SEEK_END);
@@ -784,22 +784,31 @@ static int hddLoadGameListCache(hdl_games_list_t *cache)
 
 static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *game_list)
 {
+    if (!gHDDGameListCache)
+        return 1;
+
     char filename[256];
     FILE *file;
     int result, i, j, modified;
 
-    if (!gHDDGameListCache)
-        return 1;
-
     if (cache->count > 0) {
         modified = 0;
-        for (i = 0; i < cache->count; i++) {
-            for (j = 0; j < game_list->count; j++) {
-                if (strncmp(cache->games[i].partition_name, game_list->games[j].partition_name, APA_IDMAX + 1) == 0)
+        for (i = 0; i < game_list->count; i++) {
+            for (j = 0; j < cache->count; j++) {
+                if (strncmp(game_list->games[i].partition_name, cache->games[j].partition_name, APA_IDMAX + 1) == 0) {
+                    // 检查txt映射名是否有修改
+                    if (gTxtRename) {
+                        if (strncmp(game_list->games[i].transName, cache->games[j].transName, 160) != 0)
+                            modified = 1;
+                    }
                     break;
+                }
             }
 
-            if (j == game_list->count) {
+            if (modified)
+                break;
+
+            if (j == cache->count) {
                 LOG("hddUpdateGameListCache: game added.\n");
                 modified = 1;
                 break;
@@ -818,7 +827,7 @@ static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *gam
         return 0;
     LOG("hddUpdateGameListCache: caching new game list.\n");
 
-    sprintf(filename, "%sgames.bin", gHDDPrefix);
+    sprintf(filename, gTxtRename ? "%stxtCache.bin" : "%sCache.bin", gHDDPrefix);
     if (game_list->count > 0) {
         file = fopen(filename, "wb");
         if (file != NULL) {
