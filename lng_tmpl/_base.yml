@@ -551,7 +551,7 @@ gui_strings:
 - label: CFM_VMODE_CHG
   string: 确认更改视频模式？
 - label: CACHE_HDD_GAME_LIST
-  string: APA游戏列表缓存
+  string: HDD(APA)列表缓存
 - label: ENABLE_NOTIFICATIONS
   string: 通知
 - label: CFG_NOTIFICATION
@@ -593,7 +593,7 @@ gui_strings:
 - label: INFO_DESCRIPTION
   string: 描述
 - label: BLOCKDEVICE_SETTINGS
-  string: 块设备
+  string: 管理块设备
 - label: CONTROLLER_SETTINGS
   string: 控制器设置
 - label: HINT_BDM_START
