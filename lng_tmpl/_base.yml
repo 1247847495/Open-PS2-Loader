@@ -66,9 +66,9 @@ gui_strings:
 - label: BDM_GAMES
   string: BDM游戏
 - label: HDD_GAMES
-  string: HDD游戏
+  string: APA游戏
 - label: NET_GAMES
-  string: ETH游戏
+  string: SMB游戏
 - label: APPS
   string: 应用程序
 - label: THEME
@@ -167,7 +167,7 @@ gui_strings:
 - label: HDDMODE
   string: HDD(APA)设备启动模式
 - label: ETHMODE
-  string: ETH设备启动模式
+  string: SMB设备启动模式
 - label: APPMODE
   string: 应用程序启动模式
 - label: AUTO
@@ -249,9 +249,9 @@ gui_strings:
 - label: TEST
   string: 测试修改
 - label: HINT_GUEST
-  string: GUEST验证留空.
+  string: GUEST验证留空
 - label: HINT_MODE1
-  string: 精确读取，开启后会禁用DMA模式，速度大幅下降。
+  string: 精确读取，可解决随机死机，但速度会大幅下降
 - label: HINT_MODE2
   string: 同步模式
 - label: HINT_MODE3
@@ -329,7 +329,7 @@ gui_strings:
 - label: HINT_SHARENAME
   string: 若此选项留空，则会列出共享目录列表
 - label: ETH_PREFIX
-  string: ETH前缀路径
+  string: SMB前缀路径
 - label: BACKSPACE
   string: 退格
 - label: SPACE
@@ -551,7 +551,7 @@ gui_strings:
 - label: CFM_VMODE_CHG
   string: 确认更改视频模式？
 - label: CACHE_HDD_GAME_LIST
-  string: APA列表缓存(增减游戏后，需要手动刷新一次)
+  string: APA游戏列表缓存
 - label: ENABLE_NOTIFICATIONS
   string: 通知
 - label: CFG_NOTIFICATION
