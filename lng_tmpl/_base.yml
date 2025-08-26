@@ -551,7 +551,7 @@ gui_strings:
 - label: CFM_VMODE_CHG
   string: 确认更改视频模式？
 - label: CACHE_HDD_GAME_LIST
-  string: 缓存游戏列表 (硬盘)
+  string: APA列表缓存(增减游戏后，需要手动刷新一次)
 - label: ENABLE_NOTIFICATIONS
   string: 通知
 - label: CFG_NOTIFICATION
