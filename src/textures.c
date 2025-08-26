@@ -629,7 +629,8 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             }
         }
         searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-        texSearchFail = 1;
+        if (searchTexTime >= 100) // 搜索时间超过一定时间（毫秒），判定为搜索失败（超时）
+            texSearchFail = 1;
     }
     return ERR_BAD_FILE;
 }
