@@ -1557,7 +1557,7 @@ static void guiShow()
         screenHandler->renderScreen();
 
         // 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
-        if (bdmManualTrigger || !introLoopDone)
+        if (bdmManualTrigger)
             rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
 }

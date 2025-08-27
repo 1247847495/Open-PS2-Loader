@@ -501,7 +501,7 @@ static void fntRenderGlyph(fnt_glyph_cache_entry_t *glyph, int pen_x, int pen_y)
 // 手动刷新字体缓存
 void fntRefreshCache()
 {
-    if (gVMode == 10 || gVMode == 11)
+    //if (gVMode == 10 || gVMode == 11)
         if (fonts[lngGetGuiValue()].isValid) {
             WaitSema(gFontSemaId);
             fntCacheFlush(&fonts[lngGetGuiValue()]);
