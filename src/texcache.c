@@ -58,7 +58,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    ForceOffLoadingIcon = 1; // 每个Qr在执行的时候要先把loading图标关闭，搜索到了图片再打开
     load_image_request_t *req = data;
 
     ////  debug
@@ -157,20 +156,15 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    // 没有io请求的时候，ForceOffLoadingIcon还原为默认值
-    if (!ioHasPendingRequests() && !cdFramesCount)
-        ForceOffLoadingIcon = 0;
-
     // 启动id变化时，说明光标有移动
     // （可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp) {
         if (strncmp(curStartUp, value, 11)) {
             if (!cdFramesCount && !isRepeating && !ForceRefreshPrevTexCache) {
                 // 如果移动光标时，还有后台任务，就不要继续新增Qr
-                if (ioHasPendingRequests()) {
+                if (ioHasPendingRequests())
                     cdFramesCount = 1;       // 触发连按CD
-                    ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
-                } else {
+                else {
                     // 激活基础CD，CD内再次按键，触发cdFramesCount
                     if (!baseCdCount) {
                         baseCdCount = baseCd;
@@ -194,7 +188,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
             if (!buttonPressedOnce) {
                 cdFramesCount = 1;       // 触发连按CD
-                ForceOffLoadingIcon = 1; // 连按CD期间不显示loading图标，即使后台还有图片在加载
                 baseCdCount = 0;
             }
         } else
@@ -441,7 +434,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         //prevGuiFrameId = guiFrameId;
         //artQrCount++;
-        ForceOffLoadingIcon = 1;
         ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
