@@ -22,7 +22,7 @@ int skipQr = 0; // 判断是否可以跳过请求Qr队列
 char *curStartUp = NULL;
 int findBGCount = 0; // 寻找背景图的次数
 int forceSkipQr = 0; // 当加载游戏时，强行跳过Qr
-int baseCd = 40; // 快速按键触发cdFrameCount的基础帧数
+int baseCd = 50; // 快速按键触发cdFrameCount的基础帧数
 int baseCdCount = 0;  // 基础Cd的帧数计时器
 
 typedef struct
@@ -205,27 +205,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
     skipQr = gScrollSpeed > 0 ? isRepeating : 0;
     if (cdFramesCount) {
-        if (cdFramesCount == 1) {
-            buttonPressedOnce = 1;
-            cdFrames = 50; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
-            //// debug  打印debug信息
-            //char debugFileDir[64];
-            //strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-            //FILE *debugFile = fopen(debugFileDir, "ab+");
-            //if (debugFile != NULL) {
-            //    fprintf(debugFile, "artQrCount:%d   UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount ,* UID, *cacheId, curStartUp, cache->suffix);
-            //    fclose(debugFile);
-            //}
-        }
+        //if (cdFramesCount == 1) {
+        //    buttonPressedOnce = 1;
+        //    cdFrames = 50; // 第一次触发时的CD会长一点，需要考虑loadtex的卡顿时间
+        //    //// debug  打印debug信息
+        //    //char debugFileDir[64];
+        //    //strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
+        //    //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //    //if (debugFile != NULL) {
+        //    //    fprintf(debugFile, "artQrCount:%d   UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount ,* UID, *cacheId, curStartUp, cache->suffix);
+        //    //    fclose(debugFile);
+        //    //}
+        //}
 
         // 连按CD期间，再次按键，重置帧数
         if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
             cdFramesCount = 1;
-            // 按下按键只重置一次的变量
-            if (!buttonPressedOnce) {
-                buttonPressedOnce = 1;
-                cdFrames = 50;
-            }
+            //// 按下按键只重置一次的变量
+            //if (!buttonPressedOnce) {
+            //    buttonPressedOnce = 1;
+            //    cdFrames = 50;
+            //}
         } else
             buttonPressedOnce = 0;
 
