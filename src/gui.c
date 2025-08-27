@@ -1557,7 +1557,7 @@ static void guiShow()
         screenHandler->renderScreen();
 
         // 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
-        if (bdmManualTrigger || !introLoopDone)
+        if (bdmManualTrigger)
             rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
 }
@@ -1571,7 +1571,7 @@ void guiIntroLoop(void)
     while (!endIntro) {
         guiStartFrame();
 
-        guiShow(); // 可以防止同时开启USB和HDD时，欢迎界面会闪烁的问题（光标停留在USB第一个游戏仍会闪烁）
+        //guiShow(); // 可以防止同时开启USB和HDD时，欢迎界面会闪烁的问题（光标停留在USB第一个游戏仍会闪烁）
 
         guiRenderGreeting(0x80);
 
