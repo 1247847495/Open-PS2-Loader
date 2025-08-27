@@ -456,10 +456,13 @@ static void guiShowBlockDeviceConfig(void)
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, &gEnableMX4SIO);
 
         // BDMHDD开启时，自动关闭APA
+        int prevBdmHDDMode = gEnableBdmHDD;
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, &gEnableBdmHDD);
-        if (gEnableBdmHDD) {
+        if (gEnableBdmHDD)
             gHDDStartMode = 0;
-            guiMsgBox("已自动关闭APA模式，防止冲突！", 0, NULL);
+        if (ret == CFG_ENABLEBDMHDD) {
+            if ((prevBdmHDDMode != gEnableBdmHDD) && gEnableBdmHDD)
+                guiMsgBox("已自动关闭BDMHDD模式，防止冲突", 0, NULL);
         }
 
         applyConfig(-1, -1, 0);
@@ -573,16 +576,14 @@ reConfig:
         gDefaultDevice = guiDeviceTypeToIoMode(deviceModeIndex);
 
         // APA开启时，自动关闭BDMHDD
-        //int prevHddStartMode = gHDDStartMode;
+        int prevHddStartMode = gHDDStartMode;
         diaGetInt(diaConfig, CFG_HDDMODE, &gHDDStartMode);
-        if (gHDDStartMode) {
+        if (gHDDStartMode)
             gEnableBdmHDD = 0;
-            guiMsgBox("已自动关闭BDMHDD模式，防止冲突！", 0, NULL);
+        if (ret == CFG_HDDMODE) {
+            if ((prevHddStartMode != gHDDStartMode) && gHDDStartMode)
+                guiMsgBox("已自动关闭BDMHDD模式，防止冲突", 0, NULL);
         }
-        //if (ret == CFG_HDDMODE) {
-        //    if ((prevHddStartMode != gHDDStartMode) && gHDDStartMode)
-        //        guiMsgBox("已自动关闭BDMHDD模式，防止冲突", 0, NULL);
-        //}
 
         diaGetInt(diaConfig, CFG_ETHMODE, &gETHStartMode);
         diaGetInt(diaConfig, CFG_APPMODE, &gAPPStartMode);
