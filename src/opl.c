@@ -336,7 +336,7 @@ static void itemExecRefresh(struct menu_item *curMenu)
     //}
 
     // 刷新所有页面
-    for (i = 0; i < MODE_COUNT; i++) {
+    for (int i = 0; i < MODE_COUNT; i++) {
         if (list_support[i].support && list_support[i].support->enabled)
             ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
     }
