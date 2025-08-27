@@ -142,6 +142,7 @@ void bdmInit(item_list_t *itemList)
     pDeviceData->bdmModifiedDVDPrev = 0;
     pDeviceData->bdmGameCount = 0;
     pDeviceData->bdmGames = NULL;
+    pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
     configGetInt(configGetByType(CONFIG_OPL), "usb_frames_delay", &itemList->delay);
     itemList->enabled = 1;
 }
@@ -260,7 +261,7 @@ static int bdmUpdateGameList(item_list_t *itemList)
     // 检查设备是否就绪，第一次没有开启设备时返回-1
     if (pDeviceData != NULL) {
         int bdmDeviceOn = 0;
-        if (!strcmp(pDeviceData->bdmDriver, "usb")) {
+        if (pDeviceData->bdmDeviceType == BDM_TYPE_USB) {
             usbFound = 1;
             bdmDeviceOn = gEnableUSB;
         } else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK) {
@@ -630,13 +631,13 @@ static int bdmGetTextId(item_list_t *itemList)
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
-    if (!strcmp(pDeviceData->bdmDriver, "usb"))
+    if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
         mode = _STR_USB_GAMES;
-    else if (!strcmp(pDeviceData->bdmDriver, "sd") && strlen(pDeviceData->bdmDriver) == 2)
+    else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
         mode = _STR_ILINK_GAMES;
-    else if (!strcmp(pDeviceData->bdmDriver, "sdc") && strlen(pDeviceData->bdmDriver) == 3)
+    else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
         mode = _STR_MX4SIO_GAMES;
-    else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3)
+    else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
         mode = _STR_HDD_GAMES;
 
     return mode;
@@ -648,16 +649,16 @@ static int bdmGetIconId(item_list_t *itemList)
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
-    if (!strcmp(pDeviceData->bdmDriver, "usb")) {
+    if (pDeviceData->bdmDeviceType == BDM_TYPE_USB) {
         if (gEnableUSB)
             mode = USB_ICON;
         else
             mode = BDM_ICON;
-    } else if (!strcmp(pDeviceData->bdmDriver, "sd") && strlen(pDeviceData->bdmDriver) == 2)
+    } else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
         mode = ILINK_ICON;
-    else if (!strcmp(pDeviceData->bdmDriver, "sdc") && strlen(pDeviceData->bdmDriver) == 3)
+    else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
         mode = MX4SIO_ICON;
-    else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3)
+    else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
         mode = HDD_BD_ICON;
 
     return mode;

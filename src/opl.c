@@ -303,7 +303,7 @@ static void itemExecSelect(struct menu_item *curMenu)
                         mod->menuItem.visible = 0;
                         bdm_device_data_t *pDeviceData = mod->support->priv;
                         if (pDeviceData != NULL) {
-                            if (!strcmp(pDeviceData->bdmDriver, "usb"))
+                            if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
                                 mod->menuItem.visible = gEnableUSB;
                             else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
                                 mod->menuItem.visible = gEnableILK;
@@ -483,7 +483,7 @@ void initSupport(item_list_t *itemList, int mode, int force_reinit)
         if (mode >= BDM_MODE && mode < ETH_MODE) {
             bdm_device_data_t *pDeviceData = itemList->priv;
             if (pDeviceData != NULL) {
-                if (!strcmp(pDeviceData->bdmDriver, "usb"))
+                if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
                     mod->menuItem.visible = gEnableUSB;
                 else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
                     mod->menuItem.visible = gEnableILK;
@@ -854,7 +854,8 @@ static void menuUpdateHook()
     // BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
     if (!mainScreenInitDone) {
         for (i = BDM_MODE; i <= BDM_MODE4; i++) {
-            if ((list_support[i].support && list_support[i].support->enabled) && (((bdm_device_data_t *)list_support[i].support->priv)->bdmPrefix[0] == '\0'))
+            bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
+            if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
                 ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
         }
     }

@@ -523,27 +523,22 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
 
 int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gamecount)
 {
+    free(*list);
+    *list = NULL;
+    *fsize = -1;
+    *gamecount = 0;
     // 如果没有DVD和CD文件夹，直接跳过扫描，避免设备"假存在"而引起的卡死
     char isoPath[256];
     DIR *isoDir;
     snprintf(isoPath, sizeof(isoPath), "%sCD", prefix);
     if ((isoDir = opendir(isoPath)) == NULL) {
         snprintf(isoPath, sizeof(isoPath), "%sDVD", prefix);
-        if ((isoDir = opendir(isoPath)) == NULL) {
-            free(*list);
-            *list = NULL;
-            *fsize = -1;
-            *gamecount = 0;
+        if ((isoDir = opendir(isoPath)) == NULL)
             return 0;
-        } else
+        else
             closedir(isoDir);
     } else
         closedir(isoDir);
-
-    free(*list);
-    *list = NULL;
-    *fsize = -1;
-    *gamecount = 0;
 
     if (gTxtRename) {
         // TXT相关变量
