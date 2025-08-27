@@ -129,7 +129,6 @@ char gPCUserName[32];
 char gPCPassword[32];
 int gNetworkStartup;
 int gHDDSpindown;
-int gRefreshAllModes = 0;
 int gBDMStartMode;
 int gHDDStartMode;
 int gETHStartMode;
@@ -215,18 +214,7 @@ void moduleUpdateMenu(int mode, int themeChanged, int langChanged)
         return;
 
     opl_io_module_t *mod = &list_support[mode];
-
-    //// 手动模式启动时，会获取一次usb的数据
-    //if (mode == 0 && bdmManualStarted)
-    //    mod->support->itemInit(mod->support);
-    
     moduleUpdateMenuInternal(mod, themeChanged, langChanged);
-
-    //// 手动模式启动时，会更新一次usb的数据
-    //if (mode == 0 && bdmManualStarted) {
-    //    if (!gAutoRefresh || (mod->support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
-    //        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &mod->support->mode);
-    //}
 }
 
 void moduleUpdateMenuInternal(opl_io_module_t *mod, int themeChanged, int langChanged)
@@ -340,12 +328,19 @@ static void itemExecSelect(struct menu_item *curMenu)
 
 static void itemExecRefresh(struct menu_item *curMenu)
 {
-    item_list_t *support = curMenu->userdata;
+    //// 只刷新当前页面
+    //item_list_t *support = curMenu->userdata;
+    //if (support && support->enabled) {
+    //    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+    //    sfxPlay(SFX_CONFIRM);
+    //}
 
-    if (support && support->enabled) {
-        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
-        sfxPlay(SFX_CONFIRM);
+    // 刷新所有页面
+    for (i = 0; i < MODE_COUNT; i++) {
+        if (list_support[i].support && list_support[i].support->enabled)
+            ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
     }
+    sfxPlay(SFX_CONFIRM);
 }
 
 static void itemExecCross(struct menu_item *curMenu)
@@ -847,6 +842,13 @@ static void menuUpdateHook()
         }
     }
 
+    // BDM设备会在欢迎界面不断尝试初始化，直到成功或超时为止
+    if (!mainScreenInitDone) {
+        for (i = BDM_MODE; i <= BDM_MODE4; i++) {
+            if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->priv == NULL))
+                ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+        }
+    }
     // Schedule updates of all list handlers that are to run every frame, regardless of whether auto refresh is active or not.
     //if (!mainScreenInitDone && (frameCounter % 5 == 0)) { // 列表界面没有准备好时，检测频率上升
     //    for (i = 0; i < MODE_COUNT; i++) {
@@ -855,13 +857,6 @@ static void menuUpdateHook()
     //    }
     //} else
     //if ((frameCounter % MENU_GENERAL_UPDATE_DELAY == 0) || !mainScreenInitDone) {
-    if (gRefreshAllModes || !mainScreenInitDone) {
-        gRefreshAllModes = 0;
-        for (i = 0; i < MODE_COUNT; i++) {
-            if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->updateDelay == 0))
-                ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
-        }
-    }
 }
 
 static void clearErrorMessage(void)
