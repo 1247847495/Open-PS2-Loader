@@ -854,7 +854,7 @@ static void menuUpdateHook()
     // BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
     if (!mainScreenInitDone) {
         for (i = BDM_MODE; i <= BDM_MODE4; i++) {
-            if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->owner == NULL))
+            if ((list_support[i].support && list_support[i].support->enabled) && (((bdm_device_data_t *)list_support[i].support->priv)->bdmPrefix[0] == '\0'))
                 ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
         }
     }
