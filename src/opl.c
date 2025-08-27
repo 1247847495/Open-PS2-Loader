@@ -836,13 +836,22 @@ static void menuUpdateHook()
 
     // schedule updates of all the list handlers
     if (gAutoRefresh) {
+        // 自动刷新手动设置了updateDelay的设备，如SMB和APP
         for (i = 0; i < MODE_COUNT; i++) {
             if ((list_support[i].support && list_support[i].support->enabled) && ((list_support[i].support->updateDelay > 0) && (frameCounter % list_support[i].support->updateDelay == 0)))
                 ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
         }
+
+        // 自动刷新MENU_UPD_DELAY_GENREFRESH的设备，如使BDM的热插拔正常生效
+        if ((frameCounter % MENU_GENERAL_UPDATE_DELAY == 0) && mainScreenInitDone) {
+            for (i = 0; i < MODE_COUNT; i++) {
+                if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->updateDelay == MENU_UPD_DELAY_GENREFRESH))
+                    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+            }
+        }
     }
 
-    // BDM设备会在欢迎界面不断尝试初始化，直到成功或超时为止
+    // BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
     if (!mainScreenInitDone) {
         for (i = BDM_MODE; i <= BDM_MODE4; i++) {
             if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->priv == NULL))
