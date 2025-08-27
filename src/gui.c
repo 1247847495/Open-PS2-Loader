@@ -1793,16 +1793,16 @@ void guiMainLoop(void)
 
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
-                artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
                 if (greetingAlpha >= 0x00)
                     guiRenderGreeting(greetingAlpha);
-                if (artLoadDelayTime <= 0) {
+                if (busyAlpha <= 0x00) {
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
                         guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                     }
+                    artLoadDelayTime = 0;
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
             } else {
