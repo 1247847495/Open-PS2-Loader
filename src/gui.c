@@ -446,7 +446,7 @@ static void guiShowBlockDeviceConfig(void)
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEUSB, gEnableUSB);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEILK, gEnableILK);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, gEnableMX4SIO);
-    diaSetEnabled(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, !gHDDStartMode);
+    //diaSetEnabled(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, !gHDDStartMode);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, gEnableBdmHDD);
 
     ret = diaExecuteDialog(diaBlockDevicesConfig, -1, 1, NULL);
@@ -454,7 +454,12 @@ static void guiShowBlockDeviceConfig(void)
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEUSB, &gEnableUSB);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEILK, &gEnableILK);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, &gEnableMX4SIO);
+
+        // BDMHDD开启时，自动关闭APA
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, &gEnableBdmHDD);
+        if (gEnableBdmHDD)
+            gHDDStartMode = 0;
+
         applyConfig(-1, -1, 0);
         menuReinitMainMenu();
         if (BdmStarted)
@@ -544,7 +549,7 @@ reConfig:
     diaSetInt(diaConfig, CFG_DEFDEVICE, deviceModeIndex);
     diaSetInt(diaConfig, CFG_BDMMODE, gBDMStartMode);
     diaSetVisible(diaConfig, BLOCKDEVICE_BUTTON, gBDMStartMode);
-    diaSetEnabled(diaConfig, CFG_HDDMODE, !gEnableBdmHDD);
+    //diaSetEnabled(diaConfig, CFG_HDDMODE, !gEnableBdmHDD);
     diaSetInt(diaConfig, CFG_HDDMODE, gHDDStartMode);
     diaSetInt(diaConfig, CFG_ETHMODE, gETHStartMode);
     diaSetInt(diaConfig, CFG_APPMODE, gAPPStartMode);
@@ -564,7 +569,12 @@ reConfig:
         DisableCron = 1; // Disable Auto Start Last Played counter (we don't want to call it right after enable it on GUI)
         diaGetInt(diaConfig, CFG_DEFDEVICE, &deviceModeIndex);
         gDefaultDevice = guiDeviceTypeToIoMode(deviceModeIndex);
+
+        // APA开启时，自动关闭BDMHDD
         diaGetInt(diaConfig, CFG_HDDMODE, &gHDDStartMode);
+        if (gHDDStartMode)
+            gEnableBdmHDD = 0;
+
         diaGetInt(diaConfig, CFG_ETHMODE, &gETHStartMode);
         diaGetInt(diaConfig, CFG_APPMODE, &gAPPStartMode);
         diaGetInt(diaConfig, CFG_BDMCACHE, &bdmCacheSize);
