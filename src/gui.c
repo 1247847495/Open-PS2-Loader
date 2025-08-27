@@ -460,7 +460,7 @@ static void guiShowBlockDeviceConfig(void)
         if (ret == UIID_BTN_OK) {
             if (gHDDStartMode && gEnableBdmHDD) {
                 gHDDStartMode = 0;
-                guiMsgBox("已自动关闭APA模式，防止冲突！", 0, NULL);
+                guiMsgBox("检测到冲突！已自动关闭APA模式！", 0, NULL);
             }
         }
 
@@ -579,7 +579,7 @@ reConfig:
         if (ret == UIID_BTN_OK) {
             if (gHDDStartMode && gEnableBdmHDD) {
                 gEnableBdmHDD = 0;
-                guiMsgBox("已自动关闭BDMHDD模式，防止冲突！", 0, NULL);
+                guiMsgBox("检测到冲突！已自动关闭BDMHDD模式！", 0, NULL);
             }
         }
 
