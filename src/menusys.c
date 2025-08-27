@@ -392,6 +392,8 @@ void refreshMenuPosition(void)
         selected_item = menu;
     } else
         selected_item = cur;
+
+    ForceRefreshPrevTexCache = 1; // 菜单页面有变动时，强制刷新ART缓存
 }
 
 void submenuRebuildCache(submenu_list_t *submenu)
