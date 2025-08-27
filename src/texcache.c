@@ -246,7 +246,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (!cdFramesCount) {
             if (cache->suffix[0] != 'B') {
                 cdFramesCount = 10000;
-                if (++findBGCount >= 8) {
+                if (++findBGCount >= MENU_MIN_INACTIVE_FRAMES) {
                     findBGCount = 0;
                     cdFramesCount = 0;
                 } else
