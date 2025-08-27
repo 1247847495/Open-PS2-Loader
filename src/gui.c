@@ -51,8 +51,6 @@ static int showPartPopup = 0;
 static int showThmPopup;
 static int showLngPopup;
 
-static int introLoopDone = 0;
-
 static clock_t popupTimer;
 
 // forward decl.
@@ -1814,7 +1812,6 @@ void guiMainLoop(void)
                 if (greetingAlpha >= 0x00) {
                     guiRenderGreeting(greetingAlpha);
                     greetingAlpha -= 0x04;
-                    introLoopDone = 1;
                 }
             }
         } else if (greetingAlpha >= 0x00)
