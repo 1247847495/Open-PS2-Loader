@@ -1571,7 +1571,7 @@ void guiIntroLoop(void)
     while (!endIntro) {
         guiStartFrame();
 
-        //guiShow();
+        guiShow(); // 可以防止同时开启USB和HDD时，欢迎界面会闪烁的问题（光标停留在USB第一个游戏仍会闪烁）
 
         guiRenderGreeting(0x80);
 
