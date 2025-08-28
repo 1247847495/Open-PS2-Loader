@@ -650,7 +650,7 @@ static int bdmGetIconId(item_list_t *itemList)
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (pDeviceData->bdmDeviceType == BDM_TYPE_USB) {
-        if (gEnableUSB && BdmStarted)
+        if (gEnableUSB)
             mode = USB_ICON;
         else
             mode = BDM_ICON;

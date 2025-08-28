@@ -31,7 +31,7 @@
 // Last Played Auto Start
 #include <time.h>
 
-int BdmStarted = 0; // BDM模式已启动
+static int BdmStarted = 0; // BDM模式已启动
 
 static int gScheduledOps;
 static int gCompletedOps;
