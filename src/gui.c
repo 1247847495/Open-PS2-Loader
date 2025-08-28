@@ -1439,7 +1439,7 @@ void guiDrawSubMenuHints(void)
 }
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
-static int busyAlpha = 0x00; // Fully transparant
+int busyAlpha = 0x00; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
