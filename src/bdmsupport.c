@@ -645,15 +645,16 @@ static int bdmGetTextId(item_list_t *itemList)
 
 static int bdmGetIconId(item_list_t *itemList)
 {
+    if (gBDMStartMode == START_MODE_MANUAL && !BdmStarted)
+        return BDM_ICON;
+
     int mode = BDM_ICON;
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (pDeviceData->bdmDeviceType == BDM_TYPE_USB) {
-        if (gEnableUSB && BdmStarted)
+        if (gEnableUSB)
             mode = USB_ICON;
-        else
-            mode = BDM_ICON;
     } else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
         mode = ILINK_ICON;
     else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
