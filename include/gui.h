@@ -60,6 +60,7 @@ extern int MX4SIOFound;
 extern int GptFound;
 extern int txtFileCreated;
 extern int txtFileRebuilded;
+extern int BdmStarted = 0; // BDM模式已启动
 
 #define GUI_SCREEN_MAIN      0
 #define GUI_SCREEN_MENU      1
