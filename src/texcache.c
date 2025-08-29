@@ -170,11 +170,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         baseCdCount = baseCd;
                         buttonPressedOnce = 1;
                     }
-                    if (texSearchFail) {
-                        baseCdCount = baseCd;
-                        texSearchFail = 0;
-                        buttonPressedOnce = 1;
-                    }
                 }
             }
             curStartUp = value;

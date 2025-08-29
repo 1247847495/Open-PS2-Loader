@@ -109,6 +109,4 @@ int texLoadInternal(GSTEXTURE *texture, int texId);
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId);
 void texFree(GSTEXTURE *texture);
 
-extern int texSearchFail;       // 图片搜索不到
-
 #endif

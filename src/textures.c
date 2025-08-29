@@ -272,12 +272,11 @@ static void texPrepare(GSTEXTURE *texture)
 /// JPG SUPPORT ///////////////////////////////////////////////////////////////////////////////////////
 static int texJpgLoad(GSTEXTURE *texture, const char *filePath)
 {
-    texPrepare(texture);
     int result = ERR_BAD_FILE;
-    jpgData *jpg = NULL;
 
-    jpg = jpgFromFilename(filePath, JPG_NORMAL);
+    jpgData *jpg = jpgFromFilename(filePath, JPG_NORMAL);
     if (jpg) {
+        texPrepare(texture);
         texture->Width = jpg->width;
         texture->Height = jpg->height;
         texture->PSM = GS_PSM_CT24;
@@ -440,14 +439,8 @@ static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPt
 
 static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 {
-    texPrepare(texture);
-    png_structp pngPtr = NULL;
-    png_infop infoPtr = NULL;
-    png_voidp readData = NULL;
-    png_rw_ptr readFunction = NULL;
-    void *PngFileBufferPtr;
+    void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
-
     if (filePath) {
         int fd = open(filePath, O_RDONLY, 0);
         if (fd < 0)
@@ -472,22 +465,20 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         close(fd);
 
         PngFileBufferPtr = pFileBuffer;
-        readData = &PngFileBufferPtr;
-        readFunction = &texReadMemFunction;
     } else {
         if (texId == -1 || !internalDefault[texId].texture)
             return ERR_BAD_FILE;
 
         PngFileBufferPtr = internalDefault[texId].texture;
-        readData = &PngFileBufferPtr;
-        readFunction = &texReadMemFunction;
     }
+    png_voidp readData = &PngFileBufferPtr;
+    png_rw_ptr readFunction = &texReadMemFunction;
 
-    pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
+    png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!pngPtr)
-        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_READ_STRUCT);
+        return texEnd(pngPtr, NULL, pFileBuffer, ERR_READ_STRUCT);
 
-    infoPtr = png_create_info_struct(pngPtr);
+    png_infop infoPtr = png_create_info_struct(pngPtr);
     if (!infoPtr)
         return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_INFO_STRUCT);
 
@@ -503,6 +494,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     png_uint_32 pngWidth, pngHeight;
     int bitDepth, colorType, interlaceType;
     png_get_IHDR(pngPtr, infoPtr, &pngWidth, &pngHeight, &bitDepth, &colorType, &interlaceType, NULL, NULL);
+    texPrepare(texture);
     texture->Width = pngWidth;
     texture->Height = pngHeight;
 
@@ -578,7 +570,6 @@ int texLoadInternal(GSTEXTURE *texture, int texId)
     return texLoadAll(texture, NULL, texId);
 }
 
-int texSearchFail = 0; // 图片搜索不到
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 {
     char filePath[256];
@@ -587,16 +578,11 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
 
     if (texId != -1) {
         snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "png");
-        if (access(filePath, F_OK) == 0) {
-            // File found, load it
-            return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-        } else if (gEnableJpg) {
+        if (texLoad(texture, filePath) >= 0)
+            return 0;
+        else if (gEnableJpg) {
             snprintf(filePath, sizeof(filePath), "%s%s.%s", path, internalDefault[texId].name, "jpg");
-
-            if (access(filePath, F_OK) == 0) {
-                // File found, load it
-                return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-            }
+            return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
         }
     } else {
         //// debug
@@ -608,24 +594,19 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
         //    fclose(debugFile);
         //}
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
-        // 开始搜索图片，记录时间
-        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
-        if (access(filePath, F_OK) == 0) {
-            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-            // File found, load it
-            return texLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-        } else if (gEnableJpg) {
-            snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
-
-            if (access(filePath, F_OK) == 0) {
-                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-                // File found, load it
-                return texJpgLoad(texture, filePath) >= 0 ? 0 : ERR_BAD_FILE;
-            }
+        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+        if (texLoad(texture, filePath) >= 0)
+            return 0;
+        else {
+            if (gEnableJpg) {
+                snprintf(filePath, sizeof(filePath), "%s.%s", path, "jpg");
+                if (texJpgLoad(texture, filePath) >= 0)
+                    return 0;
+                else
+                    searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG和JPG图片的时间，避免出现光标连续跳2次的问题
+            } else
+                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间，避免出现光标连续跳2次的问题
         }
-        searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索图片的时间，避免出现光标连续跳2次的问题
-        if (searchTexTime >= 100) // 搜索时间超过一定时间（毫秒），判定为搜索失败（超时）
-            texSearchFail = 1;
     }
     return ERR_BAD_FILE;
 }
