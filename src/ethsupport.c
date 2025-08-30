@@ -723,17 +723,17 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
 {
     char path[256];
     if (isRelative)
-        snprintf(path, sizeof(path), "%s%s%s_%s", ethPrefix, folder, value, suffix);
+        snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
-    // debug  打印debug信息
-    char debugFileDir[64];
-    strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
-    FILE *debugFile = fopen(debugFileDir, "ab+");
-    if (debugFile != NULL) {
-        fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
-        fclose(debugFile);
-    }
+    //// debug  打印debug信息
+    //char debugFileDir[64];
+    //strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
+    //FILE *debugFile = fopen(debugFileDir, "ab+");
+    //if (debugFile != NULL) {
+    //    fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
+    //    fclose(debugFile);
+    //}
     return texDiscoverLoad(resultTex, path, -1);
 }
 
