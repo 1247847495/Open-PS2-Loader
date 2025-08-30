@@ -731,7 +731,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
     strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
     FILE *debugFile = fopen(debugFileDir, "ab+");
     if (debugFile != NULL) {
-        fprintf(debugFile, "path:%s   isRelative:%d\r\n\r\n", path, isRelative);
+        fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
         fclose(debugFile);
     }
     return texDiscoverLoad(resultTex, path, -1);
