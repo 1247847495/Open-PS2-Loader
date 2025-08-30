@@ -272,11 +272,11 @@ static void texPrepare(GSTEXTURE *texture)
 /// JPG SUPPORT ///////////////////////////////////////////////////////////////////////////////////////
 static int texJpgLoad(GSTEXTURE *texture, const char *filePath)
 {
+    texPrepare(texture);
     int result = ERR_BAD_FILE;
 
     jpgData *jpg = jpgFromFilename(filePath, JPG_NORMAL);
     if (jpg) {
-        texPrepare(texture);
         texture->Width = jpg->width;
         texture->Height = jpg->height;
         texture->PSM = GS_PSM_CT24;
@@ -439,6 +439,7 @@ static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPt
 
 static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 {
+    texPrepare(texture);
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
@@ -494,7 +495,6 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     png_uint_32 pngWidth, pngHeight;
     int bitDepth, colorType, interlaceType;
     png_get_IHDR(pngPtr, infoPtr, &pngWidth, &pngHeight, &bitDepth, &colorType, &interlaceType, NULL, NULL);
-    texPrepare(texture);
     texture->Width = pngWidth;
     texture->Height = pngHeight;
 

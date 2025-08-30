@@ -364,13 +364,11 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
         char path[256];
         snprintf(path, sizeof(path), "%s%s", themePath, imgName);
         if (texDiscoverLoad(&texture->source, path, texId) >= 0)
-            ;
-        result = 1;
+            result = 1;
     } else {
         texId = texLookupInternalTexId(imgName);
         if (texLoadInternal(&texture->source, texId) >= 0)
-            ;
-        result = 1;
+            result = 1;
     }
 
     if (result) {
@@ -405,13 +403,13 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
             snprintf(elemProp, sizeof(elemProp), "%s_overlay_lry", name);
             if (configGetInt(themeConfig, elemProp, &intValue))
                 texture->lowerRight_y = intValue;
+            return texture;
         }
     } else {
         freeImageTexture(texture);
         texture = NULL;
+        return NULL;
     }
-
-    return texture;
 }
 
 static image_texture_t *initImageInternalTexture(config_set_t *themeConfig, const char *name)
