@@ -723,7 +723,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
 {
     char path[256];
     if (isRelative)
-        snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
+        snprintf(path, sizeof(path), "%s%s%s_%s", ethPrefix, folder, value, suffix);
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
     // debug  打印debug信息
