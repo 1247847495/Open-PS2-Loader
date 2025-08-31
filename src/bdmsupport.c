@@ -629,8 +629,8 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (isRelative) {
-        if (artUseBuckets)
-            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, suffix, value, suffix);
+        if (1)
+            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, value, value, suffix);
         else
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
     }
