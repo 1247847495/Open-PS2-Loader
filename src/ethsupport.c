@@ -736,7 +736,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
                 FILE *debugFile = fopen(debugFileDir, "ab+");
                 while ((ArtDirent = readdir(ArtDir)) != NULL) {
-                    sprintf(dirPath, "%s%s\\%s\\%s", ethPrefix, folder, suffix, &ArtDirent->d_name);
+                    sprintf(dirPath, "%s%s\\%s\\%s", ethPrefix, folder, suffix, ArtDirent->d_name);
                     access(dirPath, F_OK);
                     if (debugFile != NULL) {
                         // fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);

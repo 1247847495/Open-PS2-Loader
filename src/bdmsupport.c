@@ -628,7 +628,7 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
             if (ArtDir) {
                 dirent *ArtDirent;
                 while ((ArtDirent = readdir(ArtDir)) != NULL) {
-                    sprintf(dirPath, "%s%s/%s", pDeviceData->bdmPrefix, folder, &ArtDirent->d_name);
+                    sprintf(dirPath, "%s%s/%s", pDeviceData->bdmPrefix, folder, ArtDirent->d_name);
                     access(dirPath, F_OK);
                 }
                 closedir(ArtDir);
