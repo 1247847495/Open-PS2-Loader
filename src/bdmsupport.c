@@ -28,6 +28,8 @@ int bdmDeviceModeStarted;
 static item_list_t bdmDeviceList[MAX_BDM_DEVICES];
 static int bdmDeviceListInitialized = 0;
 
+static int artUseBuckets = 0;
+
 void bdmInitDevicesData();
 
 // Identifies the partition that the specified file is stored on and generates a full path to it.
@@ -282,7 +284,15 @@ static int bdmUpdateGameList(item_list_t *itemList)
             return 0;
         }
         else {
-            sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount);
+            // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
+            if (sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount) > 0) {
+                char artPath[64];
+                snprintf(artPath, sizeof(artPath), "%sART\\COV", pDeviceData->bdmPrefix);
+                if (!access(artPath, F_OK))
+                    artUseBuckets = 1;
+                else
+                    artUseBuckets = 0;
+            }
             return pDeviceData->bdmGameCount;
         }
     } else
@@ -618,8 +628,12 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
-    if (isRelative)
-        snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
+    if (isRelative) {
+        if (artUseBuckets)
+            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, suffix, value, suffix);
+        else
+            snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
+    }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
     return texDiscoverLoad(resultTex, path, -1);
