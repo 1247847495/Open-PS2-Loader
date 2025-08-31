@@ -719,21 +719,40 @@ static config_set_t *ethGetConfig(item_list_t *itemList, int id)
     return sbPopulateConfig(&ethGames[id], ethPrefix, "\\");
 }
 
+static DIR *ArtDir;
 static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     char path[256];
-    if (isRelative)
+    if (isRelative) {
         snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
+        if (!ArtDir) {
+            char dirPath[32];
+            snprintf(dirPath, sizeof(dirPath), "%s%s\\%s", ethPrefix, folder, suffix);
+            ArtDir = opendir(dirPath);
+            if (ArtDir) {
+                dirent *ArtDirent;
+                // debug  打印debug信息
+                char debugFileDir[64];
+                strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                while ((ArtDirent = readdir(ArtDir)) != NULL) {
+                    sprintf(dirPath, "%s%s\\%s\\%s", ethPrefix, folder, suffix, ArtDirent->d_name);
+                    access(dirPath, F_OK);
+                    if (debugFile != NULL) {
+                        // fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
+                        fprintf(debugFile, "%s\r\n\r\n", dirPath);
+                        fclose(debugFile);
+                    }
+                }
+                if (debugFile != NULL) {
+                    fclose(debugFile);
+                }
+                closedir(ArtDir);
+            }
+        }
+    }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
-    //// debug  打印debug信息
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
-    //    fclose(debugFile);
-    //}
     return texDiscoverLoad(resultTex, path, -1);
 }
 
