@@ -612,31 +612,28 @@ static config_set_t *bdmGetConfig(item_list_t *itemList, int id)
     return sbPopulateConfig(&pDeviceData->bdmGames[id], pDeviceData->bdmPrefix, "/");
 }
 
-static DIR *ArtDir;
+static DIR *BdmDir;
+struct dirent *BdmDirent;
 static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     char path[256];
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
-    if (isRelative) {
+    if (isRelative)
         snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
-        if (!ArtDir) {
-            char dirPath[32];
-            snprintf(dirPath, sizeof(dirPath), "%s%s", pDeviceData->bdmPrefix, folder);
-            ArtDir = opendir(dirPath);
-            if (ArtDir) {
-                dirent *ArtDirent;
-                while ((ArtDirent = readdir(ArtDir)) != NULL) {
-                    sprintf(dirPath, "%s%s/%s", pDeviceData->bdmPrefix, folder, ArtDirent->d_name);
-                    access(dirPath, F_OK);
-                }
-                closedir(ArtDir);
-            }
-        }
-    }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
+    if (!BdmDir) {
+        char dirPath[32];
+        snprintf(dirPath, sizeof(dirPath), "%s%s", pDeviceData->bdmPrefix, folder);
+        BdmDir = opendir(dirPath);
+        if (BdmDir) {
+            while ((BdmDirent = readdir(BdmDir)) != NULL)
+                ;
+            closedir(BdmDir);
+        }
+    }
     return texDiscoverLoad(resultTex, path, -1);
 }
 
