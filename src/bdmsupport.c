@@ -36,8 +36,8 @@ static u64 searchTime = 0;
 #define NUM_STR 8000
 #define STR_LEN 20
 static char allArtNames[NUM_STR][STR_LEN + 1];
-const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-void rand_str(char *dst, int len)
+static const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+static void rand_str(char *dst, int len)
 {
     int charset_size = sizeof(charset) - 1;
     for (int i = 0; i < len; i++) {
