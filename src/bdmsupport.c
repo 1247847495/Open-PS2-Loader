@@ -12,6 +12,7 @@
 #include "include/cheatman.h"
 #include "include/sound.h"
 #include "modules/iopcore/common/cdvd_config.h"
+#include <timer.h>
 
 #include <usbhdfsd-common.h>
 
