@@ -654,6 +654,8 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
         else
             snprintf(path, sizeof(path), "%s%s/%s_%s.ppg", pDeviceData->bdmPrefix, folder, value, suffix);
 
+        char artName[20];
+        snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
         // debug  打印debug信息
         char debugFileDir[64];
         strcpy(debugFileDir, "mass0:debug-SearchNonPicTime.txt");
