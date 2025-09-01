@@ -29,6 +29,21 @@ static item_list_t bdmDeviceList[MAX_BDM_DEVICES];
 static int bdmDeviceListInitialized = 0;
 
 static int artUseBuckets = 0;
+// 用来计算搜索图片的消耗时间
+static u64 beforeTime = 0;
+static u64 searchTime = 0;
+#define NUM_STR 8000
+#define STR_LEN 20
+static char allArtNames[NUM_STR][STR_LEN + 1];
+const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+void rand_str(char *dst, int len)
+{
+    int charset_size = sizeof(charset) - 1;
+    for (int i = 0; i < len; i++) {
+        dst[i] = charset[rand() % charset_size];
+    }
+    dst[len] = '\0';
+}
 
 void bdmInitDevicesData();
 
@@ -292,6 +307,11 @@ static int bdmUpdateGameList(item_list_t *itemList)
                     artUseBuckets = 1;
                 else
                     artUseBuckets = 0;
+            }
+
+            srand((unsigned int)time(NULL));
+            for (int i = 0; i < NUM_STR; i++) {
+                rand_str(allArtNames[i], STR_LEN);
             }
             return pDeviceData->bdmGameCount;
         }
@@ -629,10 +649,33 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (isRelative) {
-        if (1)
+        if (0)
             snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, value, value, suffix);
         else
-            snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
+            snprintf(path, sizeof(path), "%s%s/%s_%s.ppg", pDeviceData->bdmPrefix, folder, value, suffix);
+
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "mass0:debug-SearchNonPicTime.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        for (int i = 0; i < 8000; i++) {
+            strncmp(allArtNames[i], artName, 20);
+            // if (debugFile != NULL && i < 10)
+            //     fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
+        }
+        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        if (debugFile != NULL)
+            fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
+
+        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        access(path, F_OK);
+        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        if (debugFile != NULL) {
+            fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
+            fclose(debugFile);
+        }
+        return -1;
     }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
