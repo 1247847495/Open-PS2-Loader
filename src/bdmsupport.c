@@ -662,7 +662,8 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
         FILE *debugFile = fopen(debugFileDir, "ab+");
         beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
         for (int i = 0; i < 8000; i++) {
-            strncmp(allArtNames[i], artName, 20);
+            if (!strncmp(allArtNames[i], artName, 20))
+                ;
             // if (debugFile != NULL && i < 10)
             //     fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
         }
@@ -671,7 +672,8 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
             fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
 
         beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        access(path, F_OK);
+        if (!access(path, F_OK))
+            ;
         searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         if (debugFile != NULL) {
             fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
