@@ -45,10 +45,22 @@ static int ethReadNetConfig(void);
 static int ethInitSemaID = -1;
 
 static int artUseBuckets = 0;
-static char allArtNames[8000][20];
+
 // 用来计算搜索图片的消耗时间
 static u64 beforeTime = 0;
 static u64 searchTime = 0;
+#define NUM_STR 8000
+#define STR_LEN 20
+static char allArtNames[NUM_STR][STR_LEN + 1];
+const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+void rand_str(char *dst, int len)
+{
+    int charset_size = sizeof(charset) - 1;
+    for (int i = 0; i < len; i++) {
+        dst[i] = charset[rand() % charset_size];
+    }
+    dst[len] = '\0';
+}
 
 // Initializes locking semaphore for network support (not for just SMB support, but for the network subsystem).
 static int ethInitSema(void)
@@ -543,8 +555,10 @@ static int ethUpdateGameList(item_list_t *itemList)
             artUseBuckets = 1;
         else
             artUseBuckets = 0;
-        for (int i = 0; i < 8000; i++) {
-            strcpy(allArtNames[i], "SCAJ_974.81_COV.png");
+
+        srand((unsigned int)time(NULL));
+        for (int i = 0; i < NUM_STR; i++) {
+            rand_str(allArtNames[i], STR_LEN);
         }
     }
     return ethGameCount;
