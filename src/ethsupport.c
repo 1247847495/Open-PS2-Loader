@@ -772,6 +772,9 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
         beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
         for (int i = 0; i < 8000; i++) {
             strncmp(allArtNames[i], artName, 20);
+            if (debugFile != NULL && i < 10) {
+                fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
+            }
         }
         searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         if (debugFile != NULL) {
