@@ -12,6 +12,7 @@
 #include "include/extern_irx.h"
 #include "include/cheatman.h"
 #include "modules/iopcore/common/cdvd_config.h"
+#include <timer.h>
 
 #define NEWLIB_PORT_AWARE
 #include <fileXio_rpc.h> // fileXioDevctl(ethBase, SMB_***)
@@ -44,6 +45,10 @@ static int ethReadNetConfig(void);
 static int ethInitSemaID = -1;
 
 static int artUseBuckets = 0;
+static char allArtNames[8000][20];
+// 用来计算搜索图片的消耗时间
+static u64 beforeTime = 0;
+static u64 searchTime = 0;
 
 // Initializes locking semaphore for network support (not for just SMB support, but for the network subsystem).
 static int ethInitSema(void)
@@ -538,6 +543,9 @@ static int ethUpdateGameList(item_list_t *itemList)
             artUseBuckets = 1;
         else
             artUseBuckets = 0;
+        for (int i = 0; i < 8000; i++) {
+            strcpy(allArtNames[i], "SCAJ_974.81_COV.png")
+        }
     }
     return ethGameCount;
 }
@@ -733,12 +741,37 @@ static config_set_t *ethGetConfig(item_list_t *itemList, int id)
 
 static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+
     char path[256];
+    char artName[20];
+    snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
     if (isRelative) {
         if (artUseBuckets)
             snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
         else
             snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
+
+        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+        for (int i = 0; i < 8000; i++) {
+            strncmp(allArtNames[i], artName, 20);
+        }
+        searchTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间
+        if (debugFile != NULL) {
+            fprintf(debugFile, "扫描数组耗时: %d ms\r\n", searchTime);
+        }
+
+        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+        access("SHHJ_974.81_COV.png", F_OK);
+        searchTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间
+        if (debugFile != NULL) {
+            fprintf(debugFile, "open失败耗时: %d ms\r\n\r\n", searchTime);
+            fclose(debugFile);
+        }
+        return -1;
     }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
