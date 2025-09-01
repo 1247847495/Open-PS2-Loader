@@ -544,7 +544,7 @@ static int ethUpdateGameList(item_list_t *itemList)
         else
             artUseBuckets = 0;
         for (int i = 0; i < 8000; i++) {
-            strcpy(allArtNames[i], "SCAJ_974.81_COV.png")
+            strcpy(allArtNames[i], "SCAJ_974.81_COV.png");
         }
     }
     return ethGameCount;
@@ -750,25 +750,25 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
     char artName[20];
     snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
     if (isRelative) {
-        if (artUseBuckets)
+        if (0)
             snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
         else
-            snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
+            snprintf(path, sizeof(path), "%s%s\\%s_%s.pgg", ethPrefix, folder, value, suffix);
 
-        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
         for (int i = 0; i < 8000; i++) {
             strncmp(allArtNames[i], artName, 20);
         }
-        searchTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间
+        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         if (debugFile != NULL) {
-            fprintf(debugFile, "扫描数组耗时: %d ms\r\n", searchTime);
+            fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
         }
 
-        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
-        access("SHHJ_974.81_COV.png", F_OK);
-        searchTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间
+        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        access(path, F_OK);
+        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         if (debugFile != NULL) {
-            fprintf(debugFile, "open失败耗时: %d ms\r\n\r\n", searchTime);
+            fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
             fclose(debugFile);
         }
         return -1;
