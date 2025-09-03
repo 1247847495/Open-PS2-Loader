@@ -671,8 +671,12 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
             artUseBuckets = artUseBuckets_ATA;
         else
             artUseBuckets = 0;
-        if (artUseBuckets)
-            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, value, value, suffix);
+        if (artUseBuckets) {
+            if (value && value[strlen(value) - 1] != 'F')
+                snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+            else
+                snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+        }
         else
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
 
