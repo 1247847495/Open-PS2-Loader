@@ -38,7 +38,7 @@ static int artUseBuckets_ATA = 0;
 static u64 beforeTime = 0;
 static u64 searchTime = 0;
 #define NUM_STR 8000
-#define STR_LEN 20
+#define STR_LEN 128
 static char allArtNames[NUM_STR][STR_LEN + 1];
 static const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 static void rand_str(char *dst, int len)
@@ -672,13 +672,27 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
         else
             artUseBuckets = 0;
         if (artUseBuckets) {
-            if (value && (value[strlen(value) - 1] == 'F' || value[strlen(value) - 1] == 'f'))
+            int len = strlen(value);
+            if (len >= 4 && (value[len - 1] == 'F' || value[len - 1] == 'f'))
                 snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
             else
                 snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
         }
-        else
+        else {
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
+
+            // 把art图片的名字都记录下来
+            char artPath[64];
+            snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
+            DIR *artDir = opendir(artPath);
+            struct artDirent;
+            for (int i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
+                strcpy(allArtNames[i], artDirent->d_name);
+                
+            }
+        }
+
+
 
         //char artName[20];
         //snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);

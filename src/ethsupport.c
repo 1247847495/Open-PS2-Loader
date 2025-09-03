@@ -50,7 +50,7 @@ static int artUseBuckets = 0;
 static u64 beforeTime = 0;
 static u64 searchTime = 0;
 #define NUM_STR 8000
-#define STR_LEN 20
+#define STR_LEN 128
 static char allArtNames[NUM_STR][STR_LEN + 1];
 static const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 static void rand_str(char *dst, int len)
@@ -755,26 +755,52 @@ static config_set_t *ethGetConfig(item_list_t *itemList, int id)
 
 static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
-    //// debug  打印debug信息
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
 
     char path[256];
-    //char artName[20];
-    //snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
+    char artName[128];
+    sprintf(artName, "%s_%s.png", value, suffix);
     if (isRelative) {
+        int i;
         if (0)
             snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
-        else
-            snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
+        else {
+            snprintf(path, sizeof(path), "%s%s\\%s_%s.png", ethPrefix, folder, value, suffix);
+
+            if (allArtNames[0][0] == 0) {
+                // 把art图片的名字都记录下来
+                beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+                char artPath[64];
+                snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
+                DIR *artDir = opendir(artPath);
+                struct artDirent;
+                for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
+                    strcpy(allArtNames[i], artDirent->d_name);
+                }
+                searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "扫描ART文件耗时: %lld ms\r\n\r\n", searchTime);
+                    fclose(debugFile);
+                }
+            }
+        }
+        if (debugFile != NULL) {
+            fclose(debugFile);
+        }
 
         //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        //for (int i = 0; i < 8000; i++) {
-        //    strncmp(allArtNames[i], artName, 20);
-        //    //if (debugFile != NULL && i < 10)
-        //    //    fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
-        //}
+        int j;
+        for (j = 0; j < i; j++) {
+            // if (debugFile != NULL && i < 10)
+            fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", j, allArtNames[j], artName);
+            if (!strcmp(allArtNames[j], artName))
+                break;
+        }
+        if (j == i)
+            return -1;
         //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         //if (debugFile != NULL)
         //    fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
@@ -786,7 +812,6 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
         //    fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
         //    fclose(debugFile);
         //}
-        //return -1;
     }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
