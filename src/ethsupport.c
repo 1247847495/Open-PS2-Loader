@@ -770,7 +770,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
         else {
             snprintf(path, sizeof(path), "%s%s\\%s_%s.png", ethPrefix, folder, value, suffix);
 
-            if (allArtNames[0][0] == 0) {
+            if (allArtNames[0][0] == '\0') {
                 // 把art图片的名字都记录下来
                 beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
                 char artPath[64];
