@@ -776,7 +776,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 char artPath[64];
                 snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
                 DIR *artDir = opendir(artPath);
-                struct artDirent;
+                struct dirent artDirent;
                 for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
                     strcpy(allArtNames[i], artDirent->d_name);
                 }

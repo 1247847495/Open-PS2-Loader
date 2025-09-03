@@ -681,15 +681,15 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
         else {
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
 
-            // 把art图片的名字都记录下来
-            char artPath[64];
-            snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
-            DIR *artDir = opendir(artPath);
-            struct artDirent;
-            for (int i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
-                strcpy(allArtNames[i], artDirent->d_name);
-                
-            }
+            //// 把art图片的名字都记录下来
+            //char artPath[64];
+            //snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
+            //DIR *artDir = opendir(artPath);
+            //struct artDirent;
+            //for (int i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
+            //    strcpy(allArtNames[i], artDirent->d_name);
+            //    
+            //}
         }
 
 
