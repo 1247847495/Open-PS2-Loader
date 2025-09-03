@@ -788,9 +788,6 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 }
             }
         }
-        if (debugFile != NULL) {
-            fclose(debugFile);
-        }
 
         //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
         int j;
@@ -799,6 +796,9 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
             fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", j, allArtNames[j], artName);
             if (!strcmp(allArtNames[j], artName))
                 break;
+        }
+        if (debugFile != NULL) {
+            fclose(debugFile);
         }
         if (j == i)
             return -1;
