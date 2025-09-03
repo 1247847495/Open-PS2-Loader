@@ -550,16 +550,16 @@ static int ethUpdateGameList(item_list_t *itemList)
     // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
     if (ethGameCount > 0) {
         char artPath[64];
-        snprintf(artPath, sizeof(artPath), "%sART\\COV", ethPrefix);
+        snprintf(artPath, sizeof(artPath), "%sART2", ethPrefix);
         if (!access(artPath, F_OK))
             artUseBuckets = 1;
         else
             artUseBuckets = 0;
 
-        srand((unsigned int)time(NULL));
-        for (int i = 0; i < NUM_STR; i++) {
-            rand_str(allArtNames[i], STR_LEN);
-        }
+        //srand((unsigned int)time(NULL));
+        //for (int i = 0; i < NUM_STR; i++) {
+        //    rand_str(allArtNames[i], STR_LEN);
+        //}
     }
     return ethGameCount;
 }
@@ -768,7 +768,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
         if (0)
             snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
         else {
-            snprintf(path, sizeof(path), "%s%s\\%s_%s.png", ethPrefix, folder, value, suffix);
+            snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
 
             if (allArtNames[0][0] == '\0') {
                 // 把art图片的名字都记录下来
