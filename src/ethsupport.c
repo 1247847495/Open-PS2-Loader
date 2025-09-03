@@ -779,6 +779,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 struct dirent *artDirent;
                 for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
                     strcpy(allArtNames[i], artDirent->d_name);
+                    fprintf(debugFile, "d_name:%s\r\n", artDirent->d_name);
                 }
                 closedir(artDir);
                 searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
