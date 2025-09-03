@@ -757,7 +757,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
 {
     // debug  打印debug信息
     char debugFileDir[64];
-    strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
+    strcpy(debugFileDir, "smb:debug-ScanArtTime.txt");
     FILE *debugFile = fopen(debugFileDir, "ab+");
 
     char path[256];
@@ -774,7 +774,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 // 把art图片的名字都记录下来
                 beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
                 char artPath[64];
-                snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
+                snprintf(artPath, sizeof(artPath), "%s%s", ethPrefix, folder);
                 DIR *artDir = opendir(artPath);
                 struct dirent *artDirent;
                 for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
