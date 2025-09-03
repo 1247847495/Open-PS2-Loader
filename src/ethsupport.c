@@ -52,6 +52,8 @@ static u64 searchTime = 0;
 #define NUM_STR 8000
 #define STR_LEN 128
 static char allArtNames[NUM_STR][STR_LEN + 1];
+static char *ArtNames;
+static int ArtNames_len = 0;
 static const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 static void rand_str(char *dst, int len)
 {
@@ -60,6 +62,53 @@ static void rand_str(char *dst, int len)
         dst[i] = charset[rand() % charset_size];
     }
     dst[len] = '\0';
+}
+void save_filenames_to_bin(const char *folder, const char *binfile)
+{
+    DIR *dir = opendir(folder);
+    if (!dir) {
+        perror("opendir failed");
+        return;
+    }
+    FILE *fp = fopen(binfile, "wb");
+    if (!fp) {
+        perror("fopen failed");
+        closedir(dir);
+        return;
+    }
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        // 跳过 . 和 ..
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+        // 可选：判断是否为文件（不是目录）
+        // 此处简单处理，假设文件夹下都是合法文件
+        fwrite(entry->d_name, 1, strlen(entry->d_name) + 1, fp); // +1 写入结尾'\0'
+        // 如果想每行为64固定长度：写入64字节，无内容部分补0
+        // char buf[64] = {0};
+        // strncpy(buf, entry->d_name, 63);
+        // fwrite(buf, 1, 64, fp);
+    }
+    fclose(fp);
+    closedir(dir);
+}
+void load_filenames_from_bin(const char *binfile)
+{
+    FILE *fp = fopen(binfile, "rb");
+    if (!fp)
+        return;
+    fseek(fp, 0, SEEK_END);
+    long filesize = ftell(fp);
+    rewind(fp);
+
+    // 如果之前已经加载过，要先释放
+    if (ArtNames)
+        free(ArtNames);
+
+    ArtNames = malloc(filesize);
+    ArtNames_len = filesize;
+    fread(ArtNames, 1, filesize, fp);
+    fclose(fp);
 }
 
 // Initializes locking semaphore for network support (not for just SMB support, but for the network subsystem).
@@ -770,39 +819,55 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
         else {
             snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
 
-            if (allArtNames[0][0] == '\0') {
+            char artPath[64];
+            snprintf(artPath, sizeof(artPath), "%s%s", ethPrefix, folder);
+            struct dirent *artDirent;
+            //if (allArtNames[0][0] == '\0') {
                 // 把art图片的名字都记录下来
+                //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+                //DIR *artDir = opendir(artPath);
+                //for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
+                //    strcpy(allArtNames[i], artDirent->d_name);
+                //    fprintf(debugFile, "d_name:%s\r\n", artDirent->d_name);
+                //}
+                //closedir(artDir);
+                //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+                //if (debugFile != NULL) {
+                //    fprintf(debugFile, "扫描ART文件耗时: %lld ms\r\n\r\n", searchTime);
+                //}
+            //}
+            char binPath[64];
+            snprintf(binPath, sizeof(binPath), "%s%s/artCache.bin", ethPrefix, folder);
+            if (access(binPath, F_OK)) {
                 beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-                char artPath[64];
-                snprintf(artPath, sizeof(artPath), "%s%s", ethPrefix, folder);
-                DIR *artDir = opendir(artPath);
-                struct dirent *artDirent;
-                for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
-                    strcpy(allArtNames[i], artDirent->d_name);
-                    fprintf(debugFile, "d_name:%s\r\n", artDirent->d_name);
-                }
-                closedir(artDir);
+                save_filenames_to_bin(artPath, binPath);
                 searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
                 if (debugFile != NULL) {
-                    fprintf(debugFile, "扫描ART文件耗时: %lld ms\r\n\r\n", searchTime);
-                    fclose(debugFile);
+                    fprintf(debugFile, "写入bin文件耗时: %lld ms\r\n\r\n", searchTime);
+                }
+            } else {
+                beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+                load_filenames_from_bin(binPath);
+                searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "读取bin文件耗时: %lld ms\r\n\r\n", searchTime);
                 }
             }
-        }
-
-        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        int j;
-        for (j = 0; j < i; j++) {
-            // if (debugFile != NULL && i < 10)
-            fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", j, allArtNames[j], artName);
-            if (!strcmp(allArtNames[j], artName))
-                break;
         }
         if (debugFile != NULL) {
             fclose(debugFile);
         }
-        if (j == i)
-            return -1;
+        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        //int j;
+        //for (j = 0; j < i; j++) {
+        //    // if (debugFile != NULL && i < 10)
+        //    //fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", j, allArtNames[j], artName);
+        //    if (!strcmp(allArtNames[j], artName))
+        //        break;
+        //}
+
+        //if (j == i)
+        //    return -1;
         //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
         //if (debugFile != NULL)
         //    fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
