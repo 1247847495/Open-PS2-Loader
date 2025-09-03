@@ -755,38 +755,38 @@ static config_set_t *ethGetConfig(item_list_t *itemList, int id)
 
 static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
-    // debug  打印debug信息
-    char debugFileDir[64];
-    strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
-    FILE *debugFile = fopen(debugFileDir, "ab+");
+    //// debug  打印debug信息
+    //char debugFileDir[64];
+    //strcpy(debugFileDir, "smb:debug-SearchNonPicTime.txt");
+    //FILE *debugFile = fopen(debugFileDir, "ab+");
 
     char path[256];
-    char artName[20];
-    snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
+    //char artName[20];
+    //snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
     if (isRelative) {
         if (0)
             snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
         else
-            snprintf(path, sizeof(path), "%s%s\\%s_%s.pgg", ethPrefix, folder, value, suffix);
+            snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
 
-        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        for (int i = 0; i < 8000; i++) {
-            strncmp(allArtNames[i], artName, 20);
-            //if (debugFile != NULL && i < 10)
-            //    fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
-        }
-        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
-        if (debugFile != NULL)
-            fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
+        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        //for (int i = 0; i < 8000; i++) {
+        //    strncmp(allArtNames[i], artName, 20);
+        //    //if (debugFile != NULL && i < 10)
+        //    //    fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
+        //}
+        //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        //if (debugFile != NULL)
+        //    fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
 
-        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        access(path, F_OK);
-        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
-        if (debugFile != NULL) {
-            fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
-            fclose(debugFile);
-        }
-        return -1;
+        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        //access(path, F_OK);
+        //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
+        //    fclose(debugFile);
+        //}
+        //return -1;
     }
     else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);

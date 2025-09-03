@@ -30,6 +30,10 @@ static item_list_t bdmDeviceList[MAX_BDM_DEVICES];
 static int bdmDeviceListInitialized = 0;
 
 static int artUseBuckets = 0;
+static int artUseBuckets_USB = 0;
+static int artUseBuckets_ILINK = 0;
+static int artUseBuckets_SDC = 0;
+static int artUseBuckets_ATA = 0;
 // 用来计算搜索图片的消耗时间
 static u64 beforeTime = 0;
 static u64 searchTime = 0;
@@ -298,22 +302,28 @@ static int bdmUpdateGameList(item_list_t *itemList)
         if (!bdmDeviceOn) {
             pDeviceData->bdmGameCount = -1;
             return 0;
-        }
-        else {
+        } else {
             // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
             if (sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount) > 0) {
-                char artPath[64];
-                snprintf(artPath, sizeof(artPath), "%sART\\COV", pDeviceData->bdmPrefix);
-                if (!access(artPath, F_OK))
-                    artUseBuckets = 1;
-                else
-                    artUseBuckets = 0;
+                char art2Path[64];
+                snprintf(art2Path, sizeof(art2Path), "%sART2", pDeviceData->bdmPrefix);
+                if (!access(art2Path, F_OK)) {
+                    // 根据BDM类型开启相应的分桶开关
+                    if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+                        artUseBuckets_USB = 1;
+                    else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+                        artUseBuckets_ILINK = 1;
+                    else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+                        artUseBuckets_SDC = 1;
+                    else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+                        artUseBuckets_ATA = 1;
+                }
             }
 
-            srand((unsigned int)time(NULL));
-            for (int i = 0; i < NUM_STR; i++) {
-                rand_str(allArtNames[i], STR_LEN);
-            }
+            //srand((unsigned int)time(NULL));
+            //for (int i = 0; i < NUM_STR; i++) {
+            //    rand_str(allArtNames[i], STR_LEN);
+            //}
             return pDeviceData->bdmGameCount;
         }
     } else
@@ -650,39 +660,49 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (isRelative) {
-        if (0)
+        // 根据BDM类型开启相应的分桶开关
+        if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+            artUseBuckets = artUseBuckets_USB;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+            artUseBuckets = artUseBuckets_ILINK;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+            artUseBuckets = artUseBuckets_SDC;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+            artUseBuckets = artUseBuckets_ATA;
+        else
+            artUseBuckets = 0;
+        if (artUseBuckets)
             snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, value, value, suffix);
         else
-            snprintf(path, sizeof(path), "%s%s/%s_%s.ppg", pDeviceData->bdmPrefix, folder, value, suffix);
+            snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
 
-        char artName[20];
-        snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "mass0:debug-SearchNonPicTime.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        for (int i = 0; i < 8000; i++) {
-            if (!strncmp(allArtNames[i], artName, 20))
-                ;
-            // if (debugFile != NULL && i < 10)
-            //     fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
-        }
-        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
-        if (debugFile != NULL)
-            fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
+        //char artName[20];
+        //snprintf(artName, sizeof(artName), "%s_%s.png", value, suffix);
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "mass0:debug-SearchNonPicTime.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        //for (int i = 0; i < 8000; i++) {
+        //    if (!strncmp(allArtNames[i], artName, 20))
+        //        ;
+        //    // if (debugFile != NULL && i < 10)
+        //    //     fprintf(debugFile, "allArtNames[%d]:%s   artName:%s\r\n", i, allArtNames[i], artName);
+        //}
+        //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        //if (debugFile != NULL)
+        //    fprintf(debugFile, "扫描数组耗时: %lld ms\r\n", searchTime);
 
-        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
-        if (!access(path, F_OK))
-            ;
-        searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
-        if (debugFile != NULL) {
-            fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
-            fclose(debugFile);
-        }
-        return -1;
-    }
-    else
+        //beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
+        //if (!access(path, F_OK))
+        //    ;
+        //searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "open失败耗时: %lld ms\r\n\r\n", searchTime);
+        //    fclose(debugFile);
+        //}
+        //return -1;
+    } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
     return texDiscoverLoad(resultTex, path, -1);
 }
