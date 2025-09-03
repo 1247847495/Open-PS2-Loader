@@ -776,10 +776,11 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 char artPath[64];
                 snprintf(artPath, sizeof(artPath), "%s%s", pDeviceData->bdmPrefix, folder);
                 DIR *artDir = opendir(artPath);
-                struct dirent artDirent;
+                struct dirent *artDirent;
                 for (i = 0; (artDirent = readdir(artDir)) != NULL; i++) {
                     strcpy(allArtNames[i], artDirent->d_name);
                 }
+                closedir(artDir);
                 searchTime = GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间
                 if (debugFile != NULL) {
                     fprintf(debugFile, "扫描ART文件耗时: %lld ms\r\n\r\n", searchTime);
