@@ -320,22 +320,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //}
 
-    // 根据图像类型，赋值上一次的缓存
     GSTEXTURE *prevCache = NULL;
-    if (!strncmp("COV", cache->suffix, 3)) {
-        if (PrevCacheID_COV >= 0)
-            prevCache = &cache->content[PrevCacheID_COV].texture;
-    } else if (!strncmp("ICO", cache->suffix, 3)) {
-        if (PrevCacheID_ICO >= 0)
-            prevCache = &cache->content[PrevCacheID_ICO].texture;
-    } else if (!strncmp("BG", cache->suffix, 2)) {
-        if (PrevCacheID_BG >= 0)
-            prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
-    }
+    texPrepare(prevCache);
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
-        texFree(prevCache);
-        prevCache = NULL;
         if (ForceRefreshPrevTexCache == 1) {
             prevGuiFrameId = guiFrameId;
             ForceRefreshPrevTexCache++;
@@ -347,6 +335,18 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID_ICO = -2;
         else if (!strncmp("BG", cache->suffix, 2))
             PrevCacheID_BG = -2;
+    } else {
+        // 根据图像类型，赋值上一次的缓存
+        if (!strncmp("COV", cache->suffix, 3)) {
+            if (PrevCacheID_COV >= 0)
+                prevCache = &cache->content[PrevCacheID_COV].texture;
+        } else if (!strncmp("ICO", cache->suffix, 3)) {
+            if (PrevCacheID_ICO >= 0)
+                prevCache = &cache->content[PrevCacheID_ICO].texture;
+        } else if (!strncmp("BG", cache->suffix, 2)) {
+            if (PrevCacheID_BG >= 0)
+                prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
+        }
     }
 
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
