@@ -1813,9 +1813,9 @@ static void setDefaults(void)
     gHDDPrefix = "pfs0:";
     gBaseMCDir = "mc?:OPL";
 
-    bdmCacheSize = 16;
-    hddCacheSize = 8;
-    smbCacheSize = 16;
+    bdmCacheSize = 0;
+    hddCacheSize = 0;
+    smbCacheSize = 0;
 
     ps2_ip_use_dhcp = 1;
     gETHOpMode = ETH_OP_MODE_AUTO;
