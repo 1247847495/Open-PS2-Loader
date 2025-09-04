@@ -335,6 +335,11 @@ void hddLoadSupportModules(void)
             gHDDPrefix = "pfs0:OPL/";
         }
 
+        // 判断是否存在ART2，提升图片读取效率
+        char art2Path[128];
+        snprintf(art2Path, sizeof(art2Path), "%sART2", gHDDPrefix);
+        artUseBuckets_APA = !access(art2Path, F_OK);
+
         // 根据全局DMA设置，来重设DMA传输模式，加快Art图片的读取速度
         int gDmaMode = -1; // 获取配置失败时，不重设传输模式
         configGetInt(configGetByType(CONFIG_GAME), CONFIG_ITEM_DMA, &gDmaMode);
@@ -393,13 +398,6 @@ static int hddUpdateGameList(item_list_t *itemList)
     }
 
     hddForceUpdate = 1; // Subsequent refresh operations will cause the HDD to be scanned.
-
-    // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
-    if (!ret && hddGames.count > 0) {
-        char art2Path[64];
-        snprintf(art2Path, sizeof(art2Path), "%sART2", gHDDPrefix);
-        artUseBuckets_APA = !access(art2Path, F_OK);
-    }
     return (ret == 0 ? hddGames.count : 0);
 }
 

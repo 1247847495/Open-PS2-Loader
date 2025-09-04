@@ -142,6 +142,11 @@ static void ethSMBConnect(void)
     } else {
         gNetworkStartup = (result == -SMB_DEVCTL_LOGON_ERR_CONN) ? ERROR_ETH_SMB_CONN : ERROR_ETH_SMB_LOGON;
     }
+
+    // 判断是否存在ART2，提升图片读取效率
+    char art2Path[128];
+    snprintf(art2Path, sizeof(art2Path), "%sART2", ethPrefix);
+    artUseBuckets_SMB = !access(art2Path, F_OK);
 }
 
 static int ethSMBDisconnect(void)
@@ -529,13 +534,6 @@ static int ethUpdateGameList(item_list_t *itemList)
             gNetworkStartup = ERROR_ETH_SMB_LISTSHARES;
             ethDisplayErrorStatus();
         }
-    }
-
-    // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
-    if (ethGameCount > 0) {
-        char art2Path[64];
-        snprintf(art2Path, sizeof(art2Path), "%sART2", ethPrefix);
-        artUseBuckets_SMB = !access(art2Path, F_OK);
     }
     return ethGameCount;
 }

@@ -286,23 +286,8 @@ static int bdmUpdateGameList(item_list_t *itemList)
         if (!bdmDeviceOn) {
             pDeviceData->bdmGameCount = -1;
             return 0;
-        } else {
-            // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
-            if (sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount) > 0) {
-                char art2Path[64];
-                snprintf(art2Path, sizeof(art2Path), "%sART2", pDeviceData->bdmPrefix);
-                // 根据BDM类型开启相应的分桶开关
-                if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
-                    artUseBuckets_USB = !access(art2Path, F_OK);
-                else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
-                    artUseBuckets_ILINK = !access(art2Path, F_OK);
-                else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
-                    artUseBuckets_SDC = !access(art2Path, F_OK);
-                else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
-                    artUseBuckets_ATA = !access(art2Path, F_OK);
-            }
-            return pDeviceData->bdmGameCount;
-        }
+        } else
+            return sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount);
     } else
         return 0;
 }
@@ -925,6 +910,18 @@ int bdmUpdateDeviceData(item_list_t *itemList)
                 itemList->flags = MODE_FLAG_COMPAT_DMA;
             } else
                 pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
+
+            // 根据BDM类型开启相应的分桶开关
+            char art2Path[128];
+            snprintf(art2Path, sizeof(art2Path), "%sART2", pDeviceData->bdmPrefix);
+            if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+                artUseBuckets_USB = !access(art2Path, F_OK);
+            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+                artUseBuckets_ILINK = !access(art2Path, F_OK);
+            else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+                artUseBuckets_SDC = !access(art2Path, F_OK);
+            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+                artUseBuckets_ATA = !access(art2Path, F_OK);
 
             // If the device is backed by the ATA driver then get the supported LBA size for the drive.
             if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA) {
