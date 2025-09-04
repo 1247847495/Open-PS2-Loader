@@ -837,7 +837,7 @@ static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 //}
             //}
             char binPath[64];
-            snprintf(binPath, sizeof(binPath), "%s%s/artCache.bin", ethPrefix, folder);
+            snprintf(binPath, sizeof(binPath), "%sartCache.bin", ethPrefix);
             if (access(binPath, F_OK)) {
                 beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
                 save_filenames_to_bin(artPath, binPath);
