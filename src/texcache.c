@@ -321,7 +321,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //}
 
     GSTEXTURE *prevCache = NULL;
-    texPrepare(prevCache);
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
         if (ForceRefreshPrevTexCache == 1) {
@@ -364,7 +363,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
-                return prevCache;
+                return prevCache ? prevCache : NULL;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
@@ -396,7 +395,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (forceSkipQr)
         skipQr = 1;
     if (skipQr)
-        return prevCache;
+        return prevCache ? prevCache : NULL;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i, rtime = guiFrameId;
@@ -440,5 +439,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
-    return prevCache;
+    return prevCache ? prevCache : NULL;
 }
