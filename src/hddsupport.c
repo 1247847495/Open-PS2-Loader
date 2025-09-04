@@ -38,7 +38,8 @@ static hdl_games_list_t hddGames;
 // forward declaration
 static item_list_t hddGameList;
 
-static int artUseBuckets = 0;
+// 判断APA设备是否使用ART2文件夹
+static int artUseBuckets_APA = 0;
 
 static int hddLoadGameListCache(hdl_games_list_t *cache);
 static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *game_list);
@@ -394,13 +395,10 @@ static int hddUpdateGameList(item_list_t *itemList)
     hddForceUpdate = 1; // Subsequent refresh operations will cause the HDD to be scanned.
 
     // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
-    if (hddGames.count > 0) {
-        char artPath[64];
-        snprintf(artPath, sizeof(artPath), "%sART\\COV", gHDDPrefix);
-        if (!access(artPath, F_OK))
-            artUseBuckets = 1;
-        else
-            artUseBuckets = 0;
+    if (hddGames && hddGames.count > 0) {
+        char art2Path[64];
+        snprintf(art2Path, sizeof(art2Path), "%sART2", gHDDPrefix);
+        artUseBuckets_APA = !access(art2Path, F_OK);
     }
     return (ret == 0 ? hddGames.count : 0);
 }
@@ -670,15 +668,22 @@ static config_set_t *hddGetConfig(item_list_t *itemList, int id)
 
 static int hddGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
+    if (!value)
+        return;
+
     char path[256];
     if (isRelative) {
-        if (artUseBuckets)
-            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", gHDDPrefix, folder, suffix, value, suffix);
-        else
+        if (artUseBuckets_APA) {
+            int len = strlen(value);
+            if (len >= 4 && (value[len - 1] == 'F' || value[len - 1] == 'f'))
+                snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", gHDDPrefix, value, value, suffix);
+            else
+                snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", gHDDPrefix, value, value, suffix);
+        } else
             snprintf(path, sizeof(path), "%s%s/%s_%s", gHDDPrefix, folder, value, suffix);
-    }
-    else
+    } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
+
     return texDiscoverLoad(resultTex, path, -1);
 }
 

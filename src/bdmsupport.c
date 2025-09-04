@@ -28,7 +28,11 @@ int bdmDeviceModeStarted;
 static item_list_t bdmDeviceList[MAX_BDM_DEVICES];
 static int bdmDeviceListInitialized = 0;
 
-static int artUseBuckets = 0;
+// 判断BDM设备是否使用ART2文件夹
+static int artUseBuckets_USB = 0;
+static int artUseBuckets_ILINK = 0;
+static int artUseBuckets_SDC = 0;
+static int artUseBuckets_ATA = 0;
 
 void bdmInitDevicesData();
 
@@ -278,20 +282,24 @@ static int bdmUpdateGameList(item_list_t *itemList)
         } else { // 未初始化，或未知设备
             return 0;
         }
-        // 已知设备没开就返回0，开了就生成列表
+        // 已知设备没开就返回0，开了就生成列表（只有USB会出现已知但未开的情况）
         if (!bdmDeviceOn) {
             pDeviceData->bdmGameCount = -1;
             return 0;
-        }
-        else {
+        } else {
             // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
             if (sbReadList(&pDeviceData->bdmGames, pDeviceData->bdmPrefix, &pDeviceData->bdmULSizePrev, &pDeviceData->bdmGameCount) > 0) {
-                char artPath[64];
-                snprintf(artPath, sizeof(artPath), "%sART\\COV", pDeviceData->bdmPrefix);
-                if (!access(artPath, F_OK))
-                    artUseBuckets = 1;
-                else
-                    artUseBuckets = 0;
+                char art2Path[64];
+                snprintf(art2Path, sizeof(art2Path), "%sART2", pDeviceData->bdmPrefix);
+                // 根据BDM类型开启相应的分桶开关
+                if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+                    artUseBuckets_USB = !access(art2Path, F_OK);
+                else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+                    artUseBuckets_ILINK = !access(art2Path, F_OK);
+                else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+                    artUseBuckets_SDC = !access(art2Path, F_OK);
+                else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+                    artUseBuckets_ATA = !access(art2Path, F_OK);
             }
             return pDeviceData->bdmGameCount;
         }
@@ -624,18 +632,35 @@ static config_set_t *bdmGetConfig(item_list_t *itemList, int id)
 
 static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
-    char path[256];
+    if (!value)
+        return;
 
+    char path[256];
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
     if (isRelative) {
-        if (1)
-            snprintf(path, sizeof(path), "%s%s/%s/%s_%s", pDeviceData->bdmPrefix, folder, value, value, suffix);
-        else
+        // 根据BDM类型开启相应的分桶开关
+        int artUseBuckets = 0;
+        if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+            artUseBuckets = artUseBuckets_USB;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+            artUseBuckets = artUseBuckets_ILINK;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+            artUseBuckets = artUseBuckets_SDC;
+        else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+            artUseBuckets = artUseBuckets_ATA;
+
+        if (artUseBuckets) {
+            int len = strlen(value);
+            if (len >= 4 && (value[len - 1] == 'F' || value[len - 1] == 'f'))
+                snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+            else
+                snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+        } else
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
-    }
-    else
+    } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
+
     return texDiscoverLoad(resultTex, path, -1);
 }
 

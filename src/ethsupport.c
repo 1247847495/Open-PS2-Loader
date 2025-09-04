@@ -43,7 +43,8 @@ static int ethReadNetConfig(void);
 
 static int ethInitSemaID = -1;
 
-static int artUseBuckets = 0;
+// 判断SMB设备是否使用ART2文件夹
+static int artUseBuckets_SMB = 0;
 
 // Initializes locking semaphore for network support (not for just SMB support, but for the network subsystem).
 static int ethInitSema(void)
@@ -532,12 +533,9 @@ static int ethUpdateGameList(item_list_t *itemList)
 
     // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
     if (ethGameCount > 0) {
-        char artPath[64];
-        snprintf(artPath, sizeof(artPath), "%sART\\COV", ethPrefix);
-        if (!access(artPath, F_OK))
-            artUseBuckets = 1;
-        else
-            artUseBuckets = 0;
+        char art2Path[64];
+        snprintf(art2Path, sizeof(art2Path), "%sART2", ethPrefix);
+        artUseBuckets_SMB = !access(art2Path, F_OK);
     }
     return ethGameCount;
 }
@@ -733,23 +731,23 @@ static config_set_t *ethGetConfig(item_list_t *itemList, int id)
 
 static int ethGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
+    if (!value)
+        return;
+
     char path[256];
     if (isRelative) {
-        if (artUseBuckets)
-            snprintf(path, sizeof(path), "%s%s\\%s\\%s_%s", ethPrefix, folder, suffix, value, suffix);
-        else
+        // 判断是否读取ART2文件夹
+        if (artUseBuckets_SMB) {
+            int len = strlen(value);
+            if (len >= 4 && (value[len - 1] == 'F' || value[len - 1] == 'f'))
+                snprintf(path, sizeof(path), "%sART2\\APPS\\%s\\%s_%s", ethPrefix, value, value, suffix);
+            else
+                snprintf(path, sizeof(path), "%sART2\\GAMES\\%s\\%s_%s", ethPrefix, value, value, suffix);
+        } else
             snprintf(path, sizeof(path), "%s%s\\%s_%s", ethPrefix, folder, value, suffix);
-    }
-    else
+    } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
-    //// debug  打印debug信息
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-EthImagePath.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "%s %s %s %s   isRelative:%d\r\n\r\n", ethPrefix, folder, value, suffix, isRelative);
-    //    fclose(debugFile);
-    //}
+
     return texDiscoverLoad(resultTex, path, -1);
 }
 
