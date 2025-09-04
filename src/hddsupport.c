@@ -395,7 +395,7 @@ static int hddUpdateGameList(item_list_t *itemList)
     hddForceUpdate = 1; // Subsequent refresh operations will cause the HDD to be scanned.
 
     // 如果游戏数量大于0，才需要判断Art文件夹内是否为分桶设计
-    if (hddGames && hddGames.count > 0) {
+    if (!ret && hddGames.count > 0) {
         char art2Path[64];
         snprintf(art2Path, sizeof(art2Path), "%sART2", gHDDPrefix);
         artUseBuckets_APA = !access(art2Path, F_OK);
