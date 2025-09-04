@@ -633,7 +633,7 @@ static config_set_t *bdmGetConfig(item_list_t *itemList, int id)
 static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     if (!value)
-        return;
+        return ERR_BAD_FILE;
 
     char path[256];
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;

@@ -669,7 +669,7 @@ static config_set_t *hddGetConfig(item_list_t *itemList, int id)
 static int hddGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     if (!value)
-        return;
+        return ERR_BAD_FILE;
 
     char path[256];
     if (isRelative) {
