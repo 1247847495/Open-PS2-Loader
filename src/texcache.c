@@ -19,11 +19,12 @@ int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 int skipQr = 0; // 判断是否可以跳过请求Qr队列
-char *curStartUp = NULL;
+static char *curStartUp = NULL;
 int findBGCount = 0; // 寻找背景图的次数
 int forceSkipQr = 0; // 当加载游戏时，强行跳过Qr
-int baseCd = 50; // 快速按键触发cdFrameCount的基础帧数
-int baseCdCount = 0;  // 基础Cd的帧数计时器
+
+//int baseCd = 50; // 快速按键触发cdFrameCount的基础帧数
+//int baseCdCount = 0;  // 基础Cd的帧数计时器
 
 typedef struct
 {
@@ -83,10 +84,10 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (skipQr) {
-        req->entry->lastUsed = -1;
-        req->entry->UID = 0;
-        req->entry->qr = NULL;
-        //cacheClearItem(req->entry, 1);
+        //req->entry->qr = NULL;
+        //req->entry->lastUsed = -1;
+        //req->entry->UID = 0;
+        cacheClearItem(req->entry, 1);
         free(req);
         return;
     }
@@ -156,38 +157,37 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    // 启动id变化时，说明光标有移动
-    // （可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
-    if (curStartUp) {
-        if (strncmp(curStartUp, value, 11)) {
-            if (!cdFramesCount && !isRepeating && !ForceRefreshPrevTexCache) {
-                // 如果移动光标时，还有后台任务，就不要继续新增Qr
-                if (ioHasPendingRequests())
-                    cdFramesCount = 1;       // 触发连按CD
-                else {
-                    // 激活基础CD，CD内再次按键，触发cdFramesCount
-                    if (!baseCdCount) {
-                        baseCdCount = baseCd;
-                        buttonPressedOnce = 1;
-                    }
-                }
-            }
-            curStartUp = value;
-        }
-    } else
+    if (!curStartUp && value)
         curStartUp = value;
 
-    // 基础Cd触发后，cd内按键，会触发cdFramesCount
-    if (baseCdCount) {
-        baseCdCount--;
-        if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
-            if (!buttonPressedOnce) {
-                cdFramesCount = 1;       // 触发连按CD
-                baseCdCount = 0;
-            }
-        } else
-            buttonPressedOnce = 0;
+    // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
+    if (curStartUp && value && strncmp(curStartUp, value, 11)) {
+        // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
+        if (ioHasPendingRequests()) {
+            if (!isRepeating && !ForceRefreshPrevTexCache)
+                cdFramesCount = 1; // 触发连按CD
+        }
+        //else {
+        //    // 激活基础CD，CD内再次按键，触发cdFramesCount
+        //    if (!baseCdCount) {
+        //        baseCdCount = baseCd;
+        //        buttonPressedOnce = 1;
+        //    }
+        //}
+        curStartUp = value;
     }
+
+    //// 基础Cd触发后，cd内按键，会触发cdFramesCount
+    //if (baseCdCount) {
+    //    baseCdCount--;
+    //    if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
+    //        if (!buttonPressedOnce) {
+    //            cdFramesCount = 1;       // 触发连按CD
+    //            baseCdCount = 0;
+    //        }
+    //    } else
+    //        buttonPressedOnce = 0;
+    //}
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (isRepeating) {
@@ -320,9 +320,22 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //}
 
+    // 根据图像类型，赋值上一次的缓存
     GSTEXTURE *prevCache = NULL;
+    if (!strncmp("COV", cache->suffix, 3)) {
+        if (PrevCacheID_COV >= 0)
+            prevCache = &cache->content[PrevCacheID_COV].texture;
+    } else if (!strncmp("ICO", cache->suffix, 3)) {
+        if (PrevCacheID_ICO >= 0)
+            prevCache = &cache->content[PrevCacheID_ICO].texture;
+    } else if (!strncmp("BG", cache->suffix, 2)) {
+        if (PrevCacheID_BG >= 0)
+            prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
+    }
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
+        texFree(prevCache);
+        prevCache = NULL;
         if (ForceRefreshPrevTexCache == 1) {
             prevGuiFrameId = guiFrameId;
             ForceRefreshPrevTexCache++;
@@ -334,18 +347,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID_ICO = -2;
         else if (!strncmp("BG", cache->suffix, 2))
             PrevCacheID_BG = -2;
-    } else {
-        // 根据图像类型，赋值上一次的缓存
-        if (!strncmp("COV", cache->suffix, 3)) {
-            if (PrevCacheID_COV >= 0)
-                prevCache = &cache->content[PrevCacheID_COV].texture;
-        } else if (!strncmp("ICO", cache->suffix, 3)) {
-            if (PrevCacheID_ICO >= 0)
-                prevCache = &cache->content[PrevCacheID_ICO].texture;
-        } else if (!strncmp("BG", cache->suffix, 2)) {
-            if (PrevCacheID_BG >= 0)
-                prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
-        }
     }
 
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
