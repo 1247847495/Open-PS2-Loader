@@ -89,10 +89,9 @@ static void cacheLoadImage(void *data)
         strcpy(debugFileDir, "smb:debug-TexCacheUID.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
-            fprintf(debugFile, "被中断的图片请求req->entry->UID:%d\r\n\r\n", req->entry->UID);
+            fprintf(debugFile, "被中断的图片请求req->entry->UID:%d    guiFrameId:%d\r\n\r\n", req->entry->UID, guiFrameId);
             fclose(debugFile);
         }
-        req->entry->lastUsed = 0;
         req->entry->qr = NULL;
         //req->entry->UID = -1;
         free(req);
