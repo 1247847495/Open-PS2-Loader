@@ -349,7 +349,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     cache_entry_t *entry1 = &cache->content[*cacheId];
-    if (entry->lastUsed == -1) {
+    if (entry1->lastUsed == -1) {
         // debug  打印debug信息
         char debugFileDir[64];
         strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
