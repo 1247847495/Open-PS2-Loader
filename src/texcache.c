@@ -38,9 +38,11 @@ typedef struct
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
-    if (freeTxt && item->texture.Mem) {
-        rmUnloadTexture(&item->texture);
-        free(item->texture.Mem);
+    if (freeTxt) {
+        if (item->texture.Mem) {
+            rmUnloadTexture(&item->texture);
+            free(item->texture.Mem);
+        }
         if (item->texture.Clut)
             free(item->texture.Clut);
     }
@@ -84,16 +86,9 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (skipQr) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheUID.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "被中断的图片请求req->entry->UID:%d    guiFrameId:%d\r\n\r\n", req->entry->UID, guiFrameId);
-            fclose(debugFile);
-        }
+        req->entry->lastUsed = guiFrameId;
         req->entry->qr = NULL;
-        //req->entry->UID = -1;
+        //req->entry->UID = 0;
         free(req);
         return;
     }
@@ -382,6 +377,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 }
                 return NULL;
             } else {
+                cache_entry_t *entry1 = &cache->content[*cacheId];
+                if (entry1->UID == 2) {
+                    // debug  打印debug信息
+                    char debugFileDir[64];
+                    strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
+                    FILE *debugFile = fopen(debugFileDir, "ab+");
+                    if (debugFile != NULL) {
+                        fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    guiFrameId:%d\r\n\r\n", *cacheId, entry1->UID, *UID, guiFrameId);
+                        fclose(debugFile);
+                    }
+                }
                 entry->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3)) {
@@ -396,17 +402,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
 
         *cacheId = -1;
-    }
-    cache_entry_t *entry1 = &cache->content[*cacheId];
-    if (entry1->UID == 2 && *cacheId == -1) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d \r\n\r\n", *cacheId, entry1->UID, *UID);
-            fclose(debugFile);
-        }
     }
 
     if (forceSkipQr)
