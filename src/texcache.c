@@ -85,11 +85,11 @@ static void cacheLoadImage(void *data)
         return;
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    // 会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果
+    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
     if (skipQr) {
-        req->entry->lastUsed = guiFrameId;
+        //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
+        req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
         req->entry->qr = NULL;
-        //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID
         free(req);
         return;
     }
@@ -389,17 +389,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_ICO = *cacheId;
                     } else if (!strncmp("BG", cache->suffix, 2)) {
                         PrevCacheID_BG = *cacheId;
-                    }
-                    // debug  打印debug信息
-                    cache_entry_t *entry1 = &cache->content[*cacheId];
-                    if (entry1->UID == 2) {
-                        char debugFileDir[64];
-                        strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
-                        FILE *debugFile = fopen(debugFileDir, "ab+");
-                        if (debugFile != NULL) {
-                            fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry1->lastUsed, cache->suffix);
-                            fclose(debugFile);
-                        }
                     }
                     return &entry->texture;
                 }
