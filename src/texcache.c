@@ -92,7 +92,7 @@ static void cacheLoadImage(void *data)
             fprintf(debugFile, "被中断的图片请求req->entry->UID:%d\r\n\r\n", req->entry->UID);
             fclose(debugFile);
         }
-
+        req->entry->lastUsed = guiFrameId;
         req->entry->qr = NULL;
         //req->entry->UID = -1;
         free(req);
