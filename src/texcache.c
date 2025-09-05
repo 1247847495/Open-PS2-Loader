@@ -355,6 +355,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
     }
 
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "cacheId:%d   entry->UID:%d   *UID:%d \r\n\r\n", *cacheId, entry->UID, *UID);
+        fclose(debugFile);
+    }
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
