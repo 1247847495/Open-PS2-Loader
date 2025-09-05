@@ -84,10 +84,8 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (skipQr) {
-        //req->entry->qr = NULL;
-        //req->entry->lastUsed = -1;
-        //req->entry->UID = 0;
-        cacheClearItem(req->entry, 1);
+        req->entry->qr = NULL;
+        req->entry->UID = 0;
         free(req);
         return;
     }
@@ -421,9 +419,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         strcpy(req->value, value);
         req->cacheUID = cache->nextUID;
 
-        cacheClearItem(oldestEntry, 1);
-        oldestEntry->qr = req;
-        oldestEntry->UID = cache->nextUID;
+        cacheClearItem(req->entry, 1);
+        req->entry->qr = req;
+        req->entry->UID = cache->nextUID;
 
         *UID = cache->nextUID++;
 
