@@ -362,6 +362,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
+        cache_entry_t *entry1 = &cache->content[*cacheId];
+        if (entry1->UID == 2) {
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry->lastUsed, cache->suffix);
+                fclose(debugFile);
+            }
+        }
         if (entry->UID == *UID) {
             if (entry->qr) {
                 return prevCache ? prevCache : NULL;
@@ -377,17 +388,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 }
                 return NULL;
             } else {
-                cache_entry_t *entry1 = &cache->content[*cacheId];
-                if (entry1->UID == 2) {
-                    // debug  打印debug信息
-                    char debugFileDir[64];
-                    strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
-                    FILE *debugFile = fopen(debugFileDir, "ab+");
-                    if (debugFile != NULL) {
-                        fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry->lastUsed, cache->suffix);
-                        fclose(debugFile);
-                    }
-                }
                 entry->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3)) {
