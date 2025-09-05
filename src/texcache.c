@@ -84,6 +84,15 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (skipQr) {
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheUID.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "被中断的图片请求req->entry->UID:%d\r\n\r\n", req->entry->UID);
+            fclose(debugFile);
+        }
+
         req->entry->qr = NULL;
         //req->entry->UID = -1;
         free(req);
