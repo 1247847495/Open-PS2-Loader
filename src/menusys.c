@@ -177,7 +177,8 @@ static void _menuRequestConfig()
             itemConfig = NULL;
         }
         item_list_t *list = selected_item->item->userdata;
-        if (itemConfigId == -1 || guiInactiveFrames >= list->delay) {
+        //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
+        if (itemConfigId == -1) {
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
         }
