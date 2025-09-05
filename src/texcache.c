@@ -399,7 +399,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 } else if (!strncmp("BG", cache->suffix, 2)) {
                     PrevCacheID_BG = *cacheId;
                 }
-                if (&entry->texture)
+                if (entry->texture.Mem)
                     return &entry->texture;
                 else {
                     load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
@@ -408,7 +408,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     req->list = list;
                     req->value = (char *)req + sizeof(load_image_request_t);
                     strcpy(req->value, value);
-                    req->cacheUID = req->entry->UID;
+                    req->cacheUID = *UID;
                     req->entry->qr = req;
                     ioPutRequest(IO_CACHE_LOAD_ART, req);
                     return prevCache ? prevCache : NULL;
