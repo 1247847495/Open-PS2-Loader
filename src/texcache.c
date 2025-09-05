@@ -85,7 +85,9 @@ static void cacheLoadImage(void *data)
         return;
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    // 会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果
     if (skipQr) {
+        req->entry->lastUsed = guiFrameId;
         req->entry->qr = NULL;
         //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID
         free(req);
@@ -348,17 +350,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
     }
 
-    cache_entry_t *entry1 = &cache->content[*cacheId];
-    if (entry1->lastUsed == -1) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry1->lastUsed, cache->suffix);
-            fclose(debugFile);
-        }
-    }
+    //cache_entry_t *entry1 = &cache->content[*cacheId];
+    //if (entry1->lastUsed == -1) {
+    //    // debug  打印debug信息
+    //    char debugFileDir[64];
+    //    strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
+    //    FILE *debugFile = fopen(debugFileDir, "ab+");
+    //    if (debugFile != NULL) {
+    //        fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry1->lastUsed, cache->suffix);
+    //        fclose(debugFile);
+    //    }
+    //}
 
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
@@ -397,7 +399,20 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 } else if (!strncmp("BG", cache->suffix, 2)) {
                     PrevCacheID_BG = *cacheId;
                 }
-                return &entry->texture;
+                if (&entry->texture)
+                    return &entry->texture;
+                else {
+                    load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
+                    req->cache = cache;
+                    req->entry = entry;
+                    req->list = list;
+                    req->value = (char *)req + sizeof(load_image_request_t);
+                    strcpy(req->value, value);
+                    req->cacheUID = req->entry->UID;
+                    req->entry->qr = req;
+                    ioPutRequest(IO_CACHE_LOAD_ART, req);
+                    return prevCache ? prevCache : NULL;
+                }
             }
         }
 
