@@ -267,6 +267,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if ((ForceRefreshPrevTexCache > 1) && (prevGuiFrameId != guiFrameId))
         ForceRefreshPrevTexCache = 0;
 
+    if (forceSkipQr)
+        skipQr = 1;
     //// 已经完成一轮Qr
     //if (artQrCount && (prevGuiFrameId != guiFrameId))
     //    artQrDone = 1;
@@ -365,18 +367,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
-                cache_entry_t *entry1 = &cache->content[*cacheId];
-                //if (entry1->UID == 2)
-                {
-                    // debug  打印debug信息
-                    char debugFileDir[64];
-                    strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
-                    FILE *debugFile = fopen(debugFileDir, "ab+");
-                    if (debugFile != NULL) {
-                        fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry1->lastUsed, cache->suffix);
-                        fclose(debugFile);
-                    }
-                }
                 return prevCache ? prevCache : NULL;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
@@ -400,19 +390,32 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     } else if (!strncmp("BG", cache->suffix, 2)) {
                         PrevCacheID_BG = *cacheId;
                     }
+                    // debug  打印debug信息
+                    cache_entry_t *entry1 = &cache->content[*cacheId];
+                    if (entry1->UID == 2) {
+                        char debugFileDir[64];
+                        strcpy(debugFileDir, "smb:debug-TexCacheCacheId.txt");
+                        FILE *debugFile = fopen(debugFileDir, "ab+");
+                        if (debugFile != NULL) {
+                            fprintf(debugFile, "cacheId:%d   entry1->UID:%d   *UID:%d    lastUsed:%d    %s\r\n\r\n", *cacheId, entry1->UID, *UID, entry1->lastUsed, cache->suffix);
+                            fclose(debugFile);
+                        }
+                    }
                     return &entry->texture;
                 }
                 //else {
-                //    load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
-                //    req->cache = cache;
-                //    req->entry = entry;
-                //    req->list = list;
-                //    req->value = (char *)req + sizeof(load_image_request_t);
-                //    strcpy(req->value, value);
-                //    req->cacheUID = *UID;
-                //    req->entry->qr = req;
-                //    ioPutRequest(IO_CACHE_LOAD_ART, req);
-                //    return prevCache ? prevCache : NULL;
+                //    if (!skipQr) {
+                //        load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
+                //        req->cache = cache;
+                //        req->entry = entry;
+                //        req->list = list;
+                //        req->value = (char *)req + sizeof(load_image_request_t);
+                //        strcpy(req->value, value);
+                //        req->cacheUID = *UID;
+                //        req->entry->qr = req;
+                //        ioPutRequest(IO_CACHE_LOAD_ART, req);
+                //        return prevCache ? prevCache : NULL;
+                //    }
                 //}
             }
         }
@@ -420,8 +423,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (forceSkipQr)
-        skipQr = 1;
     if (skipQr)
         return prevCache ? prevCache : NULL;
 
