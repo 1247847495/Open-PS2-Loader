@@ -86,7 +86,7 @@ static void cacheLoadImage(void *data)
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (skipQr) {
-        req->entry->lastUsed = guiFrameId;
+        req->entry->lastUsed = 0;
         req->entry->qr = NULL;
         //req->entry->UID = 0;
         free(req);
