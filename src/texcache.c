@@ -402,6 +402,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 if (entry->texture.Mem)
                     return &entry->texture;
                 else {
+                    entry->lastUsed = -1;
                     load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
                     req->cache = cache;
                     req->entry = entry;
