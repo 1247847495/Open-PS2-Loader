@@ -303,10 +303,10 @@ void texFree(GSTEXTURE *texture)
 
 static int texEnd(png_structp pngPtr, png_infop infoPtr, void *pFileBuffer, int status)
 {
-    if (pFileBuffer != NULL)
+    if (pFileBuffer)
         free(pFileBuffer);
 
-    if (infoPtr != NULL)
+    if (infoPtr || pngPtr)
         png_destroy_read_struct(&pngPtr, &infoPtr, (png_infopp)NULL);
 
     return status;
