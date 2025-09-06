@@ -443,27 +443,29 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
-        int fd = open(filePath, O_RDONLY, 0);
-        if (fd < 0)
+        FILE *fp = fopen(filePath, "rb");
+        if (!fp)
             return ERR_BAD_FILE;
 
-        int fileSize = lseek(fd, 0, SEEK_END);
-        lseek(fd, 0, SEEK_SET);
+        // 获取文件长度
+        fseek(fp, 0, SEEK_END);
+        long fileSize = ftell(fp);
+        rewind(fp); // 或者 fseek(fp, 0, SEEK_SET);
 
         pFileBuffer = malloc(fileSize);
-        if (pFileBuffer == NULL) {
-            close(fd);
-            return ERR_BAD_FILE; // There's no out of memory error...
-        }
-
-        if (read(fd, pFileBuffer, fileSize) != fileSize) {
-            LOG("texLoadAll: failed to read file %s\n", filePath);
-            free(pFileBuffer);
-            close(fd);
+        if (!pFileBuffer) {
+            fclose(fp);
             return ERR_BAD_FILE;
         }
 
-        close(fd);
+        if (fread(pFileBuffer, 1, fileSize, fp) != fileSize) {
+            LOG("texLoadAll: failed to read file %s\n", filePath);
+            free(pFileBuffer);
+            fclose(fp);
+            return ERR_BAD_FILE;
+        }
+
+        fclose(fp);
 
         PngFileBufferPtr = pFileBuffer;
     } else {
