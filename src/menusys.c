@@ -176,7 +176,7 @@ static void _menuRequestConfig()
             configFree(itemConfig);
             itemConfig = NULL;
         }
-        item_list_t *list = selected_item->item->userdata;
+        //item_list_t *list = selected_item->item->userdata;
         //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
         if (itemConfigId == -1) {
             itemConfigId = selected_item->item->current->item.id;
