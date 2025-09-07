@@ -14,7 +14,7 @@ int PrevCacheID_BG = -2;
 
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
-int cdFrames = 50; // 一轮Art图Qr后的CD时间(帧数)
+int cdFrames = 30; // 一轮Art图Qr后的CD时间(帧数)
 int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一次
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
