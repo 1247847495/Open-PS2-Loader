@@ -14,7 +14,7 @@ int PrevCacheID_BG = -2;
 
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
-int cdFrames = 50; // 一轮Art图Qr后的CD时间(帧数)
+int cdFrames = 40; // 一轮Art图Qr后的CD时间(帧数)
 int buttonPressedOnce = 0; // 快速连按时，每次按键只重置CD帧数一次
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 int prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
@@ -84,15 +84,15 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (skipQr) {
-        //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-        req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-        req->entry->qr = NULL;
-        free(req);
-        return;
-    }
+    //// 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    //// 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+    //if (skipQr) {
+    //    //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
+    //    req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+    //    req->entry->qr = NULL;
+    //    free(req);
+    //    return;
+    //}
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
