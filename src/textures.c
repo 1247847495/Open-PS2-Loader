@@ -470,7 +470,6 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 
         PngFileBufferPtr = internalDefault[texId].texture;
     }
-    texPrepare(texture);
 
     png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!pngPtr)
@@ -494,6 +493,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     png_uint_32 pngWidth, pngHeight;
     int bitDepth, colorType, interlaceType;
     png_get_IHDR(pngPtr, infoPtr, &pngWidth, &pngHeight, &bitDepth, &colorType, &interlaceType, NULL, NULL);
+    texPrepare(texture);
     texture->Width = pngWidth;
     texture->Height = pngHeight;
 
