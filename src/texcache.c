@@ -100,7 +100,7 @@ static void cacheLoadImage(void *data)
 
     // debug
     char debugFileDir[64];
-    strcpy(debugFileDir, "mass0:debug-texCache-Mem.txt");
+    strcpy(debugFileDir, "smb:debug-texCache-Mem.txt");
     FILE *debugFile = fopen(debugFileDir, "ab+");
     if (debugFile != NULL)
         fprintf(debugFile, "load之前Mem为:%d\r\n\r\n", texture->Mem ? texture->Mem : 0);
