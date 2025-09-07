@@ -356,6 +356,8 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
 {
     image_texture_t *texture = (image_texture_t *)malloc(sizeof(image_texture_t));
     texture->name = NULL;
+    GSTEXTURE *source = &texture->source;
+    texFree(source);
 
     int texId = -1;
     int result = 0;
@@ -363,11 +365,11 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
     if (themePath) {
         char path[256];
         snprintf(path, sizeof(path), "%s%s", themePath, imgName);
-        if (texDiscoverLoad(&texture->source, path, texId) >= 0)
+        if (texDiscoverLoad(source, path, texId) >= 0)
             result = 1;
     } else {
         texId = texLookupInternalTexId(imgName);
-        if (texLoadInternal(&texture->source, texId) >= 0)
+        if (texLoadInternal(source, texId) >= 0)
             result = 1;
     }
 
@@ -406,7 +408,7 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
             return texture;
         }
     } else {
-        freeImageTexture(texture);
+        free(texture);
         texture = NULL;
         return NULL;
     }
