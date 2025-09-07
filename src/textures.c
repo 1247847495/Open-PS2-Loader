@@ -5,7 +5,6 @@
 #include <png.h>
 #include <libjpg_ps2_addons.h>
 #include <timer.h>
-#include "include/pad.h"
 
 extern void *load0_png;
 extern void *load1_png;
@@ -594,7 +593,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
         //    fclose(debugFile);
         //}
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
-        beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+        beforeTime = GetTimerSystemTime() / 147456; // 开始搜索图片，记录时间
         if (texLoad(texture, filePath) >= 0)
             return 0;
         else {
@@ -603,9 +602,9 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
                 if (texJpgLoad(texture, filePath) >= 0)
                     return 0;
                 else
-                    searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG和JPG图片的时间，避免出现光标连续跳2次的问题
+                    searchTexTime += GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG和JPG图片的时间，避免出现光标连续跳2次的问题
             } else
-                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间，避免出现光标连续跳2次的问题
+                searchTexTime += GetTimerSystemTime() / 147456 - beforeTime; // 记录搜索PNG图片的时间，避免出现光标连续跳2次的问题
         }
     }
     return ERR_BAD_FILE;
