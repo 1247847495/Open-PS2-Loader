@@ -472,8 +472,6 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 
         PngFileBufferPtr = internalDefault[texId].texture;
     }
-    png_voidp readData = &PngFileBufferPtr;
-    png_rw_ptr readFunction = &texReadMemFunction;
 
     png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!pngPtr)
@@ -486,6 +484,8 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     if (setjmp(png_jmpbuf(pngPtr)))
         return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_SET_JMP);
 
+    png_voidp readData = &PngFileBufferPtr;
+    png_rw_ptr readFunction = &texReadMemFunction;
     png_set_read_fn(pngPtr, readData, readFunction);
 
     unsigned int sigRead = 0;
