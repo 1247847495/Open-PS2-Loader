@@ -63,7 +63,7 @@ static void cacheLoadImage(void *data)
 {
     load_image_request_t *req = data;
 
-    ////  debug
+    //// debug
     //char debugFileDir[64];
     //strcpy(debugFileDir, "smb:debug-texCache.txt");
     //FILE *debugFile = fopen(debugFileDir, "ab+");
@@ -95,16 +95,31 @@ static void cacheLoadImage(void *data)
     }
 
     //// seems okay. we can proceed
-    //GSTEXTURE *texture = &req->entry->texture;
+    GSTEXTURE *texture = &req->entry->texture;
     //texFree(texture);
 
-    if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, texture, GS_PSM_CT24) < 0)
+    // debug
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-texCache-Mem.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL)
+        fprintf(debugFile, "load之前Mem为:%d\r\n\r\n", texture->Mem ? texture->Mem : 0);
+
+    if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, texture, GS_PSM_CT24) < 0) {
+        if (debugFile != NULL)
+            fprintf(debugFile, "load失败Mem为:%d\r\n\r\n", texture->Mem ? texture->Mem : 0);
         req->entry->lastUsed = 0;
-    else
+    }
+    else {
+        if (debugFile != NULL)
+            fprintf(debugFile, "load成功Mem为:%d\r\n\r\n", texture->Mem ? texture->Mem : 0);
         req->entry->lastUsed = guiFrameId;
+    }
 
     req->entry->qr = NULL;
 
+    if (debugFile != NULL)
+        fclose(debugFile);
     free(req);
 }
 
