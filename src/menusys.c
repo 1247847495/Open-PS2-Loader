@@ -173,14 +173,6 @@ static void _menuRequestConfig()
     WaitSema(menuSemaId);
     if (selected_item->item->current != NULL && itemConfigId != selected_item->item->current->item.id) {
         if (itemConfig) {
-            //  debug
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-menusysConfig.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "itemConfigId:%d\r\n\r\n", itemConfigId);
-                fclose(debugFile);
-            }
             configFree(itemConfig);
             itemConfig = NULL;
         }
@@ -189,6 +181,14 @@ static void _menuRequestConfig()
         if (itemConfigId == -1) {
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
+        }
+        //  debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-menusysConfig.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "itemConfigId:%d\r\n\r\n", itemConfigId);
+            fclose(debugFile);
         }
     } else if (itemConfig)
         actionStatus = 0;
