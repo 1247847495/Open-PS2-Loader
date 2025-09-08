@@ -22,6 +22,7 @@
 #include "include/cheatman.h"
 #include "include/sound.h"
 #include "include/guigame.h"
+#include "include/textures.h"
 
 #include <limits.h>
 #include <stdlib.h>
@@ -445,7 +446,7 @@ static void guiShowBlockDeviceConfig(void)
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEUSB, gEnableUSB);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEILK, gEnableILK);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, gEnableMX4SIO);
-    diaSetEnabled(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, !gHDDStartMode);
+    //diaSetEnabled(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, !gHDDStartMode);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, gEnableBdmHDD);
 
     ret = diaExecuteDialog(diaBlockDevicesConfig, -1, 1, NULL);
@@ -453,7 +454,16 @@ static void guiShowBlockDeviceConfig(void)
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEUSB, &gEnableUSB);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEILK, &gEnableILK);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, &gEnableMX4SIO);
+
+        // BDMHDD开启时，自动关闭APA
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, &gEnableBdmHDD);
+        if (ret == UIID_BTN_OK) {
+            if (gHDDStartMode && gEnableBdmHDD) {
+                gHDDStartMode = 0;
+                guiMsgBox("检测到冲突！已自动关闭APA模式！", 0, NULL);
+            }
+        }
+
         applyConfig(-1, -1, 0);
         menuReinitMainMenu();
         if (BdmStarted)
@@ -543,7 +553,7 @@ reConfig:
     diaSetInt(diaConfig, CFG_DEFDEVICE, deviceModeIndex);
     diaSetInt(diaConfig, CFG_BDMMODE, gBDMStartMode);
     diaSetVisible(diaConfig, BLOCKDEVICE_BUTTON, gBDMStartMode);
-    diaSetEnabled(diaConfig, CFG_HDDMODE, !gEnableBdmHDD);
+    //diaSetEnabled(diaConfig, CFG_HDDMODE, !gEnableBdmHDD);
     diaSetInt(diaConfig, CFG_HDDMODE, gHDDStartMode);
     diaSetInt(diaConfig, CFG_ETHMODE, gETHStartMode);
     diaSetInt(diaConfig, CFG_APPMODE, gAPPStartMode);
@@ -563,7 +573,16 @@ reConfig:
         DisableCron = 1; // Disable Auto Start Last Played counter (we don't want to call it right after enable it on GUI)
         diaGetInt(diaConfig, CFG_DEFDEVICE, &deviceModeIndex);
         gDefaultDevice = guiDeviceTypeToIoMode(deviceModeIndex);
+
+        // APA开启时，自动关闭BDMHDD
         diaGetInt(diaConfig, CFG_HDDMODE, &gHDDStartMode);
+        if (ret == UIID_BTN_OK) {
+            if (gHDDStartMode && gEnableBdmHDD) {
+                gEnableBdmHDD = 0;
+                guiMsgBox("检测到冲突！已自动关闭BDMHDD模式！", 0, NULL);
+            }
+        }
+
         diaGetInt(diaConfig, CFG_ETHMODE, &gETHStartMode);
         diaGetInt(diaConfig, CFG_APPMODE, &gAPPStartMode);
         diaGetInt(diaConfig, CFG_BDMCACHE, &bdmCacheSize);
@@ -1420,16 +1439,16 @@ void guiDrawSubMenuHints(void)
 }
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
+static int busyAlpha = 0x00; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
     int pending = (ioHasPendingRequests() || !mainScreenInitDone);
-    static int busyAlpha = 0x00; // Fully transparant
 
     if (!pending) {
         // Fade out
         if (busyAlpha > 0x00)
-            busyAlpha -= 0x04;
+            busyAlpha -= 0x08;
     } else {
         // Fade in
         if (busyAlpha < 0x80)
@@ -1553,7 +1572,7 @@ static void guiShow()
         // render with the set screen handler
         screenHandler->renderScreen();
 
-        // 为了能让手动模式正常预加载art，需要黑屏盖住
+        // 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
         if (bdmManualTrigger)
             rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
@@ -1568,7 +1587,7 @@ void guiIntroLoop(void)
     while (!endIntro) {
         guiStartFrame();
 
-        //guiShow();
+        guiShow(); // 可以防止同时开启多个BDM设备时，欢迎界面会闪烁的问题
 
         guiRenderGreeting(0x80);
 
@@ -1617,7 +1636,7 @@ int endIntroDelayFrame = 0;
 int txtFileCreated = 0;
 int txtFileRebuilded = 0;
 int bdmTimeOut = 0;
-int artLoadDelayTime = 30;
+int artLoadDelayTime = 50;
 
 void reFindBDM()
 {
@@ -1697,7 +1716,7 @@ void guiMainLoop(void)
     if ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)) {
         // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
         if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
-            artLoadDelayTime *= 2;
+            artLoadDelayTime *= 1.4f;
     } else
         artLoadDelayTime = 0; // 手动模式时，不需要art预加载
 
@@ -1729,13 +1748,11 @@ void guiMainLoop(void)
 
         guiStartFrame();
 
+        //  handle inputs and render screen
+        guiShow();
+
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
-            // 启动画面的延迟期间，就要guiShow预加载art图片了
-            if (greetingAlpha >= 0x00 && artLoadDelayTime)
-                guiShow();
-            else if (bdmManualTrigger && artLoadDelayTime)
-                guiShow();
             // 所有设备准备就绪，才可以结束延迟
             if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
                 //// debug  打印debug信息
@@ -1793,20 +1810,17 @@ void guiMainLoop(void)
         }
 
         if (mainScreenInitDone) {
-            //  handle inputs and render screen
-            guiShow();
-
             if (artLoadDelayTime > 0) {
-                artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
                 if (greetingAlpha >= 0x00)
                     guiRenderGreeting(greetingAlpha);
-                if (artLoadDelayTime <= 0) {
+                if (busyAlpha <= 0x00) {
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
                         guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                     }
+                    artLoadDelayTime = 0;
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
             } else {
@@ -1818,14 +1832,8 @@ void guiMainLoop(void)
                     greetingAlpha -= 0x04;
                 }
             }
-        } else {
-            if (greetingAlpha >= 0x00) {
-                guiRenderGreeting(greetingAlpha);
-            } else {
-                // 不是启动画面时，要显示Gui。手动启动BDM时直接黑屏，盖住寻找硬盘的过程
-                guiShow();
-            }
-        }
+        } else if (greetingAlpha >= 0x00)
+            guiRenderGreeting(greetingAlpha);
 
         // Render overlaying gui thingies :)
         guiDrawOverlays();
