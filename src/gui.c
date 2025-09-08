@@ -22,7 +22,6 @@
 #include "include/cheatman.h"
 #include "include/sound.h"
 #include "include/guigame.h"
-#include "include/textures.h"
 
 #include <limits.h>
 #include <stdlib.h>
