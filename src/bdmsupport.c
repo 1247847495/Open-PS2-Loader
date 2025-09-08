@@ -592,6 +592,7 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         gAutoLaunchDeviceData = NULL;
     }
 
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     LOG("bdm pre sysLaunchLoaderElf\n");
     if (!strcmp(bdmCurrentDriver, "usb")) {
         settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_USBD;

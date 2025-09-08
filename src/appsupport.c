@@ -402,6 +402,7 @@ static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet
 
     fd = open(filename, O_RDONLY);
     if (fd >= 0) {
+        forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
         int mode, argc = 0;
         char partition[128];
         char *argv[1];

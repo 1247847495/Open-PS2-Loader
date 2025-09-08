@@ -271,7 +271,6 @@ static void itemExecSelect(struct menu_item *curMenu)
         if (support) {
             if (support->enabled) {
                 if (curMenu->current) {
-                    forceSkipQr = 1;
                     config_set_t *configSet = menuLoadConfig();
                     support->itemLaunch(support, curMenu->current->item.id, configSet);
                 }

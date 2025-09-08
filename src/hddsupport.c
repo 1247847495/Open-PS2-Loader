@@ -643,6 +643,7 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     // adjust ZSO cache
     settings->common.zso_cache = hddCacheSize;
 
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     sysLaunchLoaderElf(filename, "HDD_MODE", size_irx, irx, size_mcemu_irx, hdd_mcemu_irx, EnablePS2Logo, compatMode);
 }
 

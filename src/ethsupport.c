@@ -719,6 +719,7 @@ static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet
     // adjust ZSO cache
     settings->common.zso_cache = smbCacheSize;
 
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     sysLaunchLoaderElf(filename, "ETH_MODE", size_smb_cdvdman_irx, smb_cdvdman_irx, size_mcemu_irx, smb_mcemu_irx, EnablePS2Logo, compatmask);
 }
 
