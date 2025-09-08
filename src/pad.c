@@ -9,7 +9,6 @@
 #include "include/ioman.h"
 #include <libpad.h>
 #include <timer.h>
-#include <time.h>
 
 #ifdef PADEMU
 #include <libds34bt.h>

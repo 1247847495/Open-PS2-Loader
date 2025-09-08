@@ -28,9 +28,6 @@
 #include <stdlib.h>
 #include <libvux.h>
 
-// Last Played Auto Start
-#include <time.h>
-
 static int BdmStarted = 0; // BDM模式已启动
 
 static int gScheduledOps;
