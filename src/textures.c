@@ -592,7 +592,7 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
     else
         snprintf(filePath, sizeof(filePath), "%s.%s", path, "png");
 
-    beforeTime = GetTimerSystemTime() / CLOCKS_PER_MILISEC; // 开始搜索图片，记录时间
+    beforeTime = GetTimerSystemTime(); // 开始搜索图片，记录时间
     if (texLoad(texture, filePath) >= 0)
         return 0;
     else {
@@ -605,9 +605,9 @@ int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
             if (texJpgLoad(texture, filePath) >= 0)
                 return 0;
             else
-                searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG和JPG图片的时间，避免出现光标连续跳2次的问题
+                searchTexTime += (GetTimerSystemTime() - beforeTime) / CLOCKS_PER_MILISEC; // 记录搜索PNG和JPG图片的时间，避免出现光标连续跳2次的问题
         } else
-            searchTexTime += GetTimerSystemTime() / CLOCKS_PER_MILISEC - beforeTime; // 记录搜索PNG图片的时间，避免出现光标连续跳2次的问题
+            searchTexTime += (GetTimerSystemTime() - beforeTime) / CLOCKS_PER_MILISEC; // 记录搜索PNG图片的时间，避免出现光标连续跳2次的问题
     }
     return ERR_BAD_FILE;
 }
