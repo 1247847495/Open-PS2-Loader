@@ -439,12 +439,31 @@ static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPt
 
 static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 {
+    u64 surTime = 0;
+    surTime = GetTimerSystemTime(); // 开始搜索图片，记录时间
+    if (filePath && access(filePath, F_OK))
+        return ERR_BAD_FILE;
+    surTime = (GetTimerSystemTime() - surTime) / CLOCKS_PER_MILISEC;
+
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
+        // debug
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-texload-SurTime.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "accessTime:%lld\r\n", surTime);
+        }
+        surTime = GetTimerSystemTime(); // 开始搜索图片，记录时间
         int fd = open(filePath, O_RDONLY);
         if (fd < 0)
             return ERR_BAD_FILE;
+        surTime = (GetTimerSystemTime() - surTime) / CLOCKS_PER_MILISEC;
+        if (debugFile != NULL) {
+            fprintf(debugFile, "openTime:%lld\r\n", surTime);
+            fclose(debugFile);
+        }
 
         int fileSize = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
