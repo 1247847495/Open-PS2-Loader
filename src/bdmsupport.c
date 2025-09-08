@@ -347,6 +347,7 @@ static void bdmRenameGame(item_list_t *itemList, int id, char *newName)
 
 void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 {
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     int i, fd, iop_fd, index, compatmask = 0;
     int EnablePS2Logo = 0;
     int result;
@@ -426,6 +427,7 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
                 else
                     snprintf(error, sizeof(error), _l(_STR_ERR_VMC_CONTINUE), vmc_name, (vmc_id + 1));
                 if (!guiMsgBox(error, 1, NULL)) {
+                    forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
                     return;
                 }
             }
@@ -454,8 +456,10 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
     compatmask = sbPrepare(game, configSet, irx_size, irx, &index);
     settings = (struct cdvdman_settings_bdm *)((u8 *)irx + index);
-    if (settings == NULL)
+    if (settings == NULL) {
+        forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
         return;
+    }
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
     memset(&settings->frags[0], 0, sizeof(bd_fragment_t) * BDM_MAX_FRAGS);
@@ -476,6 +480,7 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         if (fd < 0) {
             sbUnprepare(&settings->common);
             guiMsgBox(_l(_STR_ERR_FILE_INVALID), 0, NULL);
+            forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
             return;
         }
 
@@ -486,6 +491,7 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
             close(fd);
             sbUnprepare(&settings->common);
             guiMsgBox(_l(_STR_ERR_FRAGMENTED), 0, NULL);
+            forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
             return;
         }
         iso_frag->frag_count += iFragCount;
@@ -592,7 +598,6 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         gAutoLaunchDeviceData = NULL;
     }
 
-    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     LOG("bdm pre sysLaunchLoaderElf\n");
     if (!strcmp(bdmCurrentDriver, "usb")) {
         settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_USBD;

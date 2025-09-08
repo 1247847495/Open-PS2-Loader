@@ -357,6 +357,7 @@ static void appRenameItem(item_list_t *itemList, int id, char *newName)
 
 static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet)
 {
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     int fd;
     char filename[256];
     const char *argv1;
@@ -402,7 +403,6 @@ static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet
 
     fd = open(filename, O_RDONLY);
     if (fd >= 0) {
-        forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
         int mode, argc = 0;
         char partition[128];
         char *argv[1];
@@ -425,8 +425,10 @@ static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet
 
         deinit(UNMOUNT_EXCEPTION, mode); // CAREFUL: deinit will call appCleanUp, so configApps/cur will be freed
         LoadELFFromFileWithPartition(filename, partition, argc, argv);
-    } else
+    } else {
         guiMsgBox(_l(_STR_ERR_FILE_INVALID), 0, NULL);
+        forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
+    }
 }
 
 static config_set_t *appGetConfig(item_list_t *itemList, int id)

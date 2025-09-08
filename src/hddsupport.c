@@ -442,6 +442,7 @@ static void hddRenameGame(item_list_t *itemList, int id, char *newName)
 
 void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 {
+    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     int i, size_irx = 0;
     int EnablePS2Logo = 0;
     int result;
@@ -520,8 +521,10 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
                             snprintf(error, sizeof(error), _l(_STR_ERR_VMC_FRAGMENTED_CONTINUE), vmc_name[vmc_id], (vmc_id + 1));
                         else
                             snprintf(error, sizeof(error), _l(_STR_ERR_VMC_CONTINUE), vmc_name[vmc_id], (vmc_id + 1));
-                        if (!guiMsgBox(error, 1, NULL))
+                        if (!guiMsgBox(error, 1, NULL)) {
+                            forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
                             return;
+                        }
                     } else
                         LOG("VMC error\n");
                 }
@@ -642,8 +645,6 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
     // adjust ZSO cache
     settings->common.zso_cache = hddCacheSize;
-
-    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     sysLaunchLoaderElf(filename, "HDD_MODE", size_irx, irx, size_mcemu_irx, hdd_mcemu_irx, EnablePS2Logo, compatMode);
 }
 
