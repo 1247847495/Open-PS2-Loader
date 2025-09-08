@@ -441,8 +441,10 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 {
     u64 surTime = 0;
     surTime = GetTimerSystemTime(); // 开始搜索图片，记录时间
-    if (filePath && access(filePath, F_OK))
+    int ffd = open(filePath, O_RDONLY);
+    if (filePath && ffd < 0)
         return ERR_BAD_FILE;
+    close(ffd);
     surTime = (GetTimerSystemTime() - surTime) / CLOCKS_PER_MILISEC;
 
     void *PngFileBufferPtr = NULL;
@@ -453,7 +455,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         strcpy(debugFileDir, "smb:debug-texload-SurTime.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
-            fprintf(debugFile, "accessTime:%lld\r\n", surTime);
+            fprintf(debugFile, "firstOpenTime:%lld\r\n", surTime);
         }
         surTime = GetTimerSystemTime(); // 开始搜索图片，记录时间
         int fd = open(filePath, O_RDONLY);
@@ -461,7 +463,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             return ERR_BAD_FILE;
         surTime = (GetTimerSystemTime() - surTime) / CLOCKS_PER_MILISEC;
         if (debugFile != NULL) {
-            fprintf(debugFile, "openTime:%lld\r\n", surTime);
+            fprintf(debugFile, "openTime:%lld\r\n\r\n", surTime);
             fclose(debugFile);
         }
 
