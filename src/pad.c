@@ -46,6 +46,9 @@ u64 searchTexTime = 0;
 // 是否正在自动重复按键
 int isRepeating = 0;
 
+// 是否正在手动重复按键
+int cdFramesCount = 0;
+
 /// current time in miliseconds (last update time)
 static u64 curtime = 0;
 static u64 time_since_last = 0;
