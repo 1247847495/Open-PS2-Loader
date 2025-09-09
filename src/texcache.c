@@ -167,7 +167,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp && value && (curStartUp != value)) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-        if (!guiCursorRepeating && !ForceRefreshPrevTexCache && ioHasPendingRequests())
+        if (!padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
             cdFramesCount = 1; // 触发连按CD
         //else if (!ioHasPendingRequests()) {
         //    // 激活基础CD，CD内再次按键，触发cdFramesCount
@@ -192,12 +192,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //}
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
-    if (guiCursorRepeating) {
+    if (padGetRepeating()) {
         findBGCount = 0;
         cdFramesCount = 0; // 强制结束连按CD
     } else
         buttonPressedOnce = 0;
-    skipQr = gScrollSpeed > 0 ? guiCursorRepeating : 0;
+    skipQr = gScrollSpeed > 0 ? padGetRepeating() : 0;
     if (cdFramesCount) {
         //if (cdFramesCount == 1) {
         //    buttonPressedOnce = 1;
@@ -243,10 +243,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
 
         // CD期间进入了自动连按状态，矫正一次Qr，结束cdFramesCount
-        if (guiCursorRepeating) {
+        if (padGetRepeating()) {
             findBGCount = 0;
             cdFramesCount = 0;
-            skipQr = gScrollSpeed > 0 ? guiCursorRepeating : 0;
+            skipQr = gScrollSpeed > 0 ? padGetRepeating() : 0;
         }
         //// debug  打印debug信息
         //if (!cdFramesCount) {
