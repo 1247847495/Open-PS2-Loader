@@ -406,7 +406,7 @@ static image_texture_t *initImageTexture(const char *themePath, config_set_t *th
             return texture;
         }
     } else {
-        free(texture);
+        freeImageTexture(texture);
         texture = NULL;
         return NULL;
     }
