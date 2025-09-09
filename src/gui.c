@@ -65,7 +65,6 @@ extern GSGLOBAL *gsGlobal;
 // Global data
 int guiInactiveFrames;
 int guiFrameId;
-int guiCursorRepeating;
 
 struct gui_update_list_t
 {
@@ -117,7 +116,6 @@ void guiInit(void)
 {
     guiFrameId = 0;
     guiInactiveFrames = 1;
-    guiCursorRepeating = 0;
 
     gFrameHook = NULL;
     gTerminate = 0;
@@ -1522,8 +1520,6 @@ static void guiReadPads()
         guiInactiveFrames = 0;
     else
         guiInactiveFrames++;
-
-    guiCursorRepeating = padGetRepeating(); // 获取光标是否触发自动连按
 }
 
 // renders the screen and handles inputs. Also handles screen transitions between numerous
