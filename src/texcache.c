@@ -161,21 +161,18 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    if (!curStartUp && value)
-        curStartUp = value;
-
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
-    if (curStartUp && value && (curStartUp != value)) {
+    if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-        if (!padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
+        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
             cdFramesCount = 1; // 触发连按CD
-        //else if (!ioHasPendingRequests()) {
-        //    // 激活基础CD，CD内再次按键，触发cdFramesCount
-        //    if (!baseCdCount) {
-        //        baseCdCount = baseCd;
-        //        buttonPressedOnce = 1;
-        //    }
-        //}
+        // else if (!ioHasPendingRequests()) {
+        //     // 激活基础CD，CD内再次按键，触发cdFramesCount
+        //     if (!baseCdCount) {
+        //         baseCdCount = baseCd;
+        //         buttonPressedOnce = 1;
+        //     }
+        // }
         curStartUp = value;
     }
 
