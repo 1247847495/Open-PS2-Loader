@@ -43,7 +43,7 @@ struct pad_data_t
 u64 searchTexTime = 0;
 
 // 是否正在自动重复按键
-int isRepeating = 0;
+static int isRepeating = 0;
 
 /// current time in miliseconds (last update time)
 static u64 curtime = 0;
@@ -556,4 +556,13 @@ void padRestoreSettings(int *buffer)
 
     for (i = 0; i < 16; i++)
         paddelay[i] = buffer[i];
+}
+
+int padGetRepeating(void)
+{
+    if (isRepeating) {
+        if (!getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1))
+            isRepeating = 0;
+    }
+    return isRepeating;
 }

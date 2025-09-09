@@ -52,6 +52,7 @@ typedef void (*gui_callback_t)(void);
 
 extern int guiInactiveFrames;
 extern int guiFrameId;
+extern int guiCursorRepeating;
 extern int mainScreenInitDone;
 extern int bdmManualTrigger;
 extern int usbFound;

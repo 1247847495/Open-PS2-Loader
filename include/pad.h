@@ -49,6 +49,6 @@ void padRestoreSettings(int *buffer);
 
 extern u64 searchTexTime; // 搜索art图片的时间
 
-extern int isRepeating; // 自动重复按键
+int padGetRepeating(void);
 
 #endif
