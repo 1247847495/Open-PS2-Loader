@@ -1435,7 +1435,7 @@ void guiDrawSubMenuHints(void)
 }
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
-int busyAlpha = 0x00; // Fully transparant
+static int busyAlpha = 0x00; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
@@ -1445,6 +1445,8 @@ static void guiDrawOverlays()
         // Fade out
         if (busyAlpha > 0x00)
             busyAlpha -= 0x08;
+        if (busyAlpha < 0x00)
+            busyAlpha = 0x00;
     } else {
         // Fade in
         if (busyAlpha < 0x80)
@@ -1718,7 +1720,7 @@ void guiMainLoop(void)
 
     while (!gTerminate) {
         // 各种弹窗提示
-        if (greetingAlpha < 0x00) {
+        if (greetingAlpha <= 0x00) {
             // 如果txt被创建，则弹出提示框
             if (txtFileCreated) {
                 txtFileCreated = 0; // 防止重复弹窗
@@ -1790,7 +1792,7 @@ void guiMainLoop(void)
             if (!mainScreenInitDone) {
                 if (gBDMStartMode || gHDDStartMode || gETHStartMode) {
                     // 第一次启动，或手动启动BDM时，从全黑开始过度
-                    if (greetingAlpha >= 0x00 || bdmManualTrigger) {
+                    if (greetingAlpha > 0x00 || bdmManualTrigger) {
                         // 手动启动BDM时，重置一次art预加载时间
                         if (bdmManualTrigger)
                             BdmStarted = 1;
@@ -1808,7 +1810,7 @@ void guiMainLoop(void)
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
                 // 启动画面的延迟期间，预加载art图片
-                if (greetingAlpha >= 0x00)
+                if (greetingAlpha > 0x00)
                     guiRenderGreeting(greetingAlpha);
                 if (busyAlpha <= 0x00) {
                     // 手动启动BDM后的变量处理
@@ -1823,12 +1825,12 @@ void guiMainLoop(void)
                 // Read the pad states to prepare for input processing in the screen handler
                 guiReadPads();
                 // 把intro界面淡出移到mainloop里，提升加载体验。
-                if (greetingAlpha >= 0x00) {
+                if (greetingAlpha > 0x00) {
                     guiRenderGreeting(greetingAlpha);
                     greetingAlpha -= 0x04;
                 }
             }
-        } else if (greetingAlpha >= 0x00)
+        } else if (greetingAlpha > 0x00)
             guiRenderGreeting(greetingAlpha);
 
         // Render overlaying gui thingies :)
