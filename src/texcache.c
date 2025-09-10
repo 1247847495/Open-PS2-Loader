@@ -86,15 +86,15 @@ static void cacheLoadImage(void *data)
     if (req->cacheUID != req->entry->UID)
         return;
 
-    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (skipQr) {
-        //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-        req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-        req->entry->qr = NULL;
-        free(req);
-        return;
-    }
+    //// 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    //// 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+    //if (skipQr) {
+    //    //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
+    //    req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+    //    req->entry->qr = NULL;
+    //    free(req);
+    //    return;
+    //}
 
     //// seems okay. we can proceed
     //GSTEXTURE *texture = &req->entry->texture;
@@ -161,20 +161,20 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
-    if (curStartUp != value) {
-        // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
-            cdFramesCount = 1; // 触发连按CD
-        // else if (!ioHasPendingRequests()) {
-        //     // 激活基础CD，CD内再次按键，触发cdFramesCount
-        //     if (!baseCdCount) {
-        //         baseCdCount = baseCd;
-        //         buttonPressedOnce = 1;
-        //     }
-        // }
-        curStartUp = value;
-    }
+    //// 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
+    //if (curStartUp != value) {
+    //    // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
+    //    if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
+    //        cdFramesCount = 1; // 触发连按CD
+    //    // else if (!ioHasPendingRequests()) {
+    //    //     // 激活基础CD，CD内再次按键，触发cdFramesCount
+    //    //     if (!baseCdCount) {
+    //    //         baseCdCount = baseCd;
+    //    //         buttonPressedOnce = 1;
+    //    //     }
+    //    // }
+    //    curStartUp = value;
+    //}
 
     //// 基础Cd触发后，cd内按键，会触发cdFramesCount
     //if (baseCdCount) {
