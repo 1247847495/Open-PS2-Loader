@@ -19,7 +19,7 @@ static IDENTIFY_DEVICE_DATA deviceIdentifyData;
 static int xhddInit(iop_device_t *device)
 {
     // Force atad to initialize the hdd devices.
-    sceAtaInit(0);
+    ata_get_devinfo(0);
 
     return 0;
 }

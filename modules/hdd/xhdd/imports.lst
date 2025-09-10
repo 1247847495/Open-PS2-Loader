@@ -1,7 +1,4 @@
 atad_IMPORTS_start
-I_sceAtaInit
-I_sceAtaExecCmd
-I_sceAtaWaitResult
 I_sceAtaDmaTransfer
 I_ata_get_devinfo
 I_ata_io_start
