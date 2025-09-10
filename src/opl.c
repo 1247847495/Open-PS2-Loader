@@ -626,7 +626,7 @@ int oplScanApps(int (*callback)(const char *path, config_set_t *appConfig, void 
     for (i = 0; i < MODE_COUNT; i++) {
         listSupport = list_support[i].support;
         if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->itemGetPrefix != NULL)) {
-            char *prefix = listSupport->itemGetPrefix();
+            char *prefix = listSupport->itemGetPrefix(listSupport);
             snprintf(appsPath, sizeof(appsPath), "%sAPPS", prefix);
 
             if ((pdir = opendir(appsPath)) != NULL) {
