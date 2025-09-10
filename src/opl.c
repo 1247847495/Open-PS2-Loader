@@ -610,70 +610,56 @@ int oplGetAppImage(const char *device, char *folder, int isRelative, char *value
     return -1;
 }
 
-static int scanApps(int (*callback)(const char *path, config_set_t *appConfig, void *arg), void *arg, char *appsPath, int exception)
+int oplScanApps(int (*callback)(const char *path, config_set_t *appConfig, void *arg), void *arg)
 {
     struct dirent *pdirent;
     DIR *pdir;
-    int count, ret;
+    struct stat st;
+    int i, count, ret;
+    item_list_t *listSupport;
     config_set_t *appConfig;
+    char appsPath[64];
     char dir[128];
     char path[128];
-
-    count = 0;
-    if ((pdir = opendir(appsPath)) != NULL) {
-        while ((pdirent = readdir(pdir)) != NULL) {
-            if (exception && strchr(pdirent->d_name, '_') == NULL)
-                continue;
-
-            if (strcmp(pdirent->d_name, ".") == 0 || strcmp(pdirent->d_name, "..") == 0)
-                continue;
-
-            snprintf(dir, sizeof(dir), "%s/%s", appsPath, pdirent->d_name);
-            if (pdirent->d_type != DT_DIR)
-                continue;
-
-            snprintf(path, sizeof(path), "%s/%s", dir, APP_TITLE_CONFIG_FILE);
-            appConfig = configAlloc(0, NULL, path);
-            if (appConfig != NULL) {
-                configRead(appConfig);
-
-                ret = callback(dir, appConfig, arg);
-                configFree(appConfig);
-
-                if (ret == 0)
-                    count++;
-                else if (ret < 0) { // Stopped because of unrecoverable error.
-                    break;
-                }
-            }
-        }
-
-        closedir(pdir);
-    } else
-        LOG("APPS failed to open dir %s\n", appsPath);
-
-    return count;
-}
-
-int oplScanApps(int (*callback)(const char *path, config_set_t *appConfig, void *arg), void *arg)
-{
-    int i, count;
-    item_list_t *listSupport;
-    char appsPath[64];
 
     count = 0;
     for (i = 0; i < MODE_COUNT; i++) {
         listSupport = list_support[i].support;
         if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->itemGetPrefix != NULL)) {
-            char *prefix = listSupport->itemGetPrefix(listSupport);
+            char *prefix = listSupport->itemGetPrefix();
             snprintf(appsPath, sizeof(appsPath), "%sAPPS", prefix);
-            count += scanApps(callback, arg, appsPath, 0);
-        }
-    }
 
-    for (i = 0; i < 2; i++) {
-        snprintf(appsPath, sizeof(appsPath), "mc%d:", i);
-        count += scanApps(callback, arg, appsPath, 1);
+            if ((pdir = opendir(appsPath)) != NULL) {
+                while ((pdirent = readdir(pdir)) != NULL) {
+                    if (strcmp(pdirent->d_name, ".") == 0 || strcmp(pdirent->d_name, "..") == 0)
+                        continue;
+
+                    snprintf(dir, sizeof(dir), "%s/%s", appsPath, pdirent->d_name);
+                    if (stat(dir, &st) < 0)
+                        continue;
+                    if (!S_ISDIR(st.st_mode))
+                        continue;
+
+                    snprintf(path, sizeof(path), "%s/%s", dir, APP_TITLE_CONFIG_FILE);
+                    appConfig = configAlloc(0, NULL, path);
+                    if (appConfig != NULL) {
+                        configRead(appConfig);
+
+                        ret = callback(dir, appConfig, arg);
+                        configFree(appConfig);
+
+                        if (ret == 0)
+                            count++;
+                        else if (ret < 0) { // Stopped because of unrecoverable error.
+                            break;
+                        }
+                    }
+                }
+
+                closedir(pdir);
+            } else
+                LOG("APPS failed to open dir %s\n", appsPath);
+        }
     }
 
     return count;
