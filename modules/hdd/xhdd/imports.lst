@@ -1,5 +1,6 @@
 atad_IMPORTS_start
 I_ata_get_devinfo
+I_ata_device_sector_io
 I_ata_io_start
 I_ata_io_finish
 atad_IMPORTS_end
