@@ -1627,14 +1627,15 @@ int usbFound = 0;
 int ILKFound = 0;
 int MX4SIOFound = 0;
 int GptFound = 0;
-int defaultDelayFrame = 360;
-//int LongDelayTime = 18000;
-int ShortDelayTime = 100;
-int endIntroDelayFrame = 0;
 int txtFileCreated = 0;
 int txtFileRebuilded = 0;
-int bdmTimeOut = 0;
-int artLoadDelayTime = 50;
+
+static int defaultDelayFrame = 360;
+//static int LongDelayTime = 18000;
+static int ShortDelayTime = 100;
+static int endIntroDelayFrame = 0;
+static int bdmTimeOut = 0;
+static int artLoadDelayTime = 50;
 
 void reFindBDM()
 {
