@@ -51,7 +51,7 @@ static int xhddDevctl(iop_file_t *fd, const char *name, int cmd, void *arg, unsi
             if (buflen % 512 != 0)
                 return -EINVAL;
 
-            return sceAtaDmaTransfer(fd->unit, buf, 0, buflen / 512, ATA_DIR_READ);
+            return ata_device_sector_io(fd->unit, buf, 0, buflen / 512, ATA_DIR_READ);
         }
 
         case ATA_DEVCTL_GET_HIGHEST_UDMA_MODE: {
