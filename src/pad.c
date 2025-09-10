@@ -8,7 +8,7 @@
 #include "include/pad.h"
 #include "include/ioman.h"
 #include <libpad.h>
-#include <timer.h>
+//#include <timer.h>
 
 #ifdef PADEMU
 #include <libds34bt.h>
@@ -17,11 +17,18 @@
 
 #define MAX_PADS 1
 
-// 160 ms per repeat
-#define DEFAULT_PAD_DELAY 160
+// 160 ms per repeat(换算成帧数)
+#define DEFAULT_PAD_DELAY 10
 
-// 触发按键滚动前的延迟时间
-#define DEFAULT_PAD_PRE_DELAY 600
+// 触发按键滚动前的延迟时间(换算成帧数)
+#define DEFAULT_PAD_PRE_DELAY 36
+
+//// 搜索图片时的卡顿时间
+// u64 searchTexTime = 0;
+
+///// current time in miliseconds (last update time)
+// static u64 curtime = 0;
+// static u64 time_since_last = 0;
 
 struct pad_data_t
 {
@@ -39,15 +46,8 @@ struct pad_data_t
     int actuators;
 };
 
-// 搜索图片时的卡顿时间
-u64 searchTexTime = 0;
-
 // 是否正在自动重复按键
 static int isRepeating = 0;
-
-/// current time in miliseconds (last update time)
-static u64 curtime = 0;
-static u64 time_since_last = 0;
 
 static unsigned short pad_count;
 static struct pad_data_t pad_data[MAX_PADS];
@@ -335,11 +335,11 @@ int readPads()
     oldpaddata = paddata;
     paddata = 0;
 
-    // in ms.  searchTexTime不能算作按住按键的时间，所以要进行修正
-    u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
-    time_since_last = newtime - curtime - searchTexTime;
-    curtime = newtime;
-    searchTexTime = 0; // 重置图片搜索时间
+    //// in ms.  searchTexTime不能算作按住按键的时间，所以要进行修正
+    //u64 newtime = GetTimerSystemTime() / CLOCKS_PER_MILISEC;
+    //time_since_last = newtime - curtime - searchTexTime;
+    //curtime = newtime;
+    //searchTexTime = 0; // 重置图片搜索时间
 
     int rslt = 0;
 
@@ -357,7 +357,8 @@ int readPads()
             //    fprintf(debugFile, "time_since_last:%d\r\delaycnt:%d\r\nGetTimerSystemTime:%llu\r\n\r\n", time_since_last, delaycnt[i], newtime);
             //    fclose(debugFile);
             //}
-            delaycnt[i] -= time_since_last;
+            //delaycnt[i] -= time_since_last;
+            delaycnt[i]--;
         } else {
             delaycnt[i] = getKeyDelay(i + 1, 0);
         }
