@@ -36,6 +36,11 @@
 #include <debug.h>
 #include <ps2smb.h>
 #include "config.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#ifndef DT_DIR
+#define DT_DIR 4
+#endif
 
 #include "include/hddsupport.h"
 #include "include/supportbase.h"
