@@ -391,7 +391,6 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
                 fd = open(vmc_path, O_RDONLY);
                 if (fd >= 0) {
-                    iop_fd = ps2sdk_get_iop_fd(fd);
                     if (fileXioIoctl2(iop_fd, USBMASS_IOCTL_GET_LBA, NULL, 0, &startingLBA, sizeof(startingLBA)) == 0 && (startCluster = (unsigned int)fileXioIoctl(iop_fd, USBMASS_IOCTL_GET_CLUSTER, vmc_path)) != 0) {
 
                         // VMC only supports 32bit LBAs at the moment, so if the starting LBA + size of the VMC crosses the 32bit boundary
@@ -476,7 +475,6 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         // Open file
         sbCreatePath(game, partname, pDeviceData->bdmPrefix, "/", i);
         fd = open(partname, O_RDONLY);
-        iop_fd = ps2sdk_get_iop_fd(fd);
         if (fd < 0) {
             sbUnprepare(&settings->common);
             guiMsgBox(_l(_STR_ERR_FILE_INVALID), 0, NULL);
