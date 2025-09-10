@@ -734,7 +734,7 @@ static int ata_bd_write(struct block_device *bd, u64 sector, const void *buffer,
 }
 static void ata_bd_flush(struct block_device *bd)
 {
-    sceAtaFlushCache(bd->devNr);
+    ata_device_flush_cache(bd->devNr);
 }
 static int ata_bd_stop(struct block_device *bd)
 {
