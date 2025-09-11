@@ -446,6 +446,8 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         int fd = open(filePath, O_RDONLY);
         if (fd < 0)
             return ERR_BAD_FILE;
+        close(fd);
+        return ERR_BAD_FILE;
 
         int fileSize = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
