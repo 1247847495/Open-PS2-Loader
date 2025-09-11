@@ -108,6 +108,5 @@ int texLookupInternalTexId(const char *name);
 int texLoadInternal(GSTEXTURE *texture, int texId);
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId);
 void texFree(GSTEXTURE *texture);
-int texInit(void);
 
 #endif

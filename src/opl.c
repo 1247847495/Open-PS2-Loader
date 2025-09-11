@@ -1916,7 +1916,6 @@ static void init(void)
     guiInit();
     ioInit();
     menuInit();
-    texInit(); // 初始化加载图片临界区变量
 
     startPads();
 
