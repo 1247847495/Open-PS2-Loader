@@ -462,11 +462,6 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             close(fd);
             return ERR_BAD_FILE;
         }
-        else {
-            free(pFileBuffer);
-            close(fd);
-            return ERR_BAD_FILE;
-        }
 
         close(fd);
 
