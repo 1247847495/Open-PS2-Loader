@@ -443,7 +443,6 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
-        return ERR_BAD_FILE;
         int fd = open(filePath, O_RDONLY);
         if (fd < 0)
             return ERR_BAD_FILE;
