@@ -105,6 +105,14 @@ extern void *apps_case_png;
 // Not related to screen size, just to limit at some point
 static int maxSize = 720 * 512 * 4;
 
+// 临界区变量
+static ee_sema_t gTexSema;
+static s32 gTexSemaId;
+int texInit(void)
+{
+    gTexSemaId = CreateSema(&gTexSema);
+}
+
 //// 用来计算搜索图片的消耗时间
 //static u64 beforeTime = 0;
 
@@ -562,12 +570,20 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 
 static int texLoad(GSTEXTURE *texture, const char *filePath)
 {
-    return texLoadAll(texture, filePath, -1);
+    int result = ERR_BAD_FILE;
+    WaitSema(gTexSemaId);
+    result = texLoadAll(texture, filePath, -1);
+    SignalSema(gTexSemaId);
+    return result;
 }
 
 int texLoadInternal(GSTEXTURE *texture, int texId)
 {
-    return texLoadAll(texture, NULL, texId);
+    int result = ERR_BAD_FILE;
+    WaitSema(gTexSemaId);
+    result = texLoadAll(texture, NULL, texId);
+    SignalSema(gTexSemaId);
+    return result;
 }
 
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId)
