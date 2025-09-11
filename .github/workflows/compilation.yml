@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:1d47ea6f78e50c57db809d79507a5345ae3fe13e6386e3d2a1e68bb2d902039d
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:9fddbda799010474c5a22dac0a9f5d93dba01b0920c108b9f3f91e55c18f4310
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
         extra: [EXTRA_FEATURES=0, EXTRA_FEATURES=1]
         pademu: [PADEMU=0, PADEMU=1]
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:1d47ea6f78e50c57db809d79507a5345ae3fe13e6386e3d2a1e68bb2d902039d
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:9fddbda799010474c5a22dac0a9f5d93dba01b0920c108b9f3f91e55c18f4310
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
 
   build-lang:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:1d47ea6f78e50c57db809d79507a5345ae3fe13e6386e3d2a1e68bb2d902039d
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:9fddbda799010474c5a22dac0a9f5d93dba01b0920c108b9f3f91e55c18f4310
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -122,7 +122,7 @@ jobs:
         # container_commit: [":main", "@sha256:1f00689809455d43b520e4cd4eea00c6be56d71819ae38efc6b55b56464cbd1e"] Replace with desired docker image hash or tag
         container_commit: [":main"]
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:1d47ea6f78e50c57db809d79507a5345ae3fe13e6386e3d2a1e68bb2d902039d
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:9fddbda799010474c5a22dac0a9f5d93dba01b0920c108b9f3f91e55c18f4310
     steps:
     - name: git checkout
       uses: actions/checkout@v4
