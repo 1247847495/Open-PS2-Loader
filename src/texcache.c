@@ -318,72 +318,20 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //}
 
-    GSTEXTURE *prevCache = NULL;
-    // 切换设备页签时，上次图缓存需要清掉
-    if (ForceRefreshPrevTexCache) {
-        if (ForceRefreshPrevTexCache == 1) {
-            prevGuiFrameId = guiFrameId;
-            ForceRefreshPrevTexCache++;
-        }
-        // 重置上次的缓存ID
-        if (!strncmp("COV", cache->suffix, 3))
-            PrevCacheID_COV = -2;
-        else if (!strncmp("ICO", cache->suffix, 3))
-            PrevCacheID_ICO = -2;
-        else if (!strncmp("BG", cache->suffix, 2))
-            PrevCacheID_BG = -2;
-    } else {
-        // 根据图像类型，赋值上一次的缓存
-        if (!strncmp("COV", cache->suffix, 3)) {
-            if (PrevCacheID_COV >= 0)
-                prevCache = &cache->content[PrevCacheID_COV].texture;
-        } else if (!strncmp("ICO", cache->suffix, 3)) {
-            if (PrevCacheID_ICO >= 0)
-                prevCache = &cache->content[PrevCacheID_ICO].texture;
-        } else if (!strncmp("BG", cache->suffix, 2)) {
-            if (PrevCacheID_BG >= 0)
-                prevCache = &cache->content[PrevCacheID_BG].texture; // 缓存队列满了后，会返回NULL
-        }
-    }
-
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
-        // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-        if (!strncmp("COV", cache->suffix, 3)) {
-            PrevCacheID_COV = *cacheId;
-        } else if (!strncmp("ICO", cache->suffix, 3)) {
-            PrevCacheID_ICO = *cacheId;
-        } else if (!strncmp("BG", cache->suffix, 2)) {
-            PrevCacheID_BG = *cacheId;
-        }
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
             if (entry->qr) {
-                return prevCache ? prevCache : NULL;
+                return NULL;
             } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
-                // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                if (!strncmp("COV", cache->suffix, 3)) {
-                    PrevCacheID_COV = *cacheId;
-                } else if (!strncmp("ICO", cache->suffix, 3)) {
-                    PrevCacheID_ICO = *cacheId;
-                } else if (!strncmp("BG", cache->suffix, 2)) {
-                    PrevCacheID_BG = *cacheId;
-                }
                 return NULL;
             } else {
                 if (entry->texture.Mem) {
                     entry->lastUsed = guiFrameId;
-                    // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                    if (!strncmp("COV", cache->suffix, 3)) {
-                        PrevCacheID_COV = *cacheId;
-                    } else if (!strncmp("ICO", cache->suffix, 3)) {
-                        PrevCacheID_ICO = *cacheId;
-                    } else if (!strncmp("BG", cache->suffix, 2)) {
-                        PrevCacheID_BG = *cacheId;
-                    }
                     return &entry->texture;
                 }
                 //else {
@@ -407,7 +355,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (skipQr)
-        return prevCache ? prevCache : NULL;
+        return NULL;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i, rtime = guiFrameId;
@@ -416,8 +364,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     for (i = 0; i < cache->count; i++) {
         currEntry = &cache->content[i];
         // 可用槽，但需保护正在使用的
-        if ((!currEntry->qr) && (currEntry->lastUsed < rtime) &&
-            !(prevCache && (&currEntry->texture == prevCache))) {
+        if ((!currEntry->qr) && (currEntry->lastUsed < rtime)) {
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
             *cacheId = i;
@@ -451,5 +398,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
-    return prevCache ? prevCache : NULL;
+    return NULL;
 }
