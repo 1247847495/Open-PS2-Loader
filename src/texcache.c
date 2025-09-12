@@ -345,7 +345,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         //prevGuiFrameId = guiFrameId;
         //artQrCount++;
-        ioPutRequest(IO_CACHE_LOAD_ART, req);
+        cacheLoadImage(req);
+        //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
         //strcpy(debugFileDir, "smb:debug-TexCache.txt");
