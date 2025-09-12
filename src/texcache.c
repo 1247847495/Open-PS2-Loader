@@ -137,9 +137,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    // under the cache pre-delay (to avoid filling cache while moving around)
-    if (guiInactiveFrames < list->delay)
-        return NULL;
+    //// under the cache pre-delay (to avoid filling cache while moving around)
+    //if (guiInactiveFrames < list->delay)
+    //    return NULL;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i, rtime = guiFrameId;
