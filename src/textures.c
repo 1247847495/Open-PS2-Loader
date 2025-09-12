@@ -266,7 +266,7 @@ static void texPrepare(GSTEXTURE *texture)
     texture->Filter = GS_FILTER_LINEAR;              // Default
     //texture->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
     // Do not load the texture to VRAM directly, only load it to EE RAM
-    texture->Delayed = 1;
+    texture->Delayed = 0;
 }
 
 /// JPG SUPPORT ///////////////////////////////////////////////////////////////////////////////////////
