@@ -63,7 +63,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Filter = GS_FILTER_LINEAR; // Default
     // item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
     //  Do not load the texture to VRAM directly, only load it to EE RAM
-    texture->Delayed = 1;
+    item->texture.Delayed = 1;
 
     item->qr = NULL;
     item->lastUsed = -1;
@@ -383,7 +383,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_ICO = *cacheId;
                     else if (!strncmp("BG", cache->suffix, 2))
                         PrevCacheID_BG = *cacheId;
-                    &entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
+                    entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
                     return &entry->texture;
                 }
                 //else {
