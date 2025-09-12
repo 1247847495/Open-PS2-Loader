@@ -43,7 +43,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
     if (freeTxt) {
         if (item->texture.Mem) {
-            rmUnloadTexture(&item->texture);
+            //rmUnloadTexture(&item->texture);
             free(item->texture.Mem);
         }
         if (item->texture.Clut)
