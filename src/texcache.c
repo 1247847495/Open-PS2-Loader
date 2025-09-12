@@ -26,9 +26,6 @@ static int skipQr = 0;  // 判断是否可以跳过请求Qr队列
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
-//int baseCd = 50; // 快速按键触发cdFrameCount的基础帧数
-//int baseCdCount = 0;  // 基础Cd的帧数计时器
-
 typedef struct
 {
     image_cache_t *cache;
@@ -74,15 +71,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     load_image_request_t *req = data;
-
-    ////  debug
-    //char debugFileDir[64];
-    //strcpy(debugFileDir, "smb:debug-texCache.txt");
-    //FILE *debugFile = fopen(debugFileDir, "ab+");
-    //if (debugFile != NULL) {
-    //    fprintf(debugFile, "req->cacheUID:%d\r\nreq->entry->UID:%d\r\n\r\n", req->cacheUID, req->entry->UID);
-    //    fclose(debugFile);
-    //}
 
     // Safeguards...
     if (!req || !req->entry || !req->cache)
@@ -176,27 +164,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
             cdFramesCount = 1; // 触发连按CD
-        // else if (!ioHasPendingRequests()) {
-        //     // 激活基础CD，CD内再次按键，触发cdFramesCount
-        //     if (!baseCdCount) {
-        //         baseCdCount = baseCd;
-        //         buttonPressedOnce = 1;
-        //     }
-        // }
         curStartUp = value;
     }
-
-    //// 基础Cd触发后，cd内按键，会触发cdFramesCount
-    //if (baseCdCount) {
-    //    baseCdCount--;
-    //    if (getKeyPressed(KEY_UP) || getKeyPressed(KEY_DOWN) || getKeyPressed(KEY_L1) || getKeyPressed(KEY_R1)) {
-    //        if (!buttonPressedOnce) {
-    //            cdFramesCount = 1;       // 触发连按CD
-    //            baseCdCount = 0;
-    //        }
-    //    } else
-    //        buttonPressedOnce = 0;
-    //}
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (padGetRepeating()) {
@@ -255,16 +224,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             cdFramesCount = 0;
             skipQr = gScrollSpeed > 0 ? padGetRepeating() : 0;
         }
-        //// debug  打印debug信息
-        //if (!cdFramesCount) {
-        //    char debugFileDir[64];
-        //    strcpy(debugFileDir, "smb:debug-TexCacheIoPut.txt");
-        //    FILE *debugFile = fopen(debugFileDir, "ab+");
-        //    if (debugFile != NULL) {
-        //        fprintf(debugFile, "artQrCount:%d   UID:%d   cacheID:%d\r\ncurStartUp:%s_%s\r\n\r\n", artQrCount, *UID, *cacheId, curStartUp, cache->suffix);
-        //        fclose(debugFile);
-        //    }
-        //}
     }
 
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
@@ -273,60 +232,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     if (forceSkipQr)
         skipQr = 1;
-    //// 已经完成一轮Qr
-    //if (artQrCount && (prevGuiFrameId != guiFrameId))
-    //    artQrDone = 1;
-
-    //if (artQrDone) {
-    //    // Qr之后会CD一段时间，才能再次Qr
-    //    if (guiFrameId - prevGuiFrameId - 1 <= cdFrames) {
-    //        if (gScrollSpeed > 0) {
-    //            // CD的时候再次按键，会重新计算CD
-    //            if (!guiInactiveFrames) {
-    //                prevGuiFrameId = guiFrameId;
-    //                buttonFrames++;
-    //                skipQr = 1;
-    //            } else {
-    //                // 按住按键超过CD时间，再次松开，直接结束CD
-    //                if (buttonFrames > cdFrames) {
-    //                    buttonFrames = 0;
-    //                    artQrCount = 0;
-    //                    artQrDone = 0;
-    //                    skipQr = 0;
-    //                } else {
-    //                    buttonFrames = 0;
-    //                    skipQr = 1;
-    //                }
-    //            }
-    //        } else { // 慢速光标的Qr处理方式
-    //            // CD的时候再次按键，会重新计算CD
-    //            if (!guiInactiveFrames) {
-    //                prevGuiFrameId = guiFrameId;
-    //                if (++buttonFrames > cdFrames)
-    //                    skipQr = 0;
-    //                else
-    //                    skipQr = 1;
-    //            } else {
-    //                // 按住按键超过CD时间，再次松开，直接结束CD
-    //                if (buttonFrames > cdFrames) {
-    //                    buttonFrames = 0;
-    //                    artQrCount = 0;
-    //                    artQrDone = 0;
-    //                    skipQr = 0;
-    //                } else {
-    //                    buttonFrames = 0;
-    //                    skipQr = 1;
-    //                }
-    //            }
-    //        }
-    //    } else {
-    //        // CD结束后，重置变量
-    //        buttonFrames = 0;
-    //        artQrCount = 0;
-    //        artQrDone = 0;
-    //        skipQr = 0;
-    //    }
-    //}
 
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
@@ -383,7 +288,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_ICO = *cacheId;
                     else if (!strncmp("BG", cache->suffix, 2))
                         PrevCacheID_BG = *cacheId;
-                    entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
                     return &entry->texture;
                 }
                 //else {
