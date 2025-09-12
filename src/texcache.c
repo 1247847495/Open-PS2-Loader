@@ -43,7 +43,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
     if (freeTxt) {
         if (item->texture.Mem) {
-            //rmUnloadTexture(&item->texture);
+            rmUnloadTexture(&item->texture);
             free(item->texture.Mem);
         }
         if (item->texture.Clut)
@@ -383,7 +383,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_ICO = *cacheId;
                     else if (!strncmp("BG", cache->suffix, 2))
                         PrevCacheID_BG = *cacheId;
-                    //entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
+                    entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
                     return &entry->texture;
                 }
                 //else {

@@ -292,7 +292,7 @@ void texFree(GSTEXTURE *texture)
 {
     if (texture) {
         if (texture->Mem) {
-            //rmUnloadTexture(texture);
+            rmUnloadTexture(texture);
             free(texture->Mem);
             texture->Mem = NULL;
         }
