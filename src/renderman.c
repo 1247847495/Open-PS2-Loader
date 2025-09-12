@@ -23,10 +23,6 @@ static u8 hires = 0;
 static u8 guiWakeupCount;
 static int vsync_id = -1;
 
-// 临界区变量
-static ee_sema_t gRmSema;
-static s32 gRmSemaId;
-
 #define NUM_RM_VMODES 14
 #define RM_VMODE_AUTO 0
 
@@ -152,8 +148,6 @@ static int rmOnVSync(void)
 
 void rmInit()
 {
-    gRmSemaId = CreateSema(&gRmSema);
-
     short int mode = gsKit_check_rom();
 
     rm_mode_table[RM_VMODE_AUTO].mode = mode;
@@ -347,17 +341,14 @@ void rmDrawQuad(rm_quad_t *q)
 
 void rmDrawPixmap(GSTEXTURE *txt, int x, int y, short aligned, int w, int h, short scaled, u64 color)
 {
-    WaitSema(gRmSemaId);
     rm_quad_t quad;
     rmSetupQuad(txt, x, y, aligned, w, h, scaled, color, &quad);
     rmDrawQuad(&quad);
-    SignalSema(gRmSemaId);
 }
 
 void rmDrawOverlayPixmap(GSTEXTURE *overlay, int x, int y, short aligned, int w, int h, short scaled, u64 color,
                          GSTEXTURE *inlay, int ulx, int uly, int urx, int ury, int blx, int bly, int brx, int bry)
 {
-    WaitSema(gRmSemaId);
     rm_quad_t quad;
     rmSetupQuad(overlay, x, y, aligned, w, h, scaled, color, &quad);
     ulx = X_SCALE(ulx * iAspectWidth) >> 2;
@@ -387,7 +378,6 @@ void rmDrawOverlayPixmap(GSTEXTURE *overlay, int x, int y, short aligned, int w,
     order++;
 
     rmDrawQuad(&quad);
-    SignalSema(gRmSemaId);
 }
 
 void rmDrawRect(int x, int y, int w, int h, u64 color)
