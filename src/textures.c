@@ -1,6 +1,5 @@
 #include "include/opl.h"
 #include "include/textures.h"
-#include "include/renderman.h"
 #include "include/util.h"
 #include "include/ioman.h"
 #include <png.h>
@@ -292,7 +291,6 @@ void texFree(GSTEXTURE *texture)
 {
     if (texture) {
         if (texture->Mem) {
-            rmUnloadTexture(texture);
             free(texture->Mem);
             texture->Mem = NULL;
         }
