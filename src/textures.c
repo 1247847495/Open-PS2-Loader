@@ -254,6 +254,7 @@ static int texSizeValidate(int width, int height, u8 psm)
 
 static void texPrepare(GSTEXTURE *texture)
 {
+    texFree(texture);
     texture->Width = 0;                              // Must be set by loader
     texture->Height = 0;                             // Must be set by loader
     texture->PSM = GS_PSM_CT24;                      // Must be set by loader
@@ -266,7 +267,7 @@ static void texPrepare(GSTEXTURE *texture)
     texture->Filter = GS_FILTER_LINEAR;              // Default
     //texture->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
     // Do not load the texture to VRAM directly, only load it to EE RAM
-    texture->Delayed = 0;
+    texture->Delayed = 1;
 }
 
 /// JPG SUPPORT ///////////////////////////////////////////////////////////////////////////////////////
@@ -291,6 +292,7 @@ void texFree(GSTEXTURE *texture)
 {
     if (texture) {
         if (texture->Mem) {
+            rmUnloadTexture(texture);
             free(texture->Mem);
             texture->Mem = NULL;
         }

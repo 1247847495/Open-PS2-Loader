@@ -51,11 +51,20 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     }
 
     memset(item, 0, sizeof(cache_entry_t));
-    item->texture.Mem = NULL;
-    item->texture.Vram = 0;
-    item->texture.Clut = NULL;
-    item->texture.VramClut = 0;
+    item->texture.Width = 0;            // Must be set by loader
+    item->texture.Height = 0;           // Must be set by loader
+    item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
+    item->texture.ClutPSM = 0;          // Default, can be set by loader
+    item->texture.TBW = 0;              // gsKit internal value
+    item->texture.Mem = NULL;           // Must be allocated by loader
+    item->texture.Clut = NULL;          // Default, can be set by loader
+    item->texture.Vram = 0;             // VRAM allocation handled by texture manager
+    item->texture.VramClut = 0;         // VRAM allocation handled by texture manager
+    item->texture.Filter = GS_FILTER_LINEAR; // Default
     // item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
+    //  Do not load the texture to VRAM directly, only load it to EE RAM
+    texture->Delayed = 1;
+
     item->qr = NULL;
     item->lastUsed = -1;
     item->UID = 0;
@@ -374,6 +383,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_ICO = *cacheId;
                     else if (!strncmp("BG", cache->suffix, 2))
                         PrevCacheID_BG = *cacheId;
+                    &entry->texture.Delayed = 0; // 将图像存到显存，也许可以解决随机卡死？
                     return &entry->texture;
                 }
                 //else {
