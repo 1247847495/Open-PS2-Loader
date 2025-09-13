@@ -170,12 +170,11 @@ static void cacheLoadImage(void *data)
             req->entry->lastUsed = guiFrameId;
             req->entry->texReady = 1;
         }
-
+        while (1) {
+        }
         req->entry->qr = NULL;
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
-    }
-    while (1) {
     }
     ioQuesting = 0;
 }
