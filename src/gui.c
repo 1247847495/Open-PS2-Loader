@@ -1747,7 +1747,6 @@ void guiMainLoop(void)
         }
 
         guiStartFrame();
-        flushBatchRequests();
 
         //  handle inputs and render screen
         guiShow();
@@ -1846,6 +1845,7 @@ void guiMainLoop(void)
         guiHandleDeferredOps();
 
         guiEndFrame();
+        flushBatchRequests();
 
         // if not transiting, handle input
         // done here so we can use renderman if needed
