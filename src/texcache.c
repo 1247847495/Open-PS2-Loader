@@ -115,6 +115,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    WaitSema(gTexCacheSemaId);
     load_image_request_t **batchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         load_image_request_t *req = batchRequests[i];
@@ -156,16 +157,17 @@ static void cacheLoadImage(void *data)
         //// seems okay. we can proceed
         // GSTEXTURE *texture = &req->entry->texture;
         // texFree(texture);
-        WaitSema(gTexCacheSemaId);
+
         if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0)
             req->entry->lastUsed = 0;
         else
             req->entry->lastUsed = guiFrameId;
-        SignalSema(gTexCacheSemaId);
+
         req->entry->qr = NULL;
         free(req);
     }
     ioQuesting = 0;
+    SignalSema(gTexCacheSemaId);
 }
 
 void cacheInit()
