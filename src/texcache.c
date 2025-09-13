@@ -159,6 +159,18 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-TexCacheInfo.txt");
+    int debugFd = open(debugFileDir, O_WRONLY | O_CREAT | O_APPEND, 0666); // 追加写入
+    if (debugFd != -1) {
+        char buf[256];
+        int len = snprintf(buf, sizeof(buf),
+                           "guiFrameId:%d\r\nimage_cache_t:\r\nuserId:%d  count:%d  prefix:%s  suffix:%s  nextUID:%d\r\ncache_entry_t:\r\nlastUsed:%d  UID:%d\r\n\r\n",
+                           guiFrameId, cache->userId, cache->count, cache->prefix, cache->suffix, cache->nextUID, cache->content->lastUsed, cache->content->UID);
+        write(debugFd, buf, len);
+        close(debugFd);
+    }
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
