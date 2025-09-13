@@ -174,6 +174,9 @@ static void cacheLoadImage(void *data)
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
     }
+    while(1) {
+        ;
+    }
     ioQuesting = 0;
 }
 
@@ -230,6 +233,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 {
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
+        ioRemoveRequests(IO_CACHE_LOAD_ART);
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioQuesting)
             cdFramesCount = 1; // 触发连按CD
