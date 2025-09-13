@@ -38,9 +38,11 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
-static int batchGuiFrameId = -1;
+static int ioRequestCount = 0;
+static int ioQuesting = 0;
 void flushBatchRequests(void)
 {
+    // 有堆积的图片待加载
     if (batchRequestCount > 0) {
         // debug  打印debug信息
         char debugFileDir[64];
@@ -50,10 +52,29 @@ void flushBatchRequests(void)
             fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
             fclose(debugFile);
         }
-        ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-        batchRequestCount = 0;
+        // 保证只存在一个io请求，多了会产生冲突导致死机
+        if (!ioQuesting) {
+            ioQuesting = 1;
+            ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
+            batchRequestCount = 0;
+            ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+        } else {
+            // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
+            for (int i = 0; i < batchRequestCount; i++) {
+                if (batchRequests[i]) {
+                    batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+                    batchRequests[i]->entry->qr = NULL;
+                    free(batchRequests[i]);
+                    batchRequests[i] = NULL; // 可选，防止野指针
+                }
+            }
+            batchRequestCount = 0;
+
+            // 满足特定条件，触发连按CD
+            if (!padGetRepeating() && !ForceRefreshPrevTexCache)
+                cdFramesCount = 1; // 触发连按CD
+        }
     }
-    batchGuiFrameId = -1;
 }
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
@@ -91,7 +112,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     load_image_request_t **batchRequests = (load_image_request_t **)data;
-    for (int i = 0; i < batchRequestCount; i++) {
+    for (int i = 0; i < ioRequestCount; i++) {
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
@@ -106,15 +127,16 @@ static void cacheLoadImage(void *data)
         if (req->cacheUID != req->entry->UID)
             continue;
 
-        //// 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-        //// 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        //if (skipQr) {
-        //    // req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-        //    req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-        //    req->entry->qr = NULL;
-        //    free(req);
-        //    return;
-        //}
+        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+        if (skipQr) {
+            // req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
+            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->entry->qr = NULL;
+            free(req);
+            ioQuesting = 0;
+            return;
+        }
 
         //// seems okay. we can proceed
         // GSTEXTURE *texture = &req->entry->texture;
@@ -128,6 +150,7 @@ static void cacheLoadImage(void *data)
         req->entry->qr = NULL;
         free(req);
     }
+    ioQuesting = 0;
 }
 
 void cacheInit()
