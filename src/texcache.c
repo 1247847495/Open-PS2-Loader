@@ -163,6 +163,7 @@ static void cacheLoadImage(void *data)
         free(req);
     }
     ioQuesting = 0;
+    ioRemoveRequests(IO_CACHE_LOAD_ART);
 }
 
 void cacheInit()
