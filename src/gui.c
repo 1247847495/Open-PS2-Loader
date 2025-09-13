@@ -22,6 +22,7 @@
 #include "include/cheatman.h"
 #include "include/sound.h"
 #include "include/guigame.h"
+#include "include/texcache.h"
 
 #include <limits.h>
 #include <stdlib.h>
@@ -1843,6 +1844,7 @@ void guiMainLoop(void)
         // handle deferred operations
         guiHandleDeferredOps();
 
+        flushBatchRequests();
         guiEndFrame();
 
         // if not transiting, handle input

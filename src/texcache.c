@@ -7,6 +7,18 @@
 #include "include/renderman.h"
 #include "include/pad.h"
 
+static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
+static int batchRequestCount = 0;
+static int batchGuiFrameId = -1;
+void flushBatchRequests(void)
+{
+    if (batchRequestCount > 0) {
+        ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+        batchRequestCount = 0;
+    }
+    batchGuiFrameId = -1;
+}
+
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
 
@@ -70,42 +82,44 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    load_image_request_t *req = data;
+    load_image_request_t **batchRequests = (load_image_request_t **)data;
+    for (int i = 0; i < batchRequestCount; i++) {
+        load_image_request_t *req = batchRequests[i];
 
-    // Safeguards...
-    if (!req || !req->entry || !req->cache)
-        return;
+        // Safeguards...
+        if (!req || !req->entry || !req->cache)
+            continue;
 
-    item_list_t *handler = req->list;
-    if (!handler)
-        return;
+        item_list_t *handler = req->list;
+        if (!handler)
+            continue;
 
-    // the cache entry was already reused!
-    if (req->cacheUID != req->entry->UID)
-        return;
+        // the cache entry was already reused!
+        if (req->cacheUID != req->entry->UID)
+            continue;
 
-    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (skipQr) {
-        //req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-        req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+        if (skipQr) {
+            // req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
+            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->entry->qr = NULL;
+            free(req);
+            return;
+        }
+
+        //// seems okay. we can proceed
+        // GSTEXTURE *texture = &req->entry->texture;
+        // texFree(texture);
+
+        if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0)
+            req->entry->lastUsed = 0;
+        else
+            req->entry->lastUsed = guiFrameId;
+
         req->entry->qr = NULL;
         free(req);
-        return;
     }
-
-    //// seems okay. we can proceed
-    //GSTEXTURE *texture = &req->entry->texture;
-    //texFree(texture);
-
-    if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0)
-        req->entry->lastUsed = 0;
-    else
-        req->entry->lastUsed = guiFrameId;
-
-    req->entry->qr = NULL;
-
-    free(req);
 }
 
 void cacheInit()
@@ -159,18 +173,6 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    // debug  打印debug信息
-    char debugFileDir[64];
-    strcpy(debugFileDir, "smb:debug-TexCacheInfo.txt");
-    int debugFd = open(debugFileDir, O_WRONLY | O_CREAT | O_APPEND, 0666); // 追加写入
-    if (debugFd != -1) {
-        char buf[256];
-        int len = snprintf(buf, sizeof(buf),
-                           "guiFrameId:%d\r\nimage_cache_t:\r\nuserId:%d  count:%d  prefix:%s  suffix:%s  nextUID:%d\r\ncache_entry_t:\r\nlastUsed:%d  UID:%d\r\n\r\n",
-                           guiFrameId, cache->userId, cache->count, cache->prefix, cache->suffix, cache->nextUID, cache->content->lastUsed, cache->content->UID);
-        write(debugFd, buf, len);
-        close(debugFd);
-    }
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
@@ -357,7 +359,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         //prevGuiFrameId = guiFrameId;
         //artQrCount++;
-        cacheLoadImage(req);
+        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
+            batchRequests[batchRequestCount++] = req;
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
