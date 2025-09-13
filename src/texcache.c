@@ -58,7 +58,6 @@ void flushBatchRequests(void)
             ioQuesting = 1;
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
-            ioRemoveRequests(IO_CACHE_LOAD_ART);
             ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
         }
         //else {
@@ -233,10 +232,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 {
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
-
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioQuesting)
-            ioRemoveRequests(IO_CACHE_LOAD_ART);
+            cdFramesCount = 1; // 触发连按CD
         curStartUp = value;
     }
 
