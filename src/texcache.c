@@ -108,6 +108,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->qr = NULL;
     item->lastUsed = -1;
     item->UID = 0;
+    item->texReady = 0;
 }
 
 // Io handled action...
@@ -122,6 +123,7 @@ static void cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = NULL;
             free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -130,6 +132,7 @@ static void cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = NULL;
             free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -138,6 +141,7 @@ static void cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = NULL;
             free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -148,6 +152,7 @@ static void cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = NULL;
             free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -155,13 +160,18 @@ static void cacheLoadImage(void *data)
         // GSTEXTURE *texture = &req->entry->texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0)
+        if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
             req->entry->lastUsed = 0;
-        else
+            req->entry->texReady = 0;
+        }
+        else {
             req->entry->lastUsed = guiFrameId;
+            req->entry->texReady = 1;
+        }
 
         req->entry->qr = NULL;
         free(req);
+        batchRequests[i] = NULL; // 及时清理，避免野指针
     }
     ioQuesting = 0;
 }
@@ -337,7 +347,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_BG = *cacheId;
                 return NULL;
             } else {
-                if (entry->texture.Mem) {
+                if (entry->texture.Mem && entry->texReady) {
                     entry->lastUsed = guiFrameId;
                     // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                     if (!strncmp("COV", cache->suffix, 3))
@@ -398,6 +408,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cacheClearItem(req->entry, 1);
         req->entry->qr = req;
         req->entry->UID = cache->nextUID;
+        req->entry->texReady = 0;
 
         *UID = cache->nextUID++;
 

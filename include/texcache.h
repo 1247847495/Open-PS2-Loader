@@ -16,6 +16,8 @@ typedef struct
     int lastUsed;
 
     int UID;
+
+    int texReady; // 图片解析完毕，防止解析到一半就进行使用，也许会造成死机？
 } cache_entry_t;
 
 
