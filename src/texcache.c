@@ -44,14 +44,14 @@ void flushBatchRequests(void)
 {
     // 有堆积的图片待加载
     if (batchRequestCount > 0) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
-            fclose(debugFile);
-        }
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
+        //    fclose(debugFile);
+        //}
         // 保证只存在一个io请求，多了会产生冲突导致死机
         if (!ioQuesting) {
             ioQuesting = 1;
@@ -134,8 +134,7 @@ static void cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = NULL;
             free(req);
-            ioQuesting = 0;
-            return;
+            continue;
         }
 
         //// seems okay. we can proceed
