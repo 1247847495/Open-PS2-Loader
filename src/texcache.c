@@ -53,7 +53,8 @@ void flushBatchRequests(void)
         //    fclose(debugFile);
         //}
         // 保证只存在一个io请求，多了会产生冲突导致死机
-        if (!ioQuesting) {
+        //if (!ioQuesting)
+        {
             ioQuesting = 1;
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
