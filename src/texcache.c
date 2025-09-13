@@ -175,6 +175,8 @@ static void cacheLoadImage(void *data)
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
     }
+    while (1) {
+    }
     ioQuesting = 0;
 }
 
