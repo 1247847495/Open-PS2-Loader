@@ -57,8 +57,7 @@ void flushBatchRequests(void)
             ioQuesting = 1;
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
-            //if (ioHasPendingRequests())
-            //    ioRemoveRequests(IO_CACHE_LOAD_ART);
+            ioRemoveRequests(IO_CACHE_LOAD_ART);
             ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
         }
         //else {
@@ -165,8 +164,6 @@ static void cacheLoadImage(void *data)
         free(req);
     }
     ioQuesting = 0;
-    if (ioHasPendingRequests())
-        ioRemoveRequests(IO_CACHE_LOAD_ART);
 }
 
 void cacheInit()
