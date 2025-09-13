@@ -58,22 +58,23 @@ void flushBatchRequests(void)
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
             ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-        } else {
-            // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
-            for (int i = 0; i < batchRequestCount; i++) {
-                if (batchRequests[i]) {
-                    batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-                    batchRequests[i]->entry->qr = NULL;
-                    free(batchRequests[i]);
-                    batchRequests[i] = NULL; // 可选，防止野指针
-                }
-            }
-            batchRequestCount = 0;
-
-            // 满足特定条件，触发连按CD
-            if (!padGetRepeating() && !ForceRefreshPrevTexCache)
-                cdFramesCount = 1; // 触发连按CD
         }
+        //else {
+        //    // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
+        //    for (int i = 0; i < batchRequestCount; i++) {
+        //        if (batchRequests[i]) {
+        //            batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+        //            batchRequests[i]->entry->qr = NULL;
+        //            free(batchRequests[i]);
+        //            batchRequests[i] = NULL; // 可选，防止野指针
+        //        }
+        //    }
+        //    batchRequestCount = 0;
+
+        //    // 满足特定条件，触发连按CD
+        //    if (!padGetRepeating() && !ForceRefreshPrevTexCache)
+        //        cdFramesCount = 1; // 触发连按CD
+        //}
     }
 }
 
@@ -215,13 +216,13 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    //// 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
-    //if (curStartUp != value) {
-    //    // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-    //    if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioHasPendingRequests())
-    //        cdFramesCount = 1; // 触发连按CD
-    //    curStartUp = value;
-    //}
+    // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
+    if (curStartUp != value) {
+        // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
+        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioQuesting)
+            cdFramesCount = 1; // 触发连按CD
+        curStartUp = value;
+    }
 
     // 默认情况下，触发重复按键时，就会跳过所有Qr
     if (padGetRepeating()) {
@@ -366,7 +367,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr)
+    if (skipQr || ioQuesting)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
