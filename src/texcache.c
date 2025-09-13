@@ -7,18 +7,6 @@
 #include "include/renderman.h"
 #include "include/pad.h"
 
-static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
-static int batchRequestCount = 0;
-static int batchGuiFrameId = -1;
-void flushBatchRequests(void)
-{
-    if (batchRequestCount > 0) {
-        ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-        batchRequestCount = 0;
-    }
-    batchGuiFrameId = -1;
-}
-
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
 
@@ -47,6 +35,18 @@ typedef struct
     int cacheUID;
     char *value;
 } load_image_request_t;
+
+static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
+static int batchRequestCount = 0;
+static int batchGuiFrameId = -1;
+void flushBatchRequests(void)
+{
+    if (batchRequestCount > 0) {
+        ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+        batchRequestCount = 0;
+    }
+    batchGuiFrameId = -1;
+}
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
