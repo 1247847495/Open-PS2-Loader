@@ -42,6 +42,14 @@ static int batchGuiFrameId = -1;
 void flushBatchRequests(void)
 {
     if (batchRequestCount > 0) {
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
+            fclose(debugFile);
+        }
         ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
         batchRequestCount = 0;
     }
