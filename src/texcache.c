@@ -170,8 +170,6 @@ static void cacheLoadImage(void *data)
             req->entry->lastUsed = guiFrameId;
             req->entry->texReady = 1;
         }
-        while (1) {
-        }
         req->entry->qr = NULL;
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -234,7 +232,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioQuesting)
-            cdFramesCount = 1; // 触发连按CD
+            ioRemoveRequests(IO_CACHE_LOAD_ART);
         curStartUp = value;
     }
 
