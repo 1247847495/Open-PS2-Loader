@@ -1844,8 +1844,8 @@ void guiMainLoop(void)
         // handle deferred operations
         guiHandleDeferredOps();
 
-        guiEndFrame();
         flushBatchRequests();
+        guiEndFrame();
 
         // if not transiting, handle input
         // done here so we can use renderman if needed
