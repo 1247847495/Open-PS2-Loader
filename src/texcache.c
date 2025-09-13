@@ -58,8 +58,17 @@ void flushBatchRequests(void)
             ioQuesting = 1;
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
-            if (ioHasPendingRequests())
+            if (ioHasPendingRequests()) {
+                // debug  打印debug信息
+                char debugFileDir[64];
+                strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "执行了ioRemoveRequests\r\n", guiFrameId);
+                    fclose(debugFile);
+                }
                 ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
+            }
             ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
         }
         //else {
