@@ -116,16 +116,28 @@ static void cacheLoadImage(void *data)
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
-        if (!req || !req->entry || !req->cache)
+        if (!req || !req->entry || !req->cache) {
+            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->entry->qr = NULL;
+            free(req);
             continue;
+        }
 
         item_list_t *handler = req->list;
-        if (!handler)
+        if (!handler) {
+            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->entry->qr = NULL;
+            free(req);
             continue;
+        }
 
         // the cache entry was already reused!
-        if (req->cacheUID != req->entry->UID)
+        if (req->cacheUID != req->entry->UID) {
+            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->entry->qr = NULL;
+            free(req);
             continue;
+        }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
