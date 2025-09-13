@@ -36,6 +36,8 @@ typedef struct
     char *value;
 } load_image_request_t;
 
+static ee_sema_t gTexCacheSema;
+static s32 gTexCacheSemaId;
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
@@ -113,6 +115,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    WaitSema(gTexCacheSemaId);
     load_image_request_t **batchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         load_image_request_t *req = batchRequests[i];
@@ -164,10 +167,12 @@ static void cacheLoadImage(void *data)
         free(req);
     }
     ioQuesting = 0;
+    SignalSema(gTexCacheSemaId);
 }
 
 void cacheInit()
 {
+    gTexCacheSemaId = CreateSema(&gTexCacheSema);
     ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
 
