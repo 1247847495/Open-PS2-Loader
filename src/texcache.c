@@ -6,10 +6,11 @@
 #include "include/util.h"
 #include "include/renderman.h"
 #include "include/pad.h"
-#include <pthread.h>
+//#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
+int texLoading = 0;
 
 static int PrevCacheID = -2;
 static int PrevCacheID_COV = -2;
@@ -40,7 +41,6 @@ typedef struct
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
-static int ioQuesting = 0;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -136,7 +136,7 @@ static void *cacheLoadImage(void *data)
         free(req);
         tempBatchRequests[i] = NULL; // 及时清理，避免野指针
     }
-    ioQuesting = 0;
+    texLoading = 0;
     return NULL;
 }
 
@@ -153,9 +153,9 @@ void flushBatchRequests(void)
         //     fclose(debugFile);
         // }
         //  保证只存在一个io请求，多了会产生冲突导致死机
-        // if (!ioQuesting)
+        // if (!texLoading)
         {
-            ioQuesting = 1;
+            texLoading = 1;
             ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
             batchRequestCount = 0;
             // if (ioHasPendingRequests())
@@ -237,7 +237,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && ioQuesting)
+        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading)
             cdFramesCount = 1; // 触发连按CD
         curStartUp = value;
     }
@@ -388,7 +388,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || ioQuesting)
+    if (skipQr || texLoading)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
