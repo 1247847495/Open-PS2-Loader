@@ -75,7 +75,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 }
 
 // Io handled action...
-static void cacheLoadImage(void *data)
+static void *cacheLoadImage(void *data)
 {
     load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
@@ -137,6 +137,7 @@ static void cacheLoadImage(void *data)
         tempBatchRequests[i] = NULL; // 及时清理，避免野指针
     }
     ioQuesting = 0;
+    return NULL;
 }
 
 void flushBatchRequests(void)
