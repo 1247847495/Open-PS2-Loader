@@ -349,9 +349,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_BG = *cacheId;
                 return NULL;
             } else {
-                if (entry->texture.Mem && entry->texReady) {
-                    entry->lastUsed = guiFrameId;
-                    if (!ioQuesting) {
+                if (entry->texture.Mem) {
+                    if (entry->texReady) {
+                        entry->lastUsed = guiFrameId;
                         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                         if (!strncmp("COV", cache->suffix, 3))
                             PrevCacheID_COV = *cacheId;
@@ -361,7 +361,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                             PrevCacheID_BG = *cacheId;
                         return &entry->texture;
                     } else
-                        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture; // 等待io结束，确保3张图一起显示
+                        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture; // 图没有准备好，先显示上一张图
                 }
                 //else {
                 //    if (!skipQr) {
