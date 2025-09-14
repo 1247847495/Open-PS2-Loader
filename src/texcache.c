@@ -6,7 +6,7 @@
 #include "include/util.h"
 #include "include/renderman.h"
 #include "include/pad.h"
-//#include <pthread.h>
+#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
