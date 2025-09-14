@@ -77,16 +77,16 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
-    load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
+    //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
-        load_image_request_t *req = tempBatchRequests[i];
+        load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
         if (!req || !req->entry || !req->cache) {
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
-            tempBatchRequests[i] = NULL; // 及时清理，避免野指针
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -95,7 +95,7 @@ static void *cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
-            tempBatchRequests[i] = NULL; // 及时清理，避免野指针
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -104,7 +104,7 @@ static void *cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
-            tempBatchRequests[i] = NULL; // 及时清理，避免野指针
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -115,7 +115,7 @@ static void *cacheLoadImage(void *data)
             req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
-            tempBatchRequests[i] = NULL; // 及时清理，避免野指针
+            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -134,7 +134,7 @@ static void *cacheLoadImage(void *data)
 
         req->entry->qr = 0;
         free(req);
-        tempBatchRequests[i] = NULL; // 及时清理，避免野指针
+        batchRequests[i] = NULL; // 及时清理，避免野指针
     }
     texLoading = 0;
     return NULL;
@@ -162,7 +162,7 @@ void flushBatchRequests(void)
             //     ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             pthread_t tid;
-            pthread_create(&tid, NULL, cacheLoadImage, batchRequests);
+            pthread_create(&tid, NULL, cacheLoadImage, NULL);
             pthread_detach(tid);
         }
         // else {
