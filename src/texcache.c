@@ -185,7 +185,7 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
+    //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
 
 void cacheEnd()
