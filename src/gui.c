@@ -1844,7 +1844,6 @@ void guiMainLoop(void)
         // handle deferred operations
         guiHandleDeferredOps();
 
-        flushBatchRequests();
         guiEndFrame();
 
         // if not transiting, handle input
@@ -1854,6 +1853,8 @@ void guiMainLoop(void)
 
         if (gFrameHook)
             gFrameHook();
+
+        flushBatchRequests();// 推送ART图到ioPutQuest
     }
 }
 
