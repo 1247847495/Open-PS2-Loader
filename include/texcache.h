@@ -9,7 +9,7 @@ typedef struct
     GSTEXTURE texture;
 
     // NULL not queued, otherwise queue request record
-    void *qr;
+    int qr;
 
     // frame counter the icon was used the last time - oldest get rewritten first in case new icon is requested and cache is full. negative numbers mean
     // slot is free and can be used right now
