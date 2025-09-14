@@ -41,48 +41,6 @@ static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
 static int ioQuesting = 0;
-void flushBatchRequests(void)
-{
-    // 有堆积的图片待加载
-    if (batchRequestCount > 0) {
-        //// debug  打印debug信息
-        //char debugFileDir[64];
-        //strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
-        //FILE *debugFile = fopen(debugFileDir, "ab+");
-        //if (debugFile != NULL) {
-        //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
-        //    fclose(debugFile);
-        //}
-        // 保证只存在一个io请求，多了会产生冲突导致死机
-        //if (!ioQuesting)
-        {
-            ioQuesting = 1;
-            ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
-            batchRequestCount = 0;
-            //if (ioHasPendingRequests())
-            //    ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
-            //ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            pthread_t tid;
-            pthread_create(&tid, NULL, cacheLoadImage, batchRequests);
-        }
-        //else {
-        //    // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
-        //    for (int i = 0; i < batchRequestCount; i++) {
-        //        if (batchRequests[i]) {
-        //            batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-        //            batchRequests[i]->entry->qr = NULL;
-        //            free(batchRequests[i]);
-        //            batchRequests[i] = NULL; // 可选，防止野指针
-        //        }
-        //    }
-        //    batchRequestCount = 0;
-
-        //    // 满足特定条件，触发连按CD
-        //    if (!padGetRepeating() && !ForceRefreshPrevTexCache)
-        //        cdFramesCount = 1; // 触发连按CD
-        //}
-    }
-}
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -179,6 +137,49 @@ static void cacheLoadImage(void *data)
         tempBatchRequests[i] = NULL; // 及时清理，避免野指针
     }
     ioQuesting = 0;
+}
+
+void flushBatchRequests(void)
+{
+    // 有堆积的图片待加载
+    if (batchRequestCount > 0) {
+        //// debug  打印debug信息
+        // char debugFileDir[64];
+        // strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
+        // if (debugFile != NULL) {
+        //     fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
+        //     fclose(debugFile);
+        // }
+        //  保证只存在一个io请求，多了会产生冲突导致死机
+        // if (!ioQuesting)
+        {
+            ioQuesting = 1;
+            ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
+            batchRequestCount = 0;
+            // if (ioHasPendingRequests())
+            //     ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
+            // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+            pthread_t tid;
+            pthread_create(&tid, NULL, cacheLoadImage, batchRequests);
+        }
+        // else {
+        //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
+        //     for (int i = 0; i < batchRequestCount; i++) {
+        //         if (batchRequests[i]) {
+        //             batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+        //             batchRequests[i]->entry->qr = NULL;
+        //             free(batchRequests[i]);
+        //             batchRequests[i] = NULL; // 可选，防止野指针
+        //         }
+        //     }
+        //     batchRequestCount = 0;
+
+        //    // 满足特定条件，触发连按CD
+        //    if (!padGetRepeating() && !ForceRefreshPrevTexCache)
+        //        cdFramesCount = 1; // 触发连按CD
+        //}
+    }
 }
 
 void cacheInit()
