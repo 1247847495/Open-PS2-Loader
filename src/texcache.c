@@ -6,7 +6,7 @@
 #include "include/util.h"
 #include "include/renderman.h"
 #include "include/pad.h"
-#include <threads.h>
+#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
@@ -62,10 +62,8 @@ void flushBatchRequests(void)
             //if (ioHasPendingRequests())
             //    ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
             //ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            thrd_t tid;
-            if (thrd_create(&tid, cacheLoadImage, batchRequests) == thrd_success) {
-                // 线程创建成功
-            }
+            pthread_t tid;
+            pthread_create(&tid, NULL, image_loader, batchRequests);
         }
         //else {
         //    // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
