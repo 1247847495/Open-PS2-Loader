@@ -77,7 +77,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
-    pthread_detach(pthread_self());
     load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         load_image_request_t *req = tempBatchRequests[i];
@@ -164,7 +163,7 @@ void flushBatchRequests(void)
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             pthread_t tid;
             pthread_create(&tid, NULL, cacheLoadImage, batchRequests);
-            //pthread_detach(tid);
+            pthread_detach(tid);
         }
         // else {
         //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
