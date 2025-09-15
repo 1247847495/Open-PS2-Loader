@@ -68,7 +68,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Delayed = 1;
 
     item->qr = 0;
-    item->lastUsed = 0;
     item->UID = 0;
     item->texFound = -1;
 }
@@ -349,7 +348,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_BG = *cacheId;
                 return NULL;
             } else if (entry->texFound == 1) {
-                entry->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
                     PrevCacheID_COV = *cacheId;
