@@ -68,6 +68,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Delayed = 1;
 
     item->qr = 0;
+    item->lastUsed = -1;
     item->UID = 0;
     item->texFound = -1;
 }
@@ -156,7 +157,7 @@ void flushBatchRequests(void)
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             pthread_t tid;
             pthread_create(&tid, NULL, cacheLoadImage, NULL);
-            //pthread_detach(tid);
+            pthread_detach(tid);
         }
         // else {
         //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
