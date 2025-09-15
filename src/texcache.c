@@ -40,7 +40,6 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
-static int ioRequestCount = 0;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -69,16 +68,16 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Delayed = 1;
 
     item->qr = 0;
-    item->lastUsed = -1;
+    item->lastUsed = 0;
     item->UID = 0;
-    item->texReady = 0;
+    item->texFound = -1;
 }
 
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
-    for (int i = 0; i < ioRequestCount; i++) {
+    for (int i = 0; i < batchRequestCount; i++) {
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
@@ -125,11 +124,11 @@ static void *cacheLoadImage(void *data)
 
         if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
             req->entry->lastUsed = 0;
-            req->entry->texReady = 0;
+            req->entry->texFound = 0;
         }
         else {
             req->entry->lastUsed = guiFrameId;
-            req->entry->texReady = 1;
+            req->entry->texFound = 1;
         }
 
         req->entry->qr = 0;
@@ -137,6 +136,7 @@ static void *cacheLoadImage(void *data)
         batchRequests[i] = NULL; // 及时清理，避免野指针
     }
     texLoading = 0;
+    batchRequestCount = 0;
     return NULL;
 }
 
@@ -156,10 +156,6 @@ void flushBatchRequests(void)
         // if (!texLoading)
         {
             texLoading = 1;
-            ioRequestCount = batchRequestCount; // ioRequestCount是用在ioPutRequest内部的批量处理
-            batchRequestCount = 0;
-            // if (ioHasPendingRequests())
-            //     ioRemoveRequests(IO_CACHE_LOAD_ART); // 如果有未结束的io请求，就移除掉
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             pthread_t tid;
             pthread_create(&tid, NULL, cacheLoadImage, NULL);
@@ -344,7 +340,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (entry->UID == *UID) {
             if (entry->qr) {
                 return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-            } else if (entry->lastUsed == 0) {
+            } else if (entry->texFound == 0) {
                 *cacheId = -2;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
@@ -356,7 +352,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 return NULL;
             } else {
                 if (entry->texture.Mem) {
-                    if (entry->texReady) {
+                    if (entry->texFound == 1) {
                         entry->lastUsed = guiFrameId;
                         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                         if (!strncmp("COV", cache->suffix, 3))
@@ -408,24 +404,26 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        load_image_request_t *req = malloc(sizeof(load_image_request_t));
-        req->cache = cache;
-        req->entry = oldestEntry;
-        req->list = list;
-        req->value = value;
-        req->cacheUID = cache->nextUID;
+        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
+            load_image_request_t *req = batchRequests[batchRequestCount++];
+            if (req)
+                free(req);
+            req = malloc(sizeof(load_image_request_t));
+            req->cache = cache;
+            req->entry = oldestEntry;
+            req->list = list;
+            req->value = value;
+            req->cacheUID = cache->nextUID;
 
-        cacheClearItem(req->entry, 1);
-        req->entry->qr = 1;
-        req->entry->UID = cache->nextUID;
-        req->entry->texReady = 0;
+            cacheClearItem(req->entry, 1);
+            req->entry->qr = 1;
+            req->entry->UID = cache->nextUID;
+            req->entry->texFound = -1;
 
-        *UID = cache->nextUID++;
-
+            *UID = cache->nextUID++;
+        }
         //prevGuiFrameId = guiFrameId;
         //artQrCount++;
-        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES)
-            batchRequests[batchRequestCount++] = req;
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
