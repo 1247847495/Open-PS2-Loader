@@ -140,7 +140,7 @@ static void *cacheLoadImage(void *data)
 void flushBatchRequests(void)
 {
     // 有堆积的图片待加载
-    if (batchRequestCount > 0) {
+    if (batchRequestCount > 0 && !texLoading) {
         // debug  打印debug信息
         char debugFileDir[64];
         strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
@@ -381,7 +381,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
-    int i;
+    int i, rtime = guiFrameId;
 
     // 寻找可替换的槽
     for (i = 0; i < cache->count; i++) {
