@@ -77,7 +77,9 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void *cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
-    for (int i = 0; i < batchRequestCount; i++) {
+    int count = batchRequestCount;
+    batchRequestCount = 0;
+    for (int i = 0; i < count; i++) {
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
@@ -134,7 +136,7 @@ static void *cacheLoadImage(void *data)
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
     }
-    texLoading = batchRequestCount = 0;
+    texLoading = 0;
     return NULL;
 }
 
