@@ -64,8 +64,8 @@ extern GSGLOBAL *gsGlobal;
 #endif
 
 // Global data
-unsigned int guiInactiveFrames;
-unsigned int guiFrameId;
+u64 guiInactiveFrames;
+u64 guiFrameId;
 
 struct gui_update_list_t
 {

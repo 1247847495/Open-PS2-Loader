@@ -50,8 +50,8 @@ struct gui_update_t
 
 typedef void (*gui_callback_t)(void);
 
-extern unsigned int guiInactiveFrames;
-extern unsigned int guiFrameId;
+extern u64 guiInactiveFrames;
+extern u64 guiFrameId;
 extern int mainScreenInitDone;
 extern int bdmManualTrigger;
 extern int usbFound;
