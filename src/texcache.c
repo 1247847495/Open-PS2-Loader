@@ -68,7 +68,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Delayed = 1;
 
     item->qr = 0;
-    item->lastUsed = -1;
+    item->lastUsed = 0;
     item->UID = 0;
     item->texFound = -1;
 }
@@ -123,9 +123,11 @@ static void *cacheLoadImage(void *data)
         // texFree(texture);
 
         if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
+            req->entry->lastUsed = 0;
             req->entry->texFound = 0;
         }
         else {
+            req->entry->lastUsed = guiFrameId;
             req->entry->texFound = 1;
         }
         req->entry->qr = 0;
@@ -349,6 +351,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_BG = *cacheId;
                 return NULL;
             } else if (entry->texFound == 1) {
+                entry->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
                     PrevCacheID_COV = *cacheId;
@@ -387,11 +390,11 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     for (i = 0; i < cache->count; i++) {
         currEntry = &cache->content[i];
         // 可用槽，但需保护正在使用的
-        if ((!currEntry->qr)  &&
+        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
             !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
             oldestEntry = currEntry;
+            rtime = currEntry->lastUsed;
             *cacheId = i;
-            break;
         }
     }
 
