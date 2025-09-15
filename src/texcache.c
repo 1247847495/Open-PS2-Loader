@@ -404,26 +404,24 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
-            load_image_request_t *req = batchRequests[batchRequestCount++];
-            if (req)
-                free(req);
-            req = malloc(sizeof(load_image_request_t));
-            req->cache = cache;
-            req->entry = oldestEntry;
-            req->list = list;
-            req->value = value;
-            req->cacheUID = cache->nextUID;
+        load_image_request_t *req = malloc(sizeof(load_image_request_t));
+        req->cache = cache;
+        req->entry = oldestEntry;
+        req->list = list;
+        req->value = value;
+        req->cacheUID = cache->nextUID;
 
-            cacheClearItem(req->entry, 1);
-            req->entry->qr = 1;
-            req->entry->UID = cache->nextUID;
-            req->entry->texFound = -1;
+        cacheClearItem(req->entry, 1);
+        req->entry->qr = 1;
+        req->entry->UID = cache->nextUID;
+        req->entry->texReady = 0;
 
-            *UID = cache->nextUID++;
-        }
-        //prevGuiFrameId = guiFrameId;
-        //artQrCount++;
+        *UID = cache->nextUID++;
+
+        // prevGuiFrameId = guiFrameId;
+        // artQrCount++;
+        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES)
+            batchRequests[batchRequestCount++] = req;
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
