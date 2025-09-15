@@ -68,7 +68,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.Delayed = 1;
 
     item->qr = 0;
-    item->lastUsed = -1;
+    item->lastUsed = 0;
     item->UID = 0;
     item->texFound = -1;
 }
