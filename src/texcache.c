@@ -143,14 +143,14 @@ void flushBatchRequests(void)
 {
     // 有堆积的图片待加载
     if (batchRequestCount > 0) {
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
-            fclose(debugFile);
-        }
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
+        //    fclose(debugFile);
+        //}
         //  保证只存在一个io请求，多了会产生冲突导致死机
         // if (!texLoading)
         {
