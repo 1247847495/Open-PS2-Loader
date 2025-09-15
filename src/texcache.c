@@ -127,7 +127,6 @@ static void *cacheLoadImage(void *data)
         else {
             req->entry->texFound = 1;
         }
-        req->entry->texFound = 0;
         req->entry->qr = 0;
         free(req);
         batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -380,7 +379,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
-    int i, rtime = guiFrameId;
+    int i;
 
     // 寻找可替换的槽
     for (i = 0; i < cache->count; i++) {
