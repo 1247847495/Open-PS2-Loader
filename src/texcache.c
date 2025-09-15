@@ -414,7 +414,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cacheClearItem(req->entry, 1);
         req->entry->qr = 1;
         req->entry->UID = cache->nextUID;
-        req->entry->texReady = 0;
+        req->entry->texFound = -1;
 
         *UID = cache->nextUID++;
 
