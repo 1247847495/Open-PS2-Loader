@@ -152,10 +152,10 @@ void flushBatchRequests(void)
         // if (!texLoading)
         {
             texLoading = 1;
-            cacheLoadImage(NULL);
+            //cacheLoadImage(NULL);
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            //pthread_t tid;
-            //pthread_create(&tid, NULL, cacheLoadImage, NULL);
+            pthread_t tid;
+            pthread_create(&tid, NULL, cacheLoadImage, NULL);
             //pthread_detach(tid);
         }
         // else {
