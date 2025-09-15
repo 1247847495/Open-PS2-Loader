@@ -339,7 +339,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (entry->UID == *UID) {
             if (entry->qr) {
                 return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-            } else if (entry->texFound == 0) {
+            } else if (entry->lastUsed == 0) {
                 *cacheId = -2;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
