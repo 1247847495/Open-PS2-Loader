@@ -140,22 +140,23 @@ void flushBatchRequests(void)
 {
     // 有堆积的图片待加载
     if (batchRequestCount > 0) {
-        //// debug  打印debug信息
-        // char debugFileDir[64];
-        // strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
-        // FILE *debugFile = fopen(debugFileDir, "ab+");
-        // if (debugFile != NULL) {
-        //     fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d\r\n", batchRequestCount, guiFrameId);
-        //     fclose(debugFile);
-        // }
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
+            fclose(debugFile);
+        }
         //  保证只存在一个io请求，多了会产生冲突导致死机
         // if (!texLoading)
         {
             texLoading = 1;
+            cacheLoadImage(NULL);
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            pthread_t tid;
-            pthread_create(&tid, NULL, cacheLoadImage, NULL);
-            pthread_detach(tid);
+            //pthread_t tid;
+            //pthread_create(&tid, NULL, cacheLoadImage, NULL);
+            //pthread_detach(tid);
         }
         // else {
         //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
