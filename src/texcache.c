@@ -123,7 +123,6 @@ static void *cacheLoadImage(void *data)
         // texFree(texture);
 
         if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
-            req->entry->lastUsed = 0;
             req->entry->texFound = 0;
         }
         else {
