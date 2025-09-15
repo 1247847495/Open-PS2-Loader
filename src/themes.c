@@ -17,8 +17,6 @@
 extern const char conf_theme_OPL_cfg;
 extern u16 size_conf_theme_OPL_cfg;
 
-theme_t *gTheme;
-
 static int screenWidth;
 static int screenHeight;
 static int guiThemeID = 0;
