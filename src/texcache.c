@@ -142,7 +142,7 @@ static void *cacheLoadImage(void *data)
 void flushBatchRequests(void)
 {
     // 有堆积的图片待加载
-    if (batchRequestCount > 0 && !texLoading) {
+    if (batchRequestCount > 0) {
         // debug  打印debug信息
         char debugFileDir[64];
         strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
