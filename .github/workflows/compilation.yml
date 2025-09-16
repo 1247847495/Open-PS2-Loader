@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:65aabf98b95cccc36073d116534dbee69a40c304af5116b9c6891ffc36a9960a
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:3757390c07955f5e0b3a617474bf4a5ec20f7a818f9de425571762683a1cce0d
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
         igs: [IGS=0, IGS=1]
         t10k: [DTL_T10000=0, DTL_T10000=1]
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:65aabf98b95cccc36073d116534dbee69a40c304af5116b9c6891ffc36a9960a
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:3757390c07955f5e0b3a617474bf4a5ec20f7a818f9de425571762683a1cce0d
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -93,7 +93,7 @@ jobs:
 
   build-lang:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:65aabf98b95cccc36073d116534dbee69a40c304af5116b9c6891ffc36a9960a
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:3757390c07955f5e0b3a617474bf4a5ec20f7a818f9de425571762683a1cce0d
     steps:
     - name: git checkout
       uses: actions/checkout@v4
@@ -122,7 +122,7 @@ jobs:
       matrix:
         debug: [debug, iopcore_debug, ingame_debug, deci2_debug, eesio_debug]
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:65aabf98b95cccc36073d116534dbee69a40c304af5116b9c6891ffc36a9960a
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:3757390c07955f5e0b3a617474bf4a5ec20f7a818f9de425571762683a1cce0d
     steps:
     - name: git checkout
       uses: actions/checkout@v4
