@@ -428,14 +428,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             batchRequests[batchRequestCount++] = req;
         }
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
-        //  debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheDebugUID.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "UID:%d  nextUID:%d  cacheId:%d  %s_%s\r\n", *UID, cache->nextUID, *cacheId, value, cache->suffix);
-            fclose(debugFile);
-        }
+        //// debug  打印debug信息
+        //char debugFileDir[64];
+        //strcpy(debugFileDir, "smb:debug-TexCacheDebugUID.txt");
+        //FILE *debugFile = fopen(debugFileDir, "ab+");
+        //if (debugFile != NULL) {
+        //    fprintf(debugFile, "UID:%d  nextUID:%d  cacheId:%d  %s_%s\r\n", *UID, cache->nextUID, *cacheId, value, cache->suffix);
+        //    fclose(debugFile);
+        //}
     }
     return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 }
