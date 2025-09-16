@@ -296,10 +296,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         }
 
         // CD期间进入了自动连按状态，矫正一次Qr，结束cdFramesCount
-        if (padGetRepeating()) {
+        if (gScrollSpeed > 0 && padGetRepeating()) {
             findBGCount = 0;
             cdFramesCount = 0;
-            skipQr = gScrollSpeed > 0 ? padGetRepeating() : 0;
+            skipQr = 1;
         }
     }
 
