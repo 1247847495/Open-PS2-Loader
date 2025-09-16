@@ -159,8 +159,8 @@ void flushBatchRequests(void)
             // 线程分离，如果不需要pthread_join
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-            // 增大栈空间为16MB，防止爆栈
-            pthread_attr_setstacksize(&attr, 16 * 1024 * 1024);
+            // 设置合适的栈空间，防止爆栈等错误
+            pthread_attr_setstacksize(&attr, 16 * 1024);
 
             // 创建线程
             pthread_create(&tid, &attr, cacheLoadImage, NULL);
