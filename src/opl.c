@@ -1813,7 +1813,7 @@ static void setDefaults(void)
     gBaseMCDir = "mc?:OPL";
 
     bdmCacheSize = 0;
-    hddCacheSize = 0;
+    hddCacheSize = 8;
     smbCacheSize = 0;
 
     ps2_ip_use_dhcp = 1;
