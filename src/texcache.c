@@ -425,7 +425,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         strcpy(debugFileDir, "smb:debug-TexCacheDebugUID.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
-            fprintf(debugFile, "UID:%d  nextUID:%d  cacheId:%d  curStartUp_:%s_%s\r\n", *UID, nextUID, *cacheId, *value, cache->suffix);
+            fprintf(debugFile, "UID:%d  nextUID:%d  cacheId:%d  curStartUp_:%s_%s\r\n", *UID, cache->nextUID, *cacheId, *value, cache->suffix);
             fclose(debugFile);
         }
     }
