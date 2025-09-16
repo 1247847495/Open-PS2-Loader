@@ -83,17 +83,11 @@ static void *cacheLoadImage(void *data)
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
-        if (!req || !req->entry || !req->cache) {
-            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-            req->entry->qr = 0;
-            free(req);
-            batchRequests[i] = NULL; // 及时清理，避免野指针
+        if (!req || !req->entry || !req->cache)
             continue;
-        }
 
         item_list_t *handler = req->list;
         if (!handler) {
-            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -102,7 +96,8 @@ static void *cacheLoadImage(void *data)
 
         // the cache entry was already reused!
         if (req->cacheUID != req->entry->UID) {
-            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            req->cacheUID = -1;
+            req->entry->UID = -1;
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -112,8 +107,6 @@ static void *cacheLoadImage(void *data)
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount) {
-            // req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -158,9 +151,20 @@ void flushBatchRequests(void)
             texLoading = 1;
             //cacheLoadImage(NULL);
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+
             pthread_t tid;
-            pthread_create(&tid, NULL, cacheLoadImage, NULL);
-            pthread_detach(tid);
+            pthread_attr_t attr;
+            pthread_attr_init(&attr);
+
+            // 线程分离，如果不需要pthread_join
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            // 增大栈空间为16MB，防止爆栈
+            pthread_attr_setstacksize(&attr, 16 * 1024 * 1024);
+
+            // 创建线程
+            pthread_create(&tid, &attr, cacheLoadImage, NULL);
+            pthread_attr_destroy(&attr);
         }
         // else {
         //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
@@ -411,19 +415,18 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req->entry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-        if (*UID == -1) {
-            req->entry->UID = cache->nextUID;
-            req->cacheUID = cache->nextUID;
-            *UID = cache->nextUID++;
-        } else {
-            req->entry->UID = *UID;
-            req->cacheUID = *UID;
-        }
+        if (*UID == -1)
+            req->entry->UID = req->cacheUID = *UID = cache->nextUID++;
+        else
+            req->entry->UID = req->cacheUID = *UID;
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
-        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES)
+        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
+            if (batchRequests[batchRequestCount])
+                free(batchRequests[batchRequestCount])
             batchRequests[batchRequestCount++] = req;
+        }
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //  debug  打印debug信息
         char debugFileDir[64];
