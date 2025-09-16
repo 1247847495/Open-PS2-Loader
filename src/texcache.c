@@ -424,7 +424,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // artQrCount++;
         if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
             if (batchRequests[batchRequestCount])
-                free(batchRequests[batchRequestCount])
+                free(batchRequests[batchRequestCount]);
             batchRequests[batchRequestCount++] = req;
         }
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
