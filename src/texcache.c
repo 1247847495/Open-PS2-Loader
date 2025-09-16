@@ -69,7 +69,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 
     item->qr = 0;
     item->lastUsed = 0;
-    item->UID = 0;
+    item->UID = -1;
     item->texFound = -1;
 }
 
@@ -84,7 +84,7 @@ static void *cacheLoadImage(void *data)
 
         // Safeguards...
         if (!req || !req->entry || !req->cache) {
-            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -93,7 +93,7 @@ static void *cacheLoadImage(void *data)
 
         item_list_t *handler = req->list;
         if (!handler) {
-            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -102,7 +102,7 @@ static void *cacheLoadImage(void *data)
 
         // the cache entry was already reused!
         if (req->cacheUID != req->entry->UID) {
-            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -113,7 +113,7 @@ static void *cacheLoadImage(void *data)
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount) {
             // req->entry->lastUsed = guiFrameId; // 如果不想改变UID，就用这个来处理
-            req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
+            //req->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
@@ -406,14 +406,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req->entry = oldestEntry;
         req->list = list;
         req->value = value;
-        req->cacheUID = cache->nextUID;
 
         cacheClearItem(req->entry, 1);
         req->entry->qr = 1;
-        req->entry->UID = cache->nextUID;
-        req->entry->texFound = -1;
 
-        *UID = cache->nextUID++;
+        // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+        if (*UID == -1) {
+            req->entry->UID = cache->nextUID;
+            req->cacheUID = cache->nextUID;
+            *UID = cache->nextUID++;
+        } else {
+            req->entry->UID = *UID;
+            req->cacheUID = *UID;
+        }
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
