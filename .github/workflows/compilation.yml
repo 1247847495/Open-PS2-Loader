@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:f2973293d859216a2ff5265f3c6ccd3ec783529813be3ddeeda81f484ccfc45c
     steps:
     - name: Install dependencies
       run: |
@@ -60,7 +60,7 @@ jobs:
         igs: [IGS=0, IGS=1]
         t10k: [DTL_T10000=0, DTL_T10000=1]
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:f2973293d859216a2ff5265f3c6ccd3ec783529813be3ddeeda81f484ccfc45c
     steps:
     - name: Install dependencies
       run: apk add build-base git zip gawk python3 py3-pip bash
@@ -106,7 +106,7 @@ jobs:
 
   build-lang:
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:f2973293d859216a2ff5265f3c6ccd3ec783529813be3ddeeda81f484ccfc45c
     steps:
     - name: Install dependencies
       run: |
@@ -142,7 +142,7 @@ jobs:
       matrix:
         debug: [debug, iopcore_debug, ingame_debug, deci2_debug, eesio_debug]
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew@sha256:f2973293d859216a2ff5265f3c6ccd3ec783529813be3ddeeda81f484ccfc45c
     steps:
     - name: Install dependencies
       run: apk add build-base git zip gawk python3 py3-pip bash
