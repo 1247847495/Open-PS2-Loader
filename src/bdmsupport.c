@@ -477,13 +477,23 @@ static config_set_t *bdmGetConfig(int id)
     return sbPopulateConfig(&bdmGames[id], bdmPrefix, "/");
 }
 
-static int bdmGetImage(char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
+static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
+    if (!value)
+        return ERR_BAD_FILE;
+
     char path[256];
-    if (isRelative)
-        snprintf(path, sizeof(path), "%s%s/%s_%s", bdmPrefix, folder, value, suffix);
-    else
+    bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
+
+    if (isRelative) {
+        int len = strlen(value);
+        if (len >= 4 && (value[len - 1] == 'F' || value[len - 1] == 'f'))
+            snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+        else
+            snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
+    } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
+
     return texDiscoverLoad(resultTex, path, -1);
 }
 
