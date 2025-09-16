@@ -160,7 +160,7 @@ void flushBatchRequests(void)
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
             // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 64 * 1024);
+            pthread_attr_setstacksize(&attr, 256 * 1024);
 
             // 创建线程
             pthread_create(&tid, &attr, cacheLoadImage, NULL);
