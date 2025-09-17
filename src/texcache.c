@@ -40,7 +40,6 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
-static int ioPendingRequestCount = 0;
 FILE *debugFile = NULL;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
@@ -78,8 +77,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    ioPendingRequestCount = ioGetPendingRequestCount();
-
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     int count = batchRequestCount;
     batchRequestCount = 0;
@@ -157,12 +154,14 @@ void flushBatchRequests(void)
 
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+            if (debugFile != NULL) {
+                fprintf(debugFile, "进入ioPutRequest前已有的io请求数为：%d\r\n", ioGetPendingRequestCount());
+            }
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
             // debug  打印debug信息
             if (debugFile != NULL) {
                 if (ioHasPendingRequests())
                     fprintf(debugFile, "当前未执行完的io请求数量为：%d\r\n", ioGetPendingRequestCount());
-                fprintf(debugFile, "进入ioPutRequest时的请求数量为：%d\r\n\r\n", ioPendingRequestCount);
             }
 
             // 使用pthread的多线程方法
