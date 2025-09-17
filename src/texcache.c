@@ -150,21 +150,25 @@ void flushBatchRequests(void)
         {
             texLoading = 1;
             //cacheLoadImage(NULL);
+
+            // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+            ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
-            pthread_t tid;
-            pthread_attr_t attr;
-            pthread_attr_init(&attr);
+            // 使用pthread的多线程方法
+            //pthread_t tid;
+            //pthread_attr_t attr;
+            //pthread_attr_init(&attr);
 
-            // 线程分离，如果不需要pthread_join
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+            //// 线程分离，如果不需要pthread_join
+            //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-            // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 256 * 1024);
+            //// 设置合适的栈空间，防止爆栈等错误
+            //pthread_attr_setstacksize(&attr, 256 * 1024);
 
-            // 创建线程
-            pthread_create(&tid, &attr, cacheLoadImage, NULL);
-            pthread_attr_destroy(&attr);
+            //// 创建线程
+            //pthread_create(&tid, &attr, cacheLoadImage, NULL);
+            //pthread_attr_destroy(&attr);
         }
         // else {
         //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
