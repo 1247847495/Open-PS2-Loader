@@ -121,11 +121,13 @@ static void ioWorkerThread(void *arg)
 
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
-        WaitSema(gEndSemaId);
         while (1) {
+            WaitSema(gEndSemaId);
             // if term requested exit immediately from the loop
-            if (gIOTerminate)
+            if (gIOTerminate) {
+                SignalSema(gEndSemaId);
                 break;
+            }
 
             if (gReqList) {
                 // lock the queue tip as well now
@@ -136,11 +138,12 @@ static void ioWorkerThread(void *arg)
                 free(req);
                 if (!gReqList) {
                     gReqEnd = NULL;
+                    SignalSema(gEndSemaId);
                     break;
                 }
-            }           
+            }
+            SignalSema(gEndSemaId);
         }
-        SignalSema(gEndSemaId);
         SignalSema(gProcSemaId);
     }
 
