@@ -283,7 +283,7 @@ int ioPutRequest(int type, void *data)
     WakeupThread(gIOThreadId);
     // debug  打印debug信息
     struct io_request_t *tempReq = gReqList;
-    int index = 0;
+    index = 0;
     while (tempReq) {
         char debugFileDir[64];
         strcpy(debugFileDir, "smb:debug-ioPutRequestCount.txt");
