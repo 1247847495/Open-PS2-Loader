@@ -282,7 +282,7 @@ int ioPutRequest(int type, void *data)
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
     WakeupThread(gIOThreadId);
     // debug  打印debug信息
-    struct io_request_t *tempReq = gReqList;
+    tempReq = gReqList;
     index = 0;
     while (tempReq) {
         char debugFileDir[64];
