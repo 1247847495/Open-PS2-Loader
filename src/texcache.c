@@ -154,6 +154,16 @@ void flushBatchRequests(void)
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
+            // debug  打印debug信息
+            if (ioHasPendingRequests()) {
+                char debugFileDir[64];
+                strcpy(debugFileDir, "smb:debug-TexCachePendingRequests.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "有io请求在执行，数量为：%d\r\n", ioGetPendingRequestCount());
+                    fclose(debugFile);
+                }
+            }
 
             // 使用pthread的多线程方法
             //pthread_t tid;
@@ -240,16 +250,6 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
-    // debug  打印debug信息
-    if (ioHasPendingRequests()) {
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCachePendingRequests.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "有io请求在执行，数量为：%d\r\n", ioGetPendingRequestCount());
-            fclose(debugFile);
-        }
-    }
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
