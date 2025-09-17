@@ -116,8 +116,20 @@ static void ioWorkerThread(void *arg)
     while (!gIOTerminate) {
         SleepThread();
         // if term requested exit immediately from the loop
-        if (gIOTerminate)
+        if (gIOTerminate) {
+            // 提前退出时，清理所有线程，防止内存泄露
+            WaitSema(gEndSemaId);
+            struct io_request_t *req = gReqList;
+            gReqList = NULL;
+            gReqEnd = NULL;
+            SignalSema(gEndSemaId);
+            while (req) {
+                struct io_request_t *next = req->next;
+                free(req);
+                req = next;
+            }
             break;
+        }
 
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
