@@ -123,26 +123,22 @@ static void ioWorkerThread(void *arg)
         WaitSema(gProcSemaId);
         WaitSema(gEndSemaId);
         while (1) {
-            // lock the queue tip as well now
-            struct io_request_t *req = gReqList;
-            if (req) {
+            // if term requested exit immediately from the loop
+            if (gIOTerminate)
+                break;
+
+            if (gReqList) {
+                // lock the queue tip as well now
+                struct io_request_t *req = gReqList;
+                ioProcessRequest(req);
                 // can't be sure if the request was
                 gReqList = req->next;
-                if (!gReqList)
-                    gReqEnd = NULL;
-            }
-
-            if (!req)
-                break;
-
-            // if term requested exit immediately from the loop
-            if (gIOTerminate) {
                 free(req);
-                break;
-            }
-
-            ioProcessRequest(req);
-            free(req);
+                if (!gReqList) {
+                    gReqEnd = NULL;
+                    break;
+                }
+            }           
         }
         SignalSema(gEndSemaId);
         SignalSema(gProcSemaId);
