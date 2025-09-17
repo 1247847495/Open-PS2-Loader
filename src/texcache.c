@@ -161,8 +161,8 @@ void flushBatchRequests(void)
             // debug  打印debug信息
             if (ioHasPendingRequests()) {
                 if (debugFile != NULL) {
-                    fprintf(debugFile, "当前未执行完的io请求数量为：%d\r\n\r\n", ioGetPendingRequestCount());
-                    fprintf(debugFile, "进入ioPutRequest时的请求数量为：%d\r\n", ioPendingRequestCount);
+                    fprintf(debugFile, "当前未执行完的io请求数量为：%d\r\n", ioGetPendingRequestCount());
+                    fprintf(debugFile, "进入ioPutRequest时的请求数量为：%d\r\n\r\n", ioPendingRequestCount);
                     ioPendingRequestCount = 0;
                 }
             }
