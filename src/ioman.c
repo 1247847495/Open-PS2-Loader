@@ -115,35 +115,52 @@ static void ioWorkerThread(void *arg)
 {
     while (!gIOTerminate) {
         SleepThread();
+
         // if term requested exit immediately from the loop
         if (gIOTerminate)
             break;
 
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
-        while (1) {
+        if (gReqList) {
+            // debug  打印debug信息
+            struct io_request_t *tempReq = gReqList;
+            int index = 0;
+            while (tempReq) {
+                char debugFileDir[64];
+                strcpy(debugFileDir, "smb:debug-TexCacheioWorkerThread.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "ioWorkerThread遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
+                }
+                tempReq = tempReq->next;
+                if (!tempReq) {
+                    if (debugFile != NULL) {
+                        fprintf(debugFile, "\r\n");
+                        fclose(debugFile);
+                    }
+                }
+            }
+        }
+        while (gReqList) {
+            // if term requested exit immediately from the loop
+            if (gIOTerminate)
+                break;
+
+            struct io_request_t *req = gReqList;
+            ioProcessRequest(req);
+
             // lock the queue tip as well now
             WaitSema(gEndSemaId);
-            struct io_request_t *req = gReqList;
-            if (req) {
-                // can't be sure if the request was
-                gReqList = req->next;
-                if (!gReqList)
-                    gReqEnd = NULL;
-            }
-            SignalSema(gEndSemaId);
 
-            if (!req)
-                break;
-
-            // if term requested exit immediately from the loop
-            if (gIOTerminate) {
-                free(req);
-                break;
-            }
-
-            ioProcessRequest(req);
+            // can't be sure if the request was
+            gReqList = req->next;
             free(req);
+
+            if (!gReqList)
+                gReqEnd = NULL;
+
+            SignalSema(gEndSemaId);
         }
         SignalSema(gProcSemaId);
     }
@@ -293,14 +310,32 @@ int ioGetPendingRequestCount(void)
 {
     int count = 0;
 
-    WaitSema(gProcSemaId);
     struct io_request_t *req = gReqList;
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-ioGetPendingRequestCount.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    struct io_request_t *tempReq = gReqList;
+    int index = 0;
+    WaitSema(gProcSemaId);
+
     while (req) {
         count++;
         req = req->next;
     }
-
+    // debug  打印debug信息
+    while (tempReq) {
+        if (debugFile != NULL)
+            fprintf(debugFile, "GetPending遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
+        tempReq = tempReq->next;
+        if (!tempReq) {
+            if (debugFile != NULL)
+                fprintf(debugFile, "\r\n");
+        }
+    }
     SignalSema(gProcSemaId);
+    if (debugFile != NULL)
+        fclose(debugFile);
+
     return count;
 }
 
