@@ -108,7 +108,7 @@ static void cacheLoadImage(void *data)
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (cdFramesCount) {
+        if (cdFramesCount || forceSkipQr) {
             req->entry->qr = 0;
             free(req);
             batchRequests[i] = NULL; // 及时清理，避免野指针
