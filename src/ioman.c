@@ -320,7 +320,11 @@ int ioGetPendingRequestCount(void)
     int count = 0;
 
     struct io_request_t *req = gReqList;
-
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-ioGetPendingRequestCount.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    struct io_request_t *tempReq = gReqList;
+    int index = 0;
     WaitSema(gProcSemaId);
 
     while (req) {
@@ -328,24 +332,18 @@ int ioGetPendingRequestCount(void)
         req = req->next;
     }
     // debug  打印debug信息
-    struct io_request_t *tempReq = gReqList;
-    int index = 0;
     while (tempReq) {
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
+        if (debugFile != NULL)
             fprintf(debugFile, "GetPending遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
-        }
         tempReq = tempReq->next;
         if (!tempReq) {
-            if (debugFile != NULL) {
+            if (debugFile != NULL)
                 fprintf(debugFile, "\r\n");
-                fclose(debugFile);
-            }
         }
     }
     SignalSema(gProcSemaId);
+    if (debugFile != NULL)
+        fclose(debugFile);
 
     return count;
 }
