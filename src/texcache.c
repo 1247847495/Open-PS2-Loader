@@ -74,7 +74,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 }
 
 // Io handled action...
-static void *cacheLoadImage(void *data)
+static void cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     int count = batchRequestCount;
@@ -369,7 +369,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
                 return NULL;
-            } else if (entry->texFound == 1 && &entry->texture.Mem) {
+            } else if (entry->texFound == 1 && entry->texture.Mem) {
                 entry->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
