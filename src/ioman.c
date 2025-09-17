@@ -323,11 +323,9 @@ int ioGetPendingRequestCount(void)
 int ioHasPendingRequests(void)
 {
     int result;
-    WaitSema(gProcSemaId);
     WaitSema(gEndSemaId);
     result = (gReqList != NULL);
     SignalSema(gEndSemaId);
-    SignalSema(gProcSemaId);
     return result ? 1 : 0;
 }
 
