@@ -76,6 +76,16 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    // debug  打印debug信息
+    if (ioHasPendingRequests()) {
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCachePendingRequests.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "有io请求在执行，数量为：%d\r\n", ioGetPendingRequestCount());
+            fclose(debugFile);
+        }
+    }
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     int count = batchRequestCount;
     batchRequestCount = 0;
@@ -154,16 +164,6 @@ void flushBatchRequests(void)
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
-            // debug  打印debug信息
-            if (ioHasPendingRequests()) {
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-TexCachePendingRequests.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "有io请求在执行，数量为：%d\r\n", ioGetPendingRequestCount());
-                    fclose(debugFile);
-                }
-            }
 
             // 使用pthread的多线程方法
             //pthread_t tid;
