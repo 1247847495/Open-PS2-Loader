@@ -121,9 +121,9 @@ static void ioWorkerThread(void *arg)
 
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
+        WaitSema(gEndSemaId);
         while (1) {
             // lock the queue tip as well now
-            WaitSema(gEndSemaId);
             struct io_request_t *req = gReqList;
             if (req) {
                 // can't be sure if the request was
@@ -131,7 +131,6 @@ static void ioWorkerThread(void *arg)
                 if (!gReqList)
                     gReqEnd = NULL;
             }
-            SignalSema(gEndSemaId);
 
             if (!req)
                 break;
@@ -145,6 +144,7 @@ static void ioWorkerThread(void *arg)
             ioProcessRequest(req);
             free(req);
         }
+        SignalSema(gEndSemaId);
         SignalSema(gProcSemaId);
     }
 
