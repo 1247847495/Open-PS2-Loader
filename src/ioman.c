@@ -144,7 +144,23 @@ static void ioWorkerThread(void *arg)
         }
         SignalSema(gProcSemaId);
     }
-
+    // debug  打印debug信息
+    struct io_request_t *tempReq = gReqList;
+    while (tempReq) {
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "ioWorkerThread遍历gReqList时找到请求！类型为：%d\r\n", tempReq->type);
+        }
+        tempReq = tempReq->next;
+        if (!tempReq) {
+            if (debugFile != NULL) {
+                fprintf(debugFile, "\r\n");
+                fclose(debugFile);
+            }
+        }
+    }
     // delete the pending requests
     while (gReqList) {
         struct io_request_t *req = gReqList;
@@ -242,18 +258,24 @@ int ioPutRequest(int type, void *data)
     SignalSema(gEndSemaId);
 
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
-    if (GetThreadId() != gIOThreadId)
-        WakeupThread(gIOThreadId);
+    WakeupThread(gIOThreadId);
+
     // debug  打印debug信息
-    while (req) {
+    struct io_request_t *tempReq = gReqList;
+    while (tempReq) {
         char debugFileDir[64];
         strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
-            fprintf(debugFile, "遍历gReqList时找到请求！类型为：%d\r\n", req->type);
-            fclose(debugFile);
+            fprintf(debugFile, "ioPutRequest遍历gReqList时找到请求！类型为：%d\r\n", tempReq->type);
         }
-        req = req->next;
+        tempReq = tempReq->next;
+        if (!tempReq) {
+            if (debugFile != NULL) {
+                fprintf(debugFile, "\r\n");
+                fclose(debugFile);
+            }
+        }
     }
     return IO_OK;
 }
