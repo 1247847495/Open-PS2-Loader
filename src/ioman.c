@@ -204,14 +204,12 @@ void ioInit(void)
 int ioPutRequest(int type, void *data)
 {
     // debug  打印debug信息
-    if (type == IO_CACHE_LOAD_ART) {
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-TexCacheioPutRequest.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "进入ioPutRequest了！\r\n");
-            fclose(debugFile);
-        }
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-TexCacheioPutRequest.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "进入ioPutRequest了！类型为：%d\r\n", type);
+        fclose(debugFile);
     }
 
     if (isIOBlocked)
