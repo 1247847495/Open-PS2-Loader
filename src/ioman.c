@@ -209,7 +209,7 @@ int ioPutRequest(int type, void *data)
         strcpy(debugFileDir, "smb:debug-TexCacheioPutRequest.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
-            fprintf(debugFile, "进入ioPutRequest了！\r\n", );
+            fprintf(debugFile, "进入ioPutRequest了！\r\n");
             fclose(debugFile);
         }
     }
