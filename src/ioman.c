@@ -122,26 +122,26 @@ static void ioWorkerThread(void *arg)
 
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
-        if (gReqList) {
-            // debug  打印debug信息
-            struct io_request_t *tempReq = gReqList;
-            int index = 0;
-            while (tempReq) {
-                char debugFileDir[64];
-                strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "ioWorkerThread遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
-                }
-                tempReq = tempReq->next;
-                if (!tempReq) {
-                    if (debugFile != NULL) {
-                        fprintf(debugFile, "\r\n");
-                        fclose(debugFile);
-                    }
-                }
-            }
-        }
+        //if (gReqList) {
+        //    // debug  打印debug信息
+        //    struct io_request_t *tempReq = gReqList;
+        //    int index = 0;
+        //    while (tempReq) {
+        //        char debugFileDir[64];
+        //        strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
+        //        FILE *debugFile = fopen(debugFileDir, "ab+");
+        //        if (debugFile != NULL) {
+        //            fprintf(debugFile, "ioWorkerThread遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
+        //        }
+        //        tempReq = tempReq->next;
+        //        if (!tempReq) {
+        //            if (debugFile != NULL) {
+        //                fprintf(debugFile, "\r\n");
+        //                fclose(debugFile);
+        //            }
+        //        }
+        //    }
+        //}
         while (gReqList) {
             // if term requested exit immediately from the loop
             if (gIOTerminate)
