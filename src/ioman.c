@@ -224,8 +224,26 @@ void ioInit(void)
 int ioPutRequest(int type, void *data)
 {
     // debug  打印debug信息
+    struct io_request_t *tempReq = gReqList;
+    int index = 0;
+    while (tempReq) {
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-ioPutRequestCount.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "ioPutRequest开头遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
+        }
+        tempReq = tempReq->next;
+        if (!tempReq) {
+            if (debugFile != NULL) {
+                fprintf(debugFile, "\r\n");
+                fclose(debugFile);
+            }
+        }
+    }
+    // debug  打印debug信息
     char debugFileDir[64];
-    strcpy(debugFileDir, "smb:debug-TexCacheioPutRequest.txt");
+    strcpy(debugFileDir, "smb:debug-ioPutRequest.txt");
     FILE *debugFile = fopen(debugFileDir, "ab+");
     if (debugFile != NULL) {
         fprintf(debugFile, "进入ioPutRequest了！类型为：%d\r\n", type);
@@ -263,7 +281,24 @@ int ioPutRequest(int type, void *data)
 
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
     WakeupThread(gIOThreadId);
-
+    // debug  打印debug信息
+    struct io_request_t *tempReq = gReqList;
+    int index = 0;
+    while (tempReq) {
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-ioPutRequestCount.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "ioPutRequest结尾遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
+        }
+        tempReq = tempReq->next;
+        if (!tempReq) {
+            if (debugFile != NULL) {
+                fprintf(debugFile, "\r\n");
+                fclose(debugFile);
+            }
+        }
+    }
     return IO_OK;
 }
 
