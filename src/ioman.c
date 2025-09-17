@@ -332,11 +332,11 @@ int ioGetPendingRequestCount(void)
         req = req->next;
     }
     // debug  打印debug信息
-    while (tempReq) {
-        if (debugFile != NULL)
+    while (1) {
+        if (debugFile != NULL && tempReq)
             fprintf(debugFile, "GetPending遍历gReqList时找到请求！index:%d 类型为:%d\r\n", index++, tempReq->type);
         tempReq = tempReq->next;
-        if (!tempReq) {
+        if (index >= 10) {
             if (debugFile != NULL)
                 fprintf(debugFile, "\r\n");
         }
