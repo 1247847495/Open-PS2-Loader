@@ -159,12 +159,10 @@ void flushBatchRequests(void)
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
             // debug  打印debug信息
-            if (ioHasPendingRequests()) {
-                if (debugFile != NULL) {
+            if (debugFile != NULL) {
+                if (ioHasPendingRequests())
                     fprintf(debugFile, "当前未执行完的io请求数量为：%d\r\n", ioGetPendingRequestCount());
-                    fprintf(debugFile, "进入ioPutRequest时的请求数量为：%d\r\n\r\n", ioPendingRequestCount);
-                    ioPendingRequestCount = 0;
-                }
+                fprintf(debugFile, "进入ioPutRequest时的请求数量为：%d\r\n\r\n", ioPendingRequestCount);
             }
 
             // 使用pthread的多线程方法
