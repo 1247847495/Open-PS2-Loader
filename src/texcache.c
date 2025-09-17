@@ -130,7 +130,7 @@ static void cacheLoadImage(void *data)
         batchRequests[i] = NULL; // 及时清理，避免野指针
     }
     texLoading = 0;
-    return NULL;
+    //return NULL;
 }
 
 void flushBatchRequests(void)
