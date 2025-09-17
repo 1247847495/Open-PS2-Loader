@@ -293,9 +293,8 @@ int ioGetPendingRequestCount(void)
 {
     int count = 0;
 
-
-    struct io_request_t *req = gReqList;
     WaitSema(gProcSemaId);
+    struct io_request_t *req = gReqList;
     while (req) {
         count++;
         req = req->next;
