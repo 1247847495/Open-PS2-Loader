@@ -6,7 +6,7 @@
 #include "include/util.h"
 #include "include/renderman.h"
 #include "include/pad.h"
-#include <pthread.h>
+//#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
@@ -40,8 +40,6 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
-static int ioPendingRequestCount_be = -1;
-static int ioPendingRequestCount_af = -1;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
