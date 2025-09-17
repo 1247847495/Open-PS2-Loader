@@ -244,6 +244,17 @@ int ioPutRequest(int type, void *data)
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
     if (GetThreadId() != gIOThreadId)
         WakeupThread(gIOThreadId);
+    // debug  打印debug信息
+    while (req) {
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-TexCacheioRequestCount.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "遍历gReqList时找到请求！类型为：%d\r\n", req->type);
+            fclose(debugFile);
+        }
+        req = req->next;
+    }
     return IO_OK;
 }
 
