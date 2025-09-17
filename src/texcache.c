@@ -40,7 +40,8 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
-static int ioPendingRequestCount = -1;
+static int ioPendingRequestCount_be = -1;
+static int ioPendingRequestCount_af = -1;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -154,16 +155,15 @@ void flushBatchRequests(void)
 
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            ioPendingRequestCount = ioGetPendingRequestCount();
+            ioPendingRequestCount_be = ioGetPendingRequestCount();
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
+            ioPendingRequestCount_af = ioGetPendingRequestCount();
             // debug  打印debug信息
             char debugFileDir[64];
             strcpy(debugFileDir, "smb:debug-TexCachePendingRequests.txt");
             FILE *debugFile = fopen(debugFileDir, "ab+");
             if (debugFile != NULL) {
-                fprintf(debugFile, "进入ioPutRequest前已有的io请求数为：%d\r\n", ioPendingRequestCount);
-                if (ioHasPendingRequests())
-                    fprintf(debugFile, "当前未执行完的io请求数量为：%d\r\n", ioGetPendingRequestCount());
+                fprintf(debugFile, "进入ioPutRequest前已有的io请求数为：%d\r\n当前添加到队列的io请求数量为：%d\r\n\r\n", ioPendingRequestCount_be, ioPendingRequestCount_af);
                 fclose(debugFile);
             }
 
