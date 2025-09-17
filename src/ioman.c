@@ -122,27 +122,39 @@ static void ioWorkerThread(void *arg)
         // do we have a request in the queue?
         WaitSema(gProcSemaId);
         while (1) {
-            WaitSema(gEndSemaId);
             // if term requested exit immediately from the loop
             if (gIOTerminate) {
+                // 提前退出时，清理所有线程，防止内存泄露
+                WaitSema(gEndSemaId);
+                struct io_request_t *req = gReqList;
+                gReqList = NULL;
+                gReqEnd = NULL;
                 SignalSema(gEndSemaId);
+                while (req) {
+                    struct io_request_t *next = req->next;
+                    free(req);
+                    req = next;
+                }
                 break;
             }
 
-            if (gReqList) {
-                // lock the queue tip as well now
-                struct io_request_t *req = gReqList;
-                ioProcessRequest(req);
-                // can't be sure if the request was
+            // lock the queue tip as well now
+            WaitSema(gEndSemaId);
+
+            // can't be sure if the request was
+            struct io_request_t *req = gReqList;
+            if (req) {
                 gReqList = req->next;
-                free(req);
-                if (!gReqList) {
+                if (!gReqList)
                     gReqEnd = NULL;
-                    SignalSema(gEndSemaId);
-                    break;
-                }
             }
             SignalSema(gEndSemaId);
+
+            if (!req)
+                break;
+
+            ioProcessRequest(req);
+            free(req);
         }
         SignalSema(gProcSemaId);
     }
@@ -213,6 +225,11 @@ int ioPutRequest(int type, void *data)
         return IO_ERR_INVALID_HANDLER;
 
     WaitSema(gEndSemaId);
+    // ==== 在锁区内检查终止状态 ====
+    if (gIOTerminate) {
+        SignalSema(gEndSemaId);
+        return IO_ERR_IO_BLOCKED; // 自定义错误码
+    }
 
     // We don't have to lock the tip of the queue...
     // If it exists, it won't be touched, if it does not exist, it is not being processed
@@ -306,9 +323,11 @@ int ioGetPendingRequestCount(void)
 int ioHasPendingRequests(void)
 {
     int result;
+    WaitSema(gProcSemaId);
     WaitSema(gEndSemaId);
     result = (gReqList != NULL);
     SignalSema(gEndSemaId);
+    SignalSema(gProcSemaId);
     return result ? 1 : 0;
 }
 
