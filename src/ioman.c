@@ -306,7 +306,11 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    return gReqList != NULL ? 1 : 0;
+    int result;
+    WaitSema(gEndSemaId);
+    result = (gReqList != NULL);
+    SignalSema(gEndSemaId);
+    return result ? 1 : 0;
 }
 
 #ifdef __EESIO_DEBUG
