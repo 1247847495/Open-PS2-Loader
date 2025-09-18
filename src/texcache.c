@@ -76,54 +76,60 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    load_image_request_t *tempBatchRequests = (load_image_request_t *)data;
-    load_image_request_t *req = tempBatchRequests;
+    //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
+    int count = batchRequestCount;
+    batchRequestCount = 0;
+    for (int i = 0; i < count; i++) {
+        load_image_request_t *req = batchRequests[i];
 
-    // Safeguards...
-    if (!req || !req->entry || !req->cache)
-        continue;
+        // Safeguards...
+        if (!req || !req->entry || !req->cache)
+            continue;
 
-    item_list_t *handler = req->list;
-    if (!handler) {
+        item_list_t *handler = req->list;
+        if (!handler) {
+            req->entry->qr = 0;
+            free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
+            continue;
+        }
+
+        // the cache entry was already reused!
+        if (req->cacheUID != req->entry->UID) {
+            req->cacheUID = -1;
+            req->entry->UID = -1;
+            req->entry->qr = 0;
+            free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
+            continue;
+        }
+
+        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+        if (cdFramesCount || forceSkipQr) {
+            req->entry->qr = 0;
+            free(req);
+            batchRequests[i] = NULL; // 及时清理，避免野指针
+            continue;
+        }
+
+        //// seems okay. we can proceed
+        // GSTEXTURE *texture = &req->entry->texture;
+        // texFree(texture);
+
+        if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
+            req->entry->lastUsed = 0;
+            req->entry->texFound = 0;
+        }
+        else {
+            req->entry->lastUsed = guiFrameId;
+            req->entry->texFound = 1;
+        }
         req->entry->qr = 0;
         free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
+        batchRequests[i] = NULL; // 及时清理，避免野指针
     }
-
-    // the cache entry was already reused!
-    if (req->cacheUID != req->entry->UID) {
-        req->cacheUID = -1;
-        req->entry->UID = -1;
-        req->entry->qr = 0;
-        free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
-    }
-
-    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (cdFramesCount || forceSkipQr) {
-        req->entry->qr = 0;
-        free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
-    }
-
-    //// seems okay. we can proceed
-    // GSTEXTURE *texture = &req->entry->texture;
-    // texFree(texture);
-
-    if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
-        req->entry->lastUsed = 0;
-        req->entry->texFound = 0;
-    } else {
-        req->entry->lastUsed = guiFrameId;
-        req->entry->texFound = 1;
-    }
-    req->entry->qr = 0;
-    free(req);
-    tempBatchRequests = NULL; // 及时清理，避免野指针
+    texLoading = 0;
     //return NULL;
 }
 
