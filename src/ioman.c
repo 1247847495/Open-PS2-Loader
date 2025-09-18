@@ -58,17 +58,23 @@ int ioRegisterHandler(int type, io_request_handler_t handler)
 {
     WaitSema(gEndSemaId);
 
-    if (handler == NULL)
+    if (handler == NULL) {
+        SignalSema(gEndSemaId);
         return IO_ERR_INVALID_HANDLER;
+    }
 
-    if (gHandlerCount >= MAX_IO_HANDLERS)
+    if (gHandlerCount >= MAX_IO_HANDLERS) {
+        SignalSema(gEndSemaId);
         return IO_ERR_TOO_MANY_HANDLERS;
+    }
 
     int i;
 
     for (i = 0; i < gHandlerCount; ++i) {
-        if (gRequestHandlers[i].type == type)
+        if (gRequestHandlers[i].type == type) {
+            SignalSema(gEndSemaId);
             return IO_ERR_DUPLICIT_HANDLER;
+        }
     }
 
     gRequestHandlers[gHandlerCount].type = type;
@@ -113,38 +119,14 @@ static void ioWorkerThread(void *arg)
     while (!gIOTerminate) {
         SleepThread();
         // if term requested exit immediately from the loop
-        if (gIOTerminate) {
-            // 提前退出时，清理所有线程，防止内存泄露
-            WaitSema(gEndSemaId);
-            struct io_request_t *req = gReqList;
-            gReqList = NULL;
-            gReqEnd = NULL;
-            SignalSema(gEndSemaId);
-            while (req) {
-                struct io_request_t *next = req->next;
-                free(req);
-                req = next;
-            }
+        if (gIOTerminate)
             break;
-        }
 
         // do we have a request in the queue?
         while (1) {
             // if term requested exit immediately from the loop
-            if (gIOTerminate) {
-                // 提前退出时，清理所有线程，防止内存泄露
-                WaitSema(gEndSemaId);
-                struct io_request_t *req = gReqList;
-                gReqList = NULL;
-                gReqEnd = NULL;
-                SignalSema(gEndSemaId);
-                while (req) {
-                    struct io_request_t *next = req->next;
-                    free(req);
-                    req = next;
-                }
+            if (gIOTerminate)
                 break;
-            }
 
             // lock the queue tip as well now
             WaitSema(gEndSemaId);
@@ -166,15 +148,17 @@ static void ioWorkerThread(void *arg)
         }
     }
 
-    // delete the pending requests
-    while (gReqList) {
-        struct io_request_t *req = gReqList;
-        gReqList = gReqList->next;
+    WaitSema(gEndSemaId);
+    // 提前退出时，清理所有线程，防止内存泄露
+    struct io_request_t *req = gReqList;
+    gReqList = NULL;
+    gReqEnd = NULL;
+    while (req) {
+        struct io_request_t *next = req->next;
         free(req);
+        req = next;
     }
-
-    // delete the semaphores
-    DeleteSema(gEndSemaId);
+    SignalSema(gEndSemaId);
 
     isIORunning = 0;
 
@@ -191,6 +175,9 @@ static void ioSimpleActionHandler(void *data)
 
 void ioInit(void)
 {
+    if (isIORunning)
+        return; // 防止重复初始化
+
     gIOTerminate = 0;
     gHandlerCount = 0;
     gReqList = NULL;
@@ -238,26 +225,29 @@ int ioPutRequest(int type, void *data)
 
     // We don't have to lock the tip of the queue...
     // If it exists, it won't be touched, if it does not exist, it is not being processed
-    struct io_request_t *req = gReqEnd;
-
-    if (!req) {
-        gReqList = (struct io_request_t *)malloc(sizeof(struct io_request_t));
-        req = gReqList;
-        gReqEnd = gReqList;
-    } else {
-        req->next = (struct io_request_t *)malloc(sizeof(struct io_request_t));
-        req = req->next;
-        gReqEnd = req;
+    struct io_request_t *new_req = (struct io_request_t *)malloc(sizeof(struct io_request_t));
+    if (!new_req) {
+        SignalSema(gEndSemaId);
+        return IO_ERR_IO_BLOCKED; // 注意定义该错误码
     }
 
-    req->next = NULL;
-    req->type = type;
-    req->data = data;
+    new_req->next = NULL;
+    new_req->type = type;
+    new_req->data = data;
+
+    if (!gReqList) {
+        gReqList = new_req;
+        gReqEnd = new_req;
+    } else {
+        gReqEnd->next = new_req;
+        gReqEnd = new_req;
+    }
 
     SignalSema(gEndSemaId);
 
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
-    WakeupThread(gIOThreadId);
+    //if (GetThreadId() != gIOThreadId)
+        WakeupThread(gIOThreadId);
 
     return IO_OK;
 }
@@ -301,11 +291,15 @@ int ioRemoveRequests(int type)
 
 void ioEnd(void)
 {
-    // termination requested flag
     gIOTerminate = 1;
-
-    // wake up and wait for end
     WakeupThread(gIOThreadId);
+    // 等待worker线程彻底退出
+    while (isIORunning)
+        sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
+
+    // 此时信号量一定没人再用，可以销毁
+    DeleteSema(gEndSemaId);
+    DeleteSema(gIOPrintfSemaId);
 }
 
 int ioGetPendingRequestCount(void)
@@ -370,8 +364,8 @@ int ioBlockOps(int block)
         ChangeThreadPriority(ThreadID, 90);
 
         // wait for all io to finish
-        while (ioHasPendingRequests()) {
-        };
+        while (ioHasPendingRequests())
+            sleep(0);
 
         ChangeThreadPriority(ThreadID, status.current_priority);
 
