@@ -157,7 +157,7 @@ void flushBatchRequests(void)
 
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+            ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
             // 使用pthread的多线程方法
             //pthread_t tid;
