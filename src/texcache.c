@@ -76,19 +76,17 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    load_image_request_t *tempBatchRequests = (load_image_request_t *)data;
-    load_image_request_t *req = tempBatchRequests;
+    load_image_request_t *req = (load_image_request_t *)data;
 
     // Safeguards...
     if (!req || !req->entry || !req->cache)
-        continue;
+        return;
 
     item_list_t *handler = req->list;
     if (!handler) {
         req->entry->qr = 0;
         free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
+        return;
     }
 
     // the cache entry was already reused!
@@ -97,8 +95,7 @@ static void cacheLoadImage(void *data)
         req->entry->UID = -1;
         req->entry->qr = 0;
         free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
+        return;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
@@ -106,8 +103,7 @@ static void cacheLoadImage(void *data)
     if (cdFramesCount || forceSkipQr) {
         req->entry->qr = 0;
         free(req);
-        tempBatchRequests = NULL; // 及时清理，避免野指针
-        continue;
+        return;
     }
 
     //// seems okay. we can proceed
@@ -123,7 +119,6 @@ static void cacheLoadImage(void *data)
     }
     req->entry->qr = 0;
     free(req);
-    tempBatchRequests = NULL; // 及时清理，避免野指针
     //return NULL;
 }
 
