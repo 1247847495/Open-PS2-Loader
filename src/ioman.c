@@ -143,13 +143,14 @@ static void ioWorkerThread(void *arg)
         if (gIOTerminate)
             break;
 
-                    // lock the queue tip as well now
-        WaitSema(gEndSemaId);
         // do we have a request in the queue?
         while (1) {
             // if term requested exit immediately from the loop
             if (gIOTerminate)
                 break;
+
+            // lock the queue tip as well now
+            WaitSema(gEndSemaId);
 
             // can't be sure if the request was
             struct io_request_t *req = gReqList;
@@ -158,6 +159,7 @@ static void ioWorkerThread(void *arg)
                 if (!gReqList)
                     gReqEnd = NULL;
             }
+            SignalSema(gEndSemaId);
 
             if (!req) {
                 isIORunning = 0; // 执行完毕清零
@@ -168,7 +170,6 @@ static void ioWorkerThread(void *arg)
             ioProcessRequest(req);
             FreeIoRequest(req);
         }
-        SignalSema(gEndSemaId);
     }
 
     WaitSema(gEndSemaId);
