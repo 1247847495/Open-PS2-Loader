@@ -9,7 +9,7 @@
 #include <sio.h>
 #endif
 
-#define MAX_IO_REQUESTS 64
+#define MAX_IO_REQUESTS 16
 #define MAX_IO_HANDLERS 64
 
 extern void *_gp;
@@ -53,6 +53,27 @@ static ee_sema_t gQueueSema;
 
 static int isIOBlocked = 0;
 static int isIORunning = 0;
+
+// 静态池相关，防止内存碎片化导致死机
+static struct io_request_t gRequestPool[MAX_IO_REQUESTS];
+static int gRequestPoolInUse[MAX_IO_REQUESTS];
+static struct io_request_t *AllocIoRequest(void)
+{
+    for (int i = 0; i < MAX_IO_REQUESTS; ++i) {
+        if (!gRequestPoolInUse[i]) {
+            gRequestPoolInUse[i] = 1;
+            memset(&gRequestPool[i], 0, sizeof(struct io_request_t));
+            return &gRequestPool[i];
+        }
+    }
+    return NULL; // 池已满
+}
+static void FreeIoRequest(struct io_request_t *req)
+{
+    int idx = req - gRequestPool;
+    if (idx >= 0 && idx < MAX_IO_REQUESTS)
+        gRequestPoolInUse[idx] = 0;
+}
 
 int ioRegisterHandler(int type, io_request_handler_t handler)
 {
@@ -144,7 +165,7 @@ static void ioWorkerThread(void *arg)
                 break;
 
             ioProcessRequest(req);
-            free(req);
+            FreeIoRequest(req);
         }
     }
 
@@ -155,7 +176,7 @@ static void ioWorkerThread(void *arg)
     gReqEnd = NULL;
     while (req) {
         struct io_request_t *next = req->next;
-        free(req);
+        FreeIoRequest(req);
         req = next;
     }
     SignalSema(gEndSemaId);
@@ -177,6 +198,9 @@ void ioInit(void)
 {
     if (isIORunning)
         return; // 防止重复初始化
+
+    for (int i = 0; i < MAX_IO_REQUESTS; ++i)
+        gRequestPoolInUse[i] = 0;
 
     gIOTerminate = 0;
     gHandlerCount = 0;
@@ -225,7 +249,7 @@ int ioPutRequest(int type, void *data)
 
     // We don't have to lock the tip of the queue...
     // If it exists, it won't be touched, if it does not exist, it is not being processed
-    struct io_request_t *new_req = (struct io_request_t *)malloc(sizeof(struct io_request_t));
+    struct io_request_t *new_req = AllocIoRequest();
     if (!new_req) {
         SignalSema(gEndSemaId);
         return IO_ERR_IO_BLOCKED; // 注意定义该错误码
@@ -275,7 +299,7 @@ int ioRemoveRequests(int type)
                 gReqEnd = last;
 
             count++;
-            free(req);
+            FreeIoRequest(req);
 
             req = next;
         } else {
