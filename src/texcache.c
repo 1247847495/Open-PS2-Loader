@@ -319,7 +319,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceRefreshPrevTexCache++;
 
         // 重置上次的缓存ID
-        PrevCacheID = -2;
+        PrevCacheID_COV = PrevCacheID_ICO = PrevCacheID_BG = PrevCacheID = -2;
     } else {
         // 根据图像类型，赋值上一次的缓存
         if (!strncmp("COV", cache->suffix, 3))
