@@ -43,9 +43,6 @@ static int gHandlerCount;
 
 // id of the processing thread
 static s32 gIOThreadId;
-
-// lock for tip processing
-static s32 gProcSemaId;
 // lock for queue end
 static s32 gEndSemaId;
 // ioPrintf sema id
@@ -59,7 +56,7 @@ static int isIORunning = 0;
 
 int ioRegisterHandler(int type, io_request_handler_t handler)
 {
-    WaitSema(gProcSemaId);
+    WaitSema(gEndSemaId);
 
     if (handler == NULL)
         return IO_ERR_INVALID_HANDLER;
@@ -78,7 +75,7 @@ int ioRegisterHandler(int type, io_request_handler_t handler)
     gRequestHandlers[gHandlerCount].handler = handler;
     gHandlerCount++;
 
-    SignalSema(gProcSemaId);
+    SignalSema(gEndSemaId);
 
     return IO_OK;
 }
@@ -132,7 +129,6 @@ static void ioWorkerThread(void *arg)
         }
 
         // do we have a request in the queue?
-        WaitSema(gProcSemaId);
         while (1) {
             // if term requested exit immediately from the loop
             if (gIOTerminate) {
@@ -168,7 +164,6 @@ static void ioWorkerThread(void *arg)
             ioProcessRequest(req);
             free(req);
         }
-        SignalSema(gProcSemaId);
     }
 
     // delete the pending requests
@@ -179,7 +174,6 @@ static void ioWorkerThread(void *arg)
     }
 
     // delete the semaphores
-    DeleteSema(gProcSemaId);
     DeleteSema(gEndSemaId);
 
     isIORunning = 0;
@@ -208,7 +202,6 @@ void ioInit(void)
     gQueueSema.max_count = 1;
     gQueueSema.option = 0;
 
-    gProcSemaId = CreateSema(&gQueueSema);
     gEndSemaId = CreateSema(&gQueueSema);
     gIOPrintfSemaId = CreateSema(&gQueueSema);
 
@@ -272,7 +265,6 @@ int ioPutRequest(int type, void *data)
 int ioRemoveRequests(int type)
 {
     // lock the deletion sema and the queue end sema as well
-    WaitSema(gProcSemaId);
     WaitSema(gEndSemaId);
 
     int count = 0;
@@ -303,7 +295,6 @@ int ioRemoveRequests(int type)
     }
 
     SignalSema(gEndSemaId);
-    SignalSema(gProcSemaId);
 
     return count;
 }
@@ -321,14 +312,14 @@ int ioGetPendingRequestCount(void)
 {
     int count = 0;
 
-    WaitSema(gProcSemaId);
+    WaitSema(gEndSemaId);
     struct io_request_t *req = gReqList;
     while (req) {
         count++;
         req = req->next;
     }
 
-    SignalSema(gProcSemaId);
+    SignalSema(gEndSemaId);
     return count;
 }
 
