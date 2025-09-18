@@ -1440,7 +1440,7 @@ static int busyAlpha = 0x00; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
-    int pending = (ioHasPendingRequests());
+    int pending = (ioHasPendingRequests() || !mainScreenInitDone || texLoading);
 
     if (!pending) {
         // Fade out
