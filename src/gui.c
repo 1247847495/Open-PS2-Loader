@@ -1611,7 +1611,7 @@ void guiIntroLoop(void)
                 endIntro = 1;
         }
 
-        //guiDrawOverlays();
+        guiDrawOverlays();
 
         guiHandleDeferredOps();
 
@@ -1837,7 +1837,7 @@ void guiMainLoop(void)
             guiRenderGreeting(greetingAlpha);
 
         // Render overlaying gui thingies :)
-        //guiDrawOverlays();
+        guiDrawOverlays();
 
         if (gEnableNotifications)
             guiShowNotifications();
@@ -1987,7 +1987,7 @@ void guiRenderTextScreen(const char *message)
 
     fntRenderString(gTheme->fonts[0], screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, 0, 0, message, gTheme->textColor);
 
-    //guiDrawOverlays();
+    guiDrawOverlays();
 
     guiEndFrame();
 }
