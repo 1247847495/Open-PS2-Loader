@@ -10,8 +10,8 @@
 
 int ForceRefreshPrevTexCache = 0;
 int forceSkipQr = 0;
-int texLoading = 0;
 
+static volatile int texLoading = 0;
 static int PrevCacheID = -2;
 static int PrevCacheID_COV = -2;
 static int PrevCacheID_ICO = -2;

@@ -14,7 +14,7 @@
 
 extern void *_gp;
 
-static int gIOTerminate = 0;
+static volatile int gIOTerminate = 0;
 
 #define THREAD_STACK_SIZE (1024 * 1024)
 
@@ -52,7 +52,7 @@ static ee_thread_t gIOThread;
 static ee_sema_t gQueueSema;
 
 static int isIOBlocked = 0;
-static int isIORunning = 0;
+static volatile int isIORunning = 0;
 
 // 静态池相关，防止内存碎片化导致死机
 static struct io_request_t gRequestPool[MAX_IO_REQUESTS];
@@ -161,9 +161,12 @@ static void ioWorkerThread(void *arg)
             }
             SignalSema(gEndSemaId);
 
-            if (!req)
+            if (!req) {
+                isIORunning = 0; // 执行完毕清零
                 break;
+            }
 
+            isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
             FreeIoRequest(req);
         }
@@ -343,11 +346,7 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    int result;
-    WaitSema(gEndSemaId);
-    result = (gReqList != NULL);
-    SignalSema(gEndSemaId);
-    return result ? 1 : 0;
+    return isIORunning;
 }
 
 #ifdef __EESIO_DEBUG
