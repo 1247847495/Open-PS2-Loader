@@ -138,7 +138,7 @@ void flushBatchRequests(void)
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if (ForceRefreshPrevTexCache > 1)
         ForceRefreshPrevTexCache = 0;
-
+    return;
     // 有堆积的图片待加载
     if (batchRequestCount > 0 && !texLoading) {
         //// debug  打印debug信息
@@ -429,7 +429,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 free(batchRequests[batchRequestCount]);
             batchRequests[batchRequestCount++] = req;
         }
-        //ioPutRequest(IO_CACHE_LOAD_ART, req);
+        ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
         //strcpy(debugFileDir, "smb:debug-TexCacheDebugUID.txt");
