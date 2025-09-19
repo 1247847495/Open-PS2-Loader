@@ -167,8 +167,10 @@ void flushBatchRequests(void)
 void cacheInit()
 {
     // 初始化静态池
-    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++)
+    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
+        memset(batchRequests[i], 0, sizeof(load_image_request_t)); // 保证清理干净
         batchRequests[i] = NULL;
+    }
 
     ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
@@ -355,7 +357,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || texLoading)
+    if (skipQr || texLoading || batchRequestCount >= MENU_MIN_INACTIVE_FRAMES)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
@@ -375,12 +377,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        load_image_request_t *req = NULL;
-        if (!batchRequests[batchRequestCount]) {
+        load_image_request_t *req = batchRequests[batchRequestCount];
+        if (!req) {
             req = malloc(sizeof(load_image_request_t));
-            batchRequests[batchRequestCount++] = req;
-        } else
-            req = batchRequests[batchRequestCount++];
+            batchRequests[batchRequestCount] = req;
+        }
+        memset(req, 0, sizeof(load_image_request_t)); // 保证清理干净
+        batchRequestCount++;
 
         req->cache = cache;
         req->entry = oldestEntry;
