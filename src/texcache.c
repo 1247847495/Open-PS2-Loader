@@ -175,6 +175,7 @@ void cacheInit()
 
 void cacheEnd()
 {
+    return;
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     // 清理静态池
     for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
