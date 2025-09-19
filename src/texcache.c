@@ -40,6 +40,7 @@ typedef struct
 
 static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
+static int ioRequestCount = 0;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -77,9 +78,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
-    int count = batchRequestCount;
-    batchRequestCount = 0;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < ioRequestCount; i++) {
         load_image_request_t *req = batchRequests[i];
 
         // Safeguards...
@@ -89,8 +88,6 @@ static void cacheLoadImage(void *data)
         item_list_t *handler = req->list;
         if (!handler) {
             req->entry->qr = 0;
-            free(req);
-            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -99,8 +96,6 @@ static void cacheLoadImage(void *data)
             req->cacheUID = -1;
             req->entry->UID = -1;
             req->entry->qr = 0;
-            free(req);
-            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -108,8 +103,6 @@ static void cacheLoadImage(void *data)
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount || forceSkipQr) {
             req->entry->qr = 0;
-            free(req);
-            batchRequests[i] = NULL; // 及时清理，避免野指针
             continue;
         }
 
@@ -126,8 +119,6 @@ static void cacheLoadImage(void *data)
             req->entry->texFound = 1;
         }
         req->entry->qr = 0;
-        free(req);
-        batchRequests[i] = NULL; // 及时清理，避免野指针
     }
     texLoading = 0;
     //return NULL;
@@ -157,6 +148,8 @@ void flushBatchRequests(void)
 
             // 使用官方的多线程方法 
             // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
+            ioRequestCount = batchRequestCount;
+            batchRequestCount = 0;
             ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
             // 使用pthread的多线程方法
@@ -407,7 +400,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        load_image_request_t *req = malloc(sizeof(load_image_request_t));
+        load_image_request_t *req = NULL;
+        if (!batchRequests[batchRequestCount]) {
+            req = malloc(sizeof(load_image_request_t));
+            batchRequests[batchRequestCount++] = req;
+        } else
+            req = batchRequests[batchRequestCount++];
+
         req->cache = cache;
         req->entry = oldestEntry;
         req->list = list;
@@ -424,11 +423,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
-        if (batchRequestCount < MENU_MIN_INACTIVE_FRAMES) {
-            if (batchRequests[batchRequestCount])
-                free(batchRequests[batchRequestCount]);
-            batchRequests[batchRequestCount++] = req;
-        }
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
         //// debug  打印debug信息
         //char debugFileDir[64];
