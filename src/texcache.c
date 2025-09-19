@@ -140,49 +140,27 @@ void flushBatchRequests(void)
         //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
         //    fclose(debugFile);
         //}
-        //  保证只存在一个io请求，多了会产生冲突导致死机
-        // if (!texLoading)
-        {
-            texLoading = 1;
-            //cacheLoadImage(NULL);
 
-            // 使用官方的多线程方法 
-            // ioPutRequest(IO_CACHE_LOAD_ART, batchRequests);
-            ioRequestCount = batchRequestCount;
-            batchRequestCount = 0;
-            ioPutRequest(IO_CACHE_LOAD_ART, NULL);
+        //  使用官方的多线程方法
+        ioRequestCount = batchRequestCount;
+        batchRequestCount = 0;
+        texLoading = 1;
+        ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
-            // 使用pthread的多线程方法
-            //pthread_t tid;
-            //pthread_attr_t attr;
-            //pthread_attr_init(&attr);
+        // 使用pthread的多线程方法
+        // pthread_t tid;
+        // pthread_attr_t attr;
+        // pthread_attr_init(&attr);
 
-            //// 线程分离，如果不需要pthread_join
-            //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        //// 线程分离，如果不需要pthread_join
+        // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-            //// 设置合适的栈空间，防止爆栈等错误
-            //pthread_attr_setstacksize(&attr, 256 * 1024);
+        //// 设置合适的栈空间，防止爆栈等错误
+        // pthread_attr_setstacksize(&attr, 256 * 1024);
 
-            //// 创建线程
-            //pthread_create(&tid, &attr, cacheLoadImage, NULL);
-            //pthread_attr_destroy(&attr);
-        }
-        // else {
-        //     // 如果执行过程中突然又来一个io，就立刻中断io，清空堆积的请求
-        //     for (int i = 0; i < batchRequestCount; i++) {
-        //         if (batchRequests[i]) {
-        //             batchRequests[i]->entry->UID = 0; // 也许这个不还原成0是最好的，让每个startup对应正确的UID，但这样最简单
-        //             batchRequests[i]->entry->qr = NULL;
-        //             free(batchRequests[i]);
-        //             batchRequests[i] = NULL; // 可选，防止野指针
-        //         }
-        //     }
-        //     batchRequestCount = 0;
-
-        //    // 满足特定条件，触发连按CD
-        //    if (!padGetRepeating() && !ForceRefreshPrevTexCache)
-        //        cdFramesCount = 1; // 触发连按CD
-        //}
+        //// 创建线程
+        // pthread_create(&tid, &attr, cacheLoadImage, NULL);
+        // pthread_attr_destroy(&attr);
     }
 }
 
@@ -371,20 +349,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
                 return &entry->texture;
-                //else {
-                //    if (!skipQr) {
-                //        load_image_request_t *req = malloc(sizeof(load_image_request_t) + strlen(value) + 1);
-                //        req->cache = cache;
-                //        req->entry = entry;
-                //        req->list = list;
-                //        req->value = (char *)req + sizeof(load_image_request_t);
-                //        strcpy(req->value, value);
-                //        req->cacheUID = *UID;
-                //        req->entry->qr = req;
-                //        ioPutRequest(IO_CACHE_LOAD_ART, req);
-                //        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-                //    }
-                //}
             }
         }
 
