@@ -188,12 +188,23 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
+    // 初始化静态池
+    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++)
+        batchRequests[i] = NULL;
+
     ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
 
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
+    // 清理静态池
+    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
+        if (batchRequests[i]) {
+            free(batchRequests[i]);
+            batchRequests[i] = NULL;
+        }
+    }
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)

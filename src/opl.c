@@ -1774,6 +1774,7 @@ void deinit(int exception, int modeSelected)
     audioEnd();
     ioEnd();
     guiEnd();
+    cacheEnd();
     menuEnd();
     lngEnd();
     thmEnd();
