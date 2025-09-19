@@ -149,25 +149,26 @@ static void ioWorkerThread(void *arg)
             if (gIOTerminate)
                 break;
 
-            // lock the queue tip as well now
+            // 队列取头节点，注意：此时队列仍然持有
             WaitSema(gEndSemaId);
-
-            // can't be sure if the request was
             struct io_request_t *req = gReqList;
-            if (req) {
+            SignalSema(gEndSemaId);
+
+            if (!req)
+                break;
+
+            ioProcessRequest(req);
+
+            // 处理完再出队和释放
+            WaitSema(gEndSemaId);
+            // 确保此时 gReqList 仍然是 req，否则队列已被其他线程操作
+            if (gReqList == req) {
                 gReqList = req->next;
                 if (!gReqList)
                     gReqEnd = NULL;
             }
             SignalSema(gEndSemaId);
 
-            if (!req) {
-                isIORunning = 0; // 执行完毕清零
-                break;
-            }
-
-            isIORunning = 1; // 标记“正在执行”
-            ioProcessRequest(req);
             FreeIoRequest(req);
         }
     }
@@ -346,7 +347,11 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    return isIORunning;
+    int result = 0;
+    WaitSema(gEndSemaId);
+    result = gReqList != NULL;
+    SignalSema(gEndSemaId);
+    return result;
 }
 
 #ifdef __EESIO_DEBUG
