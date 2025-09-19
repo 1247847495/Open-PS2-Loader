@@ -178,10 +178,8 @@ void cacheEnd()
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     // 清理静态池
     for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
-        if (batchRequests[i]) {
+        if (batchRequests[i])
             free(batchRequests[i]);
-            batchRequests[i] = NULL;
-        }
     }
 }
 
