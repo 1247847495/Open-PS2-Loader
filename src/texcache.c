@@ -167,10 +167,8 @@ void flushBatchRequests(void)
 void cacheInit()
 {
     // 初始化静态池
-    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
-        memset(batchRequests[i], 0, sizeof(load_image_request_t)); // 保证清理干净
+    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++)
         batchRequests[i] = NULL;
-    }
 
     ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
