@@ -154,9 +154,12 @@ static void ioWorkerThread(void *arg)
             struct io_request_t *req = gReqList;
             SignalSema(gEndSemaId);
 
-            if (!req)
+            if (!req) {
+                isIORunning = 0; // 执行完毕清零
                 break;
+            }
 
+            isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
 
             // 处理完再出队和释放
@@ -347,11 +350,7 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    int result = 0;
-    WaitSema(gEndSemaId);
-    result = gReqList != NULL;
-    SignalSema(gEndSemaId);
-    return result;
+    return isIORunning;
 }
 
 #ifdef __EESIO_DEBUG
