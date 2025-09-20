@@ -38,7 +38,7 @@ typedef struct
     char *value;
 } load_image_request_t;
 
-static load_image_request_t *batchRequests[MENU_MIN_INACTIVE_FRAMES];
+static load_image_request_t batchRequests[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
 
@@ -79,46 +79,44 @@ static void cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
-        load_image_request_t *req = batchRequests[i];
-
         // Safeguards...
-        if (!req || !req->entry || !req->cache)
+        if (!batchRequests[i].entry || !batchRequests[i].cache)
             continue;
 
-        item_list_t *handler = req->list;
+        item_list_t *handler = batchRequests[i].list;
         if (!handler) {
-            req->entry->qr = 0;
+            batchRequests[i].entry->qr = 0;
             continue;
         }
 
         // the cache entry was already reused!
-        if (req->cacheUID != req->entry->UID) {
-            req->cacheUID = -1;
-            req->entry->UID = -1;
-            req->entry->qr = 0;
+        if (batchRequests[i].cacheUID != batchRequests[i].entry->UID) {
+            batchRequests[i].cacheUID = -1;
+            batchRequests[i].entry->UID = -1;
+            batchRequests[i].entry->qr = 0;
             continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount || forceSkipQr) {
-            req->entry->qr = 0;
+            batchRequests[i].entry->qr = 0;
             continue;
         }
 
         //// seems okay. we can proceed
-        // GSTEXTURE *texture = &req->entry->texture;
+        // GSTEXTURE *texture = &batchRequests[i].entry->texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, req->cache->prefix, req->cache->isPrefixRelative, req->value, req->cache->suffix, &req->entry->texture, GS_PSM_CT24) < 0) {
-            req->entry->lastUsed = 0;
-            req->entry->texFound = 0;
+        if (handler->itemGetImage(handler, batchRequests[i].cache->prefix, batchRequests[i].cache->isPrefixRelative, batchRequests[i].value, batchRequests[i].cache->suffix, &batchRequests[i].entry->texture, GS_PSM_CT24) < 0) {
+            batchRequests[i].entry->lastUsed = 0;
+            batchRequests[i].entry->texFound = 0;
         }
         else {
-            req->entry->lastUsed = guiFrameId;
-            req->entry->texFound = 1;
+            batchRequests[i].entry->lastUsed = guiFrameId;
+            batchRequests[i].entry->texFound = 1;
         }
-        req->entry->qr = 0;
+        batchRequests[i].entry->qr = 0;
     }
     texLoading = 0;
     //return NULL;
@@ -166,22 +164,12 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    // 初始化静态池
-    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++)
-        batchRequests[i] = NULL;
-
     ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
 
 void cacheEnd()
 {
-    return;
     // nothing to do... others have to destroy the cache via cacheDestroyCache
-    // 清理静态池
-    for (int i = 0; i < MENU_MIN_INACTIVE_FRAMES; i++) {
-        if (batchRequests[i])
-            free(batchRequests[i]);
-    }
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
@@ -374,27 +362,22 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        load_image_request_t *req = batchRequests[batchRequestCount];
-        if (!req) {
-            req = malloc(sizeof(load_image_request_t));
-            batchRequests[batchRequestCount] = req;
-        }
-        memset(req, 0, sizeof(load_image_request_t)); // 保证清理干净
-        batchRequestCount++;
+        memset(batchRequests[batchRequestCount], 0, sizeof(load_image_request_t)); // 保证清理干净
+        batchRequests[batchRequestCount].cache = cache;
+        batchRequests[batchRequestCount].entry = oldestEntry;
+        batchRequests[batchRequestCount].list = list;
+        batchRequests[batchRequestCount].value = value;
 
-        req->cache = cache;
-        req->entry = oldestEntry;
-        req->list = list;
-        req->value = value;
-
-        cacheClearItem(req->entry, 1);
-        req->entry->qr = 1;
+        cacheClearItem(batchRequests[batchRequestCount].entry, 1);
+        batchRequests[batchRequestCount].entry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
         if (*UID == -1)
-            req->entry->UID = req->cacheUID = *UID = cache->nextUID++;
+            batchRequests[batchRequestCount].entry->UID = batchRequests[batchRequestCount].cacheUID = *UID = cache->nextUID++;
         else
-            req->entry->UID = req->cacheUID = *UID;
+            batchRequests[batchRequestCount].entry->UID = batchRequests[batchRequestCount].cacheUID = *UID;
+
+        batchRequestCount++;
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
