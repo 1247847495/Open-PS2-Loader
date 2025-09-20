@@ -127,12 +127,10 @@ static void ioProcessRequest(struct io_request_t *req)
         return;
 
     io_request_handler_t hlr = ioGetHandler(req->type);
-
-    //// invalidate the request
-    //void *data = req->data;
-
-    //if (hlr)
-    //    hlr(data);
+    if (req->data) {
+        if (hlr)
+            hlr(req->data);
+    }
 }
 
 static void ioWorkerThread(void *arg)
