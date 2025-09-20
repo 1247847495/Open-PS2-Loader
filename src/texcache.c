@@ -92,7 +92,7 @@ static void cacheLoadImage(void *data)
         // GSTEXTURE *texture = &caches[i]->content->texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, batchRequests[i].value, caches[i]->suffix, &caches[i]->content->texture, GS_PSM_CT24) < 0) {
+        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content->texture, GS_PSM_CT24) < 0) {
             caches[i]->content->lastUsed = 0;
             caches[i]->content->texFound = 0;
         }
