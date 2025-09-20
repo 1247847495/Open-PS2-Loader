@@ -61,7 +61,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     //  Do not load the texture to VRAM directly, only load it to EE RAM
     item->texture.Delayed = 1;
 
-    item->qr = 0;
     item->lastUsed = 0;
     item->UID = -1;
     item->texFound = -1;
@@ -77,17 +76,13 @@ static void cacheLoadImage(void *data)
             continue;
 
         item_list_t *handler = lists[i];
-        if (!handler) {
-            caches[i]->content[cacheIds[i]].qr = 0;
+        if (!handler)
             continue;
-        }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (cdFramesCount || forceSkipQr) {
-            caches[i]->content[cacheIds[i]].qr = 0;
+        if (cdFramesCount || forceSkipQr)
             continue;
-        }
 
         //// seems okay. we can proceed
         // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
@@ -101,7 +96,6 @@ static void cacheLoadImage(void *data)
             caches[i]->content[cacheIds[i]].lastUsed = guiFrameId;
             caches[i]->content[cacheIds[i]].texFound = 1;
         }
-        caches[i]->content[cacheIds[i]].qr = 0;
     }
     texLoading = 0;
     //return NULL;
@@ -299,7 +293,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry->UID == *UID) {
-            if (entry->qr) {
+            if (entry->texFound == -1) {
                 return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
             } else if (entry->texFound == 0) {
                 *cacheId = -2;
@@ -338,7 +332,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     for (i = 0; i < cache->count; i++) {
         currEntry = &cache->content[i];
         // 可用槽，但需保护正在使用的
-        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+        if ((currEntry->lastUsed < rtime) &&
             !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
@@ -353,7 +347,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         values[batchRequestCount] = value;
 
         cacheClearItem(oldestEntry, 1);
-        oldestEntry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
         if (*UID == -1)
