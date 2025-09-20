@@ -9,7 +9,7 @@
 //#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
-int forceSkipQr = 0;
+volatile int forceSkipQr = 0;
 
 static int PrevCacheID = -2;
 static int PrevCacheID_COV = -2;
@@ -20,8 +20,8 @@ static int PrevCacheID_BG = -2;
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
 static int buttonPressedOnce = 0;  // 快速连按时，每次按键只重置CD帧数一次
 static int cdFrames = 30;         // 一轮Art图Qr后的CD时间(帧数)
-static volatile int cdFramesCount; // 手动重复按键
-static volatile int skipQr = 0;    // 判断是否可以跳过请求Qr队列
+static int skipQr = 0;             // 判断是否可以跳过请求Qr队列
+static volatile int cdFramesCount = 0; // 手动重复按键
 static volatile int texLoading = 0;
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 //static u64 prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
