@@ -29,6 +29,7 @@ static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
 static item_list_t *lists[MENU_MIN_INACTIVE_FRAMES];
+static cache_entry_t *entries[MENU_MIN_INACTIVE_FRAMES];
 static image_cache_t *caches[MENU_MIN_INACTIVE_FRAMES];
 static char *values[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
@@ -72,35 +73,35 @@ static void cacheLoadImage(void *data)
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         // Safeguards...
-        if (!caches[i] || !caches[i]->content)
+        if (!caches[i] || !entries[i])
             continue;
 
         item_list_t *handler = lists[i];
         if (!handler) {
-            caches[i]->content->qr = 0;
+            entries[i]->qr = 0;
             continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount || forceSkipQr) {
-            caches[i]->content->qr = 0;
+            entries[i]->qr = 0;
             continue;
         }
 
         //// seems okay. we can proceed
-        // GSTEXTURE *texture = &caches[i]->content->texture;
+        // GSTEXTURE *texture = &entries[i]->texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content->texture, GS_PSM_CT24) < 0) {
-            caches[i]->content->lastUsed = 0;
-            caches[i]->content->texFound = 0;
+        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &entries[i]->texture, GS_PSM_CT24) < 0) {
+            entries[i]->lastUsed = 0;
+            entries[i]->texFound = 0;
         }
         else {
-            caches[i]->content->lastUsed = guiFrameId;
-            caches[i]->content->texFound = 1;
+            entries[i]->lastUsed = guiFrameId;
+            entries[i]->texFound = 1;
         }
-        caches[i]->content->qr = 0;
+        entries[i]->qr = 0;
     }
     texLoading = 0;
     //return NULL;
@@ -347,7 +348,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     if (oldestEntry) {
         caches[batchRequestCount] = cache;
-        caches[batchRequestCount]->content = oldestEntry;
+        entries[batchRequestCount] = oldestEntry;
         lists[batchRequestCount] = list;
         values[batchRequestCount] = value;
 
