@@ -69,19 +69,26 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+    if (cdFramesCount || forceSkipQr) {
+        texLoading = 0;
+        return;
+    }
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
+        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+        if (cdFramesCount || forceSkipQr) {
+            texLoading = 0;
+            return;
+        }
+
         // Safeguards...
         if (!caches[i] || !caches[i]->content)
             continue;
 
         item_list_t *handler = lists[i];
         if (!handler)
-            continue;
-
-        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (cdFramesCount || forceSkipQr)
             continue;
 
         //// seems okay. we can proceed
