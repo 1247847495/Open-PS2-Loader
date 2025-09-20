@@ -28,17 +28,9 @@ static volatile int texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
-typedef struct
-{
-    image_cache_t *cache;
-    cache_entry_t *entry;
-    item_list_t *list;
-    // only for comparison if the deferred action is still valid
-    int cacheUID;
-    char *value;
-} load_image_request_t;
-
-static load_image_request_t batchRequests[MENU_MIN_INACTIVE_FRAMES];
+static item_list_t *lists[MENU_MIN_INACTIVE_FRAMES];
+static image_cache_t *caches[MENU_MIN_INACTIVE_FRAMES];
+static char *values[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
 
@@ -80,43 +72,35 @@ static void cacheLoadImage(void *data)
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         // Safeguards...
-        if (!batchRequests[i].entry || !batchRequests[i].cache)
+        if (!caches[i] || !caches[i]->content)
             continue;
 
-        item_list_t *handler = batchRequests[i].list;
+        item_list_t *handler = lists[i];
         if (!handler) {
-            batchRequests[i].entry->qr = 0;
-            continue;
-        }
-
-        // the cache entry was already reused!
-        if (batchRequests[i].cacheUID != batchRequests[i].entry->UID) {
-            batchRequests[i].cacheUID = -1;
-            batchRequests[i].entry->UID = -1;
-            batchRequests[i].entry->qr = 0;
+            caches[i]->content->qr = 0;
             continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount || forceSkipQr) {
-            batchRequests[i].entry->qr = 0;
+            caches[i]->content->qr = 0;
             continue;
         }
 
         //// seems okay. we can proceed
-        // GSTEXTURE *texture = &batchRequests[i].entry->texture;
+        // GSTEXTURE *texture = &caches[i]->content->texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, batchRequests[i].cache->prefix, batchRequests[i].cache->isPrefixRelative, batchRequests[i].value, batchRequests[i].cache->suffix, &batchRequests[i].entry->texture, GS_PSM_CT24) < 0) {
-            batchRequests[i].entry->lastUsed = 0;
-            batchRequests[i].entry->texFound = 0;
+        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, batchRequests[i].value, caches[i]->suffix, &caches[i]->content->texture, GS_PSM_CT24) < 0) {
+            caches[i]->content->lastUsed = 0;
+            caches[i]->content->texFound = 0;
         }
         else {
-            batchRequests[i].entry->lastUsed = guiFrameId;
-            batchRequests[i].entry->texFound = 1;
+            caches[i]->content->lastUsed = guiFrameId;
+            caches[i]->content->texFound = 1;
         }
-        batchRequests[i].entry->qr = 0;
+        caches[i]->content->qr = 0;
     }
     texLoading = 0;
     //return NULL;
@@ -362,20 +346,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        memset(&batchRequests[batchRequestCount], 0, sizeof(load_image_request_t)); // 保证清理干净
-        batchRequests[batchRequestCount].cache = cache;
-        batchRequests[batchRequestCount].entry = oldestEntry;
-        batchRequests[batchRequestCount].list = list;
-        batchRequests[batchRequestCount].value = value;
+        caches[batchRequestCount] = cache;
+        caches[batchRequestCount]->content = oldestEntry;
+        lists[batchRequestCount] = list;
+        values[batchRequestCount] = value;
 
-        cacheClearItem(batchRequests[batchRequestCount].entry, 1);
-        batchRequests[batchRequestCount].entry->qr = 1;
+        cacheClearItem(oldestEntry, 1);
+        oldestEntry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
         if (*UID == -1)
-            batchRequests[batchRequestCount].entry->UID = batchRequests[batchRequestCount].cacheUID = *UID = cache->nextUID++;
+            oldestEntry->UID = *UID = cache->nextUID++;
         else
-            batchRequests[batchRequestCount].entry->UID = batchRequests[batchRequestCount].cacheUID = *UID;
+            oldestEntry->UID = *UID;
 
         batchRequestCount++;
 
