@@ -362,7 +362,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        memset(batchRequests[batchRequestCount], 0, sizeof(load_image_request_t)); // 保证清理干净
+        memset(&batchRequests[batchRequestCount], 0, sizeof(load_image_request_t)); // 保证清理干净
         batchRequests[batchRequestCount].cache = cache;
         batchRequests[batchRequestCount].entry = oldestEntry;
         batchRequests[batchRequestCount].list = list;
