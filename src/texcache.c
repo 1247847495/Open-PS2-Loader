@@ -73,35 +73,35 @@ static void cacheLoadImage(void *data)
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
         // Safeguards...
-        if (!caches[i] || !caches[i]->content[cacheIds[i]])
+        if (!caches[i] || !caches[i]->content)
             continue;
 
         item_list_t *handler = lists[i];
         if (!handler) {
-            caches[i]->content[cacheIds[i]]->qr = 0;
+            caches[i]->content[cacheIds[i]].qr = 0;
             continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (cdFramesCount || forceSkipQr) {
-            caches[i]->content[cacheIds[i]]->qr = 0;
+            caches[i]->content[cacheIds[i]].qr = 0;
             continue;
         }
 
         //// seems okay. we can proceed
-        // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]]->texture;
+        // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content[cacheIds[i]]->texture, GS_PSM_CT24) < 0) {
-            caches[i]->content[cacheIds[i]]->lastUsed = 0;
-            caches[i]->content[cacheIds[i]]->texFound = 0;
+        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content[cacheIds[i]].texture, GS_PSM_CT24) < 0) {
+            caches[i]->content[cacheIds[i]].lastUsed = 0;
+            caches[i]->content[cacheIds[i]].texFound = 0;
         }
         else {
-            caches[i]->content[cacheIds[i]]->lastUsed = guiFrameId;
-            caches[i]->content[cacheIds[i]]->texFound = 1;
+            caches[i]->content[cacheIds[i]].lastUsed = guiFrameId;
+            caches[i]->content[cacheIds[i]].texFound = 1;
         }
-        caches[i]->content[cacheIds[i]]->qr = 0;
+        caches[i]->content[cacheIds[i]].qr = 0;
     }
     texLoading = 0;
     //return NULL;
