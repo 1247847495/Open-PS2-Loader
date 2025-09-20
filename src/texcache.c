@@ -106,7 +106,6 @@ static void cacheLoadImage(void *data)
         }
     }
     texLoading = 0;
-    forceCleanAllRequests(); // 结束时清空所有请求队列，防止下次入队出现异常
     //return NULL;
 }
 
@@ -208,7 +207,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             if (!padGetRepeating())
                 cdFramesCount = 1; // 触发连按CD
             stopQr = 0; // loading图片的时候移动光标，立即终止Qr
-            forceCleanAllRequests(); // 清空所有请求队列，防止下次入队出现异常
+            texLoading = 0;
         }
         curStartUp = value;
     }
