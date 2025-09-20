@@ -24,6 +24,9 @@ void ioEnd(void);
 /** registers a handler for a certain request type */
 int ioRegisterHandler(int type, io_request_handler_t handler);
 
+/** 强制清空所有请求 */
+int forceCleanAllRequests(void);
+
 /** schedules a new request into the pending request list
  * @note The data are not freed! */
 int ioPutRequest(int type, void *data);

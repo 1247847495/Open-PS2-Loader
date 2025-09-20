@@ -21,7 +21,8 @@ static int PrevCacheID_BG = -2;
 static int buttonPressedOnce = 0;  // 快速连按时，每次按键只重置CD帧数一次
 static int cdFrames = 30;         // 一轮Art图Qr后的CD时间(帧数)
 static int skipQr = 0;             // 判断是否可以跳过请求Qr队列
-static volatile int cdFramesCount = 0; // 手动重复按键
+static int cdFramesCount = 0; // 手动重复按键
+static volatile int stopQr = 0; // 立即终止Qr
 static volatile int texLoading = 0;
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 //static u64 prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
@@ -70,7 +71,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (cdFramesCount || forceSkipQr) {
+    if (stopQr || forceSkipQr) {
         texLoading = 0;
         return;
     }
@@ -78,7 +79,7 @@ static void cacheLoadImage(void *data)
     for (int i = 0; i < ioRequestCount; i++) {
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (cdFramesCount || forceSkipQr) {
+        if (stopQr || forceSkipQr) {
             texLoading = 0;
             return;
         }
@@ -105,6 +106,7 @@ static void cacheLoadImage(void *data)
         }
     }
     texLoading = 0;
+    forceCleanAllRequests(); // 结束时清空所有请求队列，防止下次入队出现异常
     //return NULL;
 }
 
@@ -202,8 +204,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // 启动id变化时，说明光标有移动（可能用UID判断，效率更高更合理，之后再改。UID一开始是-1，然后再分配一个正整数）
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
-        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading)
-            cdFramesCount = 1; // 触发连按CD
+        if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading) {
+            if (!padGetRepeating())
+                cdFramesCount = 1; // 触发连按CD
+            stopQr = 0; // loading图片的时候移动光标，立即终止Qr
+            texLoading = 0;
+            forceCleanAllRequests(); // 清空所有请求队列，防止下次入队出现异常
+        }
         curStartUp = value;
     }
 

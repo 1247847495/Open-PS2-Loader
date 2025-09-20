@@ -110,6 +110,21 @@ int ioRegisterHandler(int type, io_request_handler_t handler)
     return IO_OK;
 }
 
+int forceCleanAllRequests(void)
+{
+    // 清理剩余请求
+    WaitSema(gEndSemaId);
+    while (gReqHeadIndex != gReqTailIndex) {
+        struct io_request_t *req = gReqRing[gReqHeadIndex];
+        gReqHeadIndex = (gReqHeadIndex + 1) % MAX_IO_REQUESTS;
+        FreeIoRequest(req);
+    }
+    gReqList = gReqEnd = NULL;
+    gReqHeadIndex = gReqTailIndex = 0;
+    SignalSema(gEndSemaId);
+    isIORunning = 0;
+}
+
 static io_request_handler_t ioGetHandler(int type)
 {
     int i;
@@ -170,17 +185,7 @@ static void ioWorkerThread(void *arg)
             FreeIoRequest(req);
         }
     }
-    // 清理剩余请求
-    WaitSema(gEndSemaId);
-    while (gReqHeadIndex != gReqTailIndex) {
-        struct io_request_t *req = gReqRing[gReqHeadIndex];
-        gReqHeadIndex = (gReqHeadIndex + 1) % MAX_IO_REQUESTS;
-        FreeIoRequest(req);
-    }
-    gReqList = gReqEnd = NULL;
-    gReqHeadIndex = gReqTailIndex = 0;
-    SignalSema(gEndSemaId);
-    isIORunning = 0;
+    forceCleanAllRequests();
     ExitDeleteThread();
 }
 
