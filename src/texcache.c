@@ -250,18 +250,18 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             cdFramesCount = 0;
 
-        // 下次第一个加载背景图，如果没有就重试N次后退出
-        if (!cdFramesCount) {
-            if (cache->suffix[0] != 'B') {
-                cdFramesCount = 10000;
-                if (++findBGCount >= MENU_MIN_INACTIVE_FRAMES) {
-                    findBGCount = 0;
-                    cdFramesCount = 0;
-                } else
-                    skipQr = 1;
-            } else
-                findBGCount = 0;
-        }
+        //// 下次第一个加载背景图，如果没有就重试N次后退出
+        //if (!cdFramesCount) {
+        //    if (cache->suffix[0] != 'B') {
+        //        cdFramesCount = 10000;
+        //        if (++findBGCount >= MENU_MIN_INACTIVE_FRAMES) {
+        //            findBGCount = 0;
+        //            cdFramesCount = 0;
+        //        } else
+        //            skipQr = 1;
+        //    } else
+        //        findBGCount = 0;
+        //}
 
         // CD期间进入了自动连按状态，矫正一次Qr，结束cdFramesCount
         if (gScrollSpeed > 0 && padGetRepeating()) {
