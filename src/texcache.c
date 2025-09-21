@@ -217,6 +217,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading) {
             if (!padGetRepeating())
                 cdFramesCount = 1; // 触发连按CD
+            texLoading = 0;
             stopQr = 1; // loading图片的时候移动光标，立即终止Qr
         }
         curStartUp = value;
