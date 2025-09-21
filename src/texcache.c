@@ -15,11 +15,6 @@ static int PrevCacheID = -2;
 static int PrevCacheID_COV = -2;
 static int PrevCacheID_ICO = -2;
 static int PrevCacheID_BG = -2;
-static int PrevCacheID_COV2 = -2;
-static int PrevCacheID_LAB = -2;
-static int PrevCacheID_LGO = -2;
-static int PrevCacheID_SCR = -2;
-static int PrevCacheID_SCR2 = -2;
 
 //int artQrCount = 0; // 给加入Qr缓存队列的Art图计数
 //int artQrDone = 0; // 代表一轮Art图已全部进入Qr队列
@@ -278,7 +273,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         ForceRefreshPrevTexCache++;
 
         // 重置上次的缓存ID
-        PrevCacheID_COV = PrevCacheID_ICO = PrevCacheID_BG = PrevCacheID_COV2 = PrevCacheID_LAB = PrevCacheID_LGO = PrevCacheID_SCR = PrevCacheID_SCR2 = PrevCacheID = -2;
+        PrevCacheID_COV = PrevCacheID_ICO = PrevCacheID_BG = PrevCacheID = -2;
     } else {
         // 根据图像类型，赋值上一次的缓存
         if (!strncmp("COV", cache->suffix, 3))
@@ -287,16 +282,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID = PrevCacheID_ICO;
         else if (!strncmp("BG", cache->suffix, 2))
             PrevCacheID = PrevCacheID_BG;
-        else if (!strncmp("COV2", cache->suffix, 4))
-            PrevCacheID = PrevCacheID_COV2;
-        else if (!strncmp("LAB", cache->suffix, 3))
-            PrevCacheID = PrevCacheID_LAB;
-        else if (!strncmp("LGO", cache->suffix, 3))
-            PrevCacheID = PrevCacheID_LGO;
-        else if (!strncmp("SCR", cache->suffix, 3))
-            PrevCacheID = PrevCacheID_SCR;
-        else if (!strncmp("SCR2", cache->suffix, 4))
-            PrevCacheID = PrevCacheID_SCR2;
         else
             PrevCacheID = -2;
     }
@@ -310,16 +295,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID_ICO = *cacheId;
         else if (!strncmp("BG", cache->suffix, 2))
             PrevCacheID_BG = *cacheId;
-        else if (!strncmp("COV2", cache->suffix, 4))
-            PrevCacheID_COV2 = *cacheId;
-        else if (!strncmp("LAB", cache->suffix, 3))
-            PrevCacheID_LAB = *cacheId;
-        else if (!strncmp("LGO", cache->suffix, 3))
-            PrevCacheID_LGO = *cacheId;
-        else if (!strncmp("SCR", cache->suffix, 3))
-            PrevCacheID_SCR = *cacheId;
-        else if (!strncmp("SCR2", cache->suffix, 4))
-            PrevCacheID_SCR2 = *cacheId;
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
@@ -335,16 +310,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_ICO = *cacheId;
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
-                else if (!strncmp("COV2", cache->suffix, 4))
-                    PrevCacheID_COV2 = *cacheId;
-                else if (!strncmp("LAB", cache->suffix, 3))
-                    PrevCacheID_LAB = *cacheId;
-                else if (!strncmp("LGO", cache->suffix, 3))
-                    PrevCacheID_LGO = *cacheId;
-                else if (!strncmp("SCR", cache->suffix, 3))
-                    PrevCacheID_SCR = *cacheId;
-                else if (!strncmp("SCR2", cache->suffix, 4))
-                    PrevCacheID_SCR2 = *cacheId;
                 return NULL;
             } else if (entry->texFound == 1 && entry->texture.Mem) {
                 entry->lastUsed = guiFrameId;
@@ -355,16 +320,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_ICO = *cacheId;
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
-                else if (!strncmp("COV2", cache->suffix, 4))
-                    PrevCacheID_COV2 = *cacheId;
-                else if (!strncmp("LAB", cache->suffix, 3))
-                    PrevCacheID_LAB = *cacheId;
-                else if (!strncmp("LGO", cache->suffix, 3))
-                    PrevCacheID_LGO = *cacheId;
-                else if (!strncmp("SCR", cache->suffix, 3))
-                    PrevCacheID_SCR = *cacheId;
-                else if (!strncmp("SCR2", cache->suffix, 4))
-                    PrevCacheID_SCR2 = *cacheId;
                 return &entry->texture;
             }
         }
