@@ -28,12 +28,10 @@ static volatile int texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
-static item_list_t *lists[MENU_MIN_INACTIVE_FRAMES];
-static image_cache_t *caches[MENU_MIN_INACTIVE_FRAMES];
-static char *values[MENU_MIN_INACTIVE_FRAMES];
-static int cacheIds[MENU_MIN_INACTIVE_FRAMES];
-static int batchRequestCount = 0;
-static int ioRequestCount = 0;
+static item_list_t *req_list;
+static image_cache_t *req_cache;
+static char *req_value;
+static int req_cacheId;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -71,39 +69,41 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
-    for (int i = 0; i < ioRequestCount; i++) {
-        // Safeguards...
-        if (!caches[i] || !caches[i]->content)
-            continue;
-
-        item_list_t *handler = lists[i];
-        if (!handler) {
-            caches[i]->content[cacheIds[i]].qr = 0;
-            continue;
-        }
-
-        // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-        // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (cdFramesCount || forceSkipQr) {
-            caches[i]->content[cacheIds[i]].qr = 0;
-            continue;
-        }
-
-        //// seems okay. we can proceed
-        // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
-        // texFree(texture);
-
-        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content[cacheIds[i]].texture, GS_PSM_CT24) < 0) {
-            caches[i]->content[cacheIds[i]].lastUsed = 0;
-            caches[i]->content[cacheIds[i]].texFound = 0;
-        }
-        else {
-            caches[i]->content[cacheIds[i]].lastUsed = guiFrameId;
-            caches[i]->content[cacheIds[i]].texFound = 1;
-        }
-        caches[i]->content[cacheIds[i]].qr = 0;
+    //  Safeguards...
+    if (!req_cache || !req_cache->content) {
+        texLoading = 0;
+        return;
     }
+
+    item_list_t *handler = req_list;
+    if (!handler) {
+        req_cache->content[req_cacheId].qr = 0;
+        texLoading = 0;
+        return;
+    }
+
+    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
+    if (cdFramesCount || forceSkipQr) {
+        req_cache->content[req_cacheId].qr = 0;
+        texLoading = 0;
+        return;
+    }
+
+    //// seems okay. we can proceed
+    // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
+    // texFree(texture);
+
+    if (handler->itemGetImage(handler, req_cache->prefix, req_cache->isPrefixRelative, req_value, req_cache->suffix, &req_cache->content[req_cacheId].texture, GS_PSM_CT24) < 0) {
+        req_cache->content[req_cacheId].lastUsed = 0;
+        req_cache->content[req_cacheId].texFound = 0;
+    } else {
+        req_cache->content[req_cacheId].lastUsed = guiFrameId;
+        req_cache->content[req_cacheId].texFound = 1;
+    }
+    req_cache->content[req_cacheId].qr = 0;
     texLoading = 0;
+    return;
 }
 
 void flushBatchRequests(void)
@@ -112,38 +112,38 @@ void flushBatchRequests(void)
     if (ForceRefreshPrevTexCache > 1)
         ForceRefreshPrevTexCache = 0;
 
-    // 有堆积的图片待加载
-    if (batchRequestCount > 0 && !texLoading) {
-        //// debug  打印debug信息
-        //char debugFileDir[64];
-        //strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
-        //FILE *debugFile = fopen(debugFileDir, "ab+");
-        //if (debugFile != NULL) {
-        //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
-        //    fclose(debugFile);
-        //}
+    //// 有堆积的图片待加载
+    //if (batchRequestCount > 0 && !texLoading) {
+    //    //// debug  打印debug信息
+    //    //char debugFileDir[64];
+    //    //strcpy(debugFileDir, "smb:debug-TexCacheAllArtIoOnce.txt");
+    //    //FILE *debugFile = fopen(debugFileDir, "ab+");
+    //    //if (debugFile != NULL) {
+    //    //    fprintf(debugFile, "batchRequestCount:%d   guiFrameId:%d  curStartUp:%s\r\n", batchRequestCount, guiFrameId, curStartUp);
+    //    //    fclose(debugFile);
+    //    //}
 
-        //  使用官方的多线程方法
-        ioRequestCount = batchRequestCount;
-        batchRequestCount = 0;
-        texLoading = 1;
-        ioPutRequest(IO_CACHE_LOAD_ART, NULL);
+    //    //  使用官方的多线程方法
+    //    ioRequestCount = batchRequestCount;
+    //    batchRequestCount = 0;
+    //    texLoading = 1;
+    //    ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
-        // 使用pthread的多线程方法
-        // pthread_t tid;
-        // pthread_attr_t attr;
-        // pthread_attr_init(&attr);
+    //    // 使用pthread的多线程方法
+    //    // pthread_t tid;
+    //    // pthread_attr_t attr;
+    //    // pthread_attr_init(&attr);
 
-        //// 线程分离，如果不需要pthread_join
-        // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    //    //// 线程分离，如果不需要pthread_join
+    //    // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-        //// 设置合适的栈空间，防止爆栈等错误
-        // pthread_attr_setstacksize(&attr, 256 * 1024);
+    //    //// 设置合适的栈空间，防止爆栈等错误
+    //    // pthread_attr_setstacksize(&attr, 256 * 1024);
 
-        //// 创建线程
-        // pthread_create(&tid, &attr, cacheLoadImage, NULL);
-        // pthread_attr_destroy(&attr);
-    }
+    //    //// 创建线程
+    //    // pthread_create(&tid, &attr, cacheLoadImage, NULL);
+    //    // pthread_attr_destroy(&attr);
+    //}
 }
 
 void cacheInit()
@@ -347,10 +347,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        caches[batchRequestCount] = cache;
-        cacheIds[batchRequestCount] = *cacheId;
-        lists[batchRequestCount] = list;
-        values[batchRequestCount] = value;
+        req_cache = cache;
+        req_cacheId = *cacheId;
+        req_list = list;
+        req_value = value;
 
         cacheClearItem(oldestEntry, 1);
         oldestEntry->qr = 1;
@@ -361,8 +361,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             oldestEntry->UID = *UID;
 
-        batchRequestCount++;
-
+        // 使用官方的多线程方法
+        texLoading = 1;
+        ioPutRequest(IO_CACHE_LOAD_ART, NULL);
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
         //ioPutRequest(IO_CACHE_LOAD_ART, req);
