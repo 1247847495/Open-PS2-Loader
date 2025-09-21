@@ -354,11 +354,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        caches[batchRequestCount] = cache;
-        cacheIds[batchRequestCount] = *cacheId;
-        lists[batchRequestCount] = list;
-        values[batchRequestCount] = value;
-
         // 用currEntry作判断，是为了区分之前是不是从break分支出来的，从break分支出来的，就不需要走if内的处理。
         if (currEntry) {
             if (oldestEntry->texture.Mem) {
@@ -383,6 +378,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             oldestEntry->UID = *UID;
 
+        caches[batchRequestCount] = cache;
+        cacheIds[batchRequestCount] = *cacheId;
+        lists[batchRequestCount] = list;
+        values[batchRequestCount] = value;
         batchRequestCount++;
 
         // prevGuiFrameId = guiFrameId;
