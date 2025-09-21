@@ -209,6 +209,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 cdFramesCount = 1; // 触发连按CD
             stopQr = 0; // loading图片的时候移动光标，立即终止Qr
             texLoading = 0;
+            forceCleanAllRequests();
         }
         curStartUp = value;
     }
