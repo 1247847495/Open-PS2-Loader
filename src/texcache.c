@@ -72,7 +72,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void cacheLoadImage(void *data)
 {
     // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-    if (stopQr || forceSkipQr) {
+    if (forceSkipQr) {
         texLoading = 0;
         return;
     }
@@ -80,7 +80,7 @@ static void cacheLoadImage(void *data)
     for (int i = 0; i < ioRequestCount; i++) {
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
-        if (stopQr || forceSkipQr) {
+        if (forceSkipQr) {
             texLoading = 0;
             caches[i]->content[cacheIds[i]].qr = 0;
             continue;
@@ -213,7 +213,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading) {
             if (!padGetRepeating())
                 cdFramesCount = 1; // 触发连按CD
-            stopQr = 0; // loading图片的时候移动光标，立即终止Qr
+            stopQr = 1; // loading图片的时候移动光标，立即终止Qr
             texLoading = 0;
         }
         curStartUp = value;
@@ -347,17 +347,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     int i;
     u64 rtime = guiFrameId;
 
-    //// 寻找可替换的槽
-    //for (i = 0; i < cache->count; i++) {
-    //    currEntry = &cache->content[i];
-    //    // 可用槽，但需保护正在使用的
-    //    if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-    //        !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
-    //        oldestEntry = currEntry;
-    //        rtime = currEntry->lastUsed;
-    //        *cacheId = i;
-    //    }
-    //}
+    // 寻找可替换的槽
+    if (!stopQr) {
+        for (i = 0; i < cache->count; i++) {
+            currEntry = &cache->content[i];
+            // 可用槽，但需保护正在使用的
+            if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+                !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+                oldestEntry = currEntry;
+                rtime = currEntry->lastUsed;
+                *cacheId = i;
+            }
+        }
+    }
 
     if (oldestEntry) {
         caches[batchRequestCount] = cache;
