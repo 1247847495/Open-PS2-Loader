@@ -338,7 +338,7 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    return isIORunning;
+    return gReqList != NULL;
 }
 
 #ifdef __EESIO_DEBUG
