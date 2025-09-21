@@ -15,6 +15,7 @@ typedef struct
     int UID;
 
     int texFound; // 图片解析完毕，防止解析到一半就进行使用，也许会造成死机？
+    int qr;
 } cache_entry_t;
 
 

@@ -65,6 +65,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->lastUsed = 0;
     item->UID = -1;
     item->texFound = -1;
+    item->qr = 0;
 }
 
 // Io handled action...
@@ -81,16 +82,21 @@ static void cacheLoadImage(void *data)
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (stopQr || forceSkipQr) {
             texLoading = 0;
-            return;
+            caches[i]->content[cacheIds[i]].qr = 0;
+            continue;
         }
 
         // Safeguards...
-        if (!caches[i] || !caches[i]->content)
+        if (!caches[i] || !caches[i]->content) {
+            caches[i]->content[cacheIds[i]].qr = 0;
             continue;
+        }
 
         item_list_t *handler = lists[i];
-        if (!handler)
+        if (!handler) {
+            caches[i]->content[cacheIds[i]].qr = 0;
             continue;
+        }
 
         //// seems okay. we can proceed
         // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
@@ -104,6 +110,7 @@ static void cacheLoadImage(void *data)
             caches[i]->content[cacheIds[i]].lastUsed = guiFrameId;
             caches[i]->content[cacheIds[i]].texFound = 1;
         }
+        caches[i]->content[cacheIds[i]].qr = 0;
     }
     texLoading = 0;
     //return NULL;
@@ -346,7 +353,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     for (i = 0; i < cache->count; i++) {
         currEntry = &cache->content[i];
         // 可用槽，但需保护正在使用的
-        if ((currEntry->lastUsed < rtime) &&
+        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
             !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
@@ -367,6 +374,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             oldestEntry->UID = *UID = cache->nextUID++;
         else
             oldestEntry->UID = *UID;
+        oldestEntry->qr = 1;
 
         batchRequestCount++;
 
