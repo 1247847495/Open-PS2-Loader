@@ -310,7 +310,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
                 return NULL;
-            } else if (cache->content[*cacheId].texFound == 1 && cache->content[*cacheId].texture.Mem) {
+            } else if (cache->content[*cacheId].texFound == 1) {
                 cache->content[*cacheId].lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
