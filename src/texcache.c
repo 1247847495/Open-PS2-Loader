@@ -35,6 +35,9 @@ static int req_cacheId;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
+    if (!item)
+        return;
+
     if (freeTxt) {
         if (item->texture.Mem) {
             rmUnloadTexture(&item->texture);
@@ -70,14 +73,14 @@ static void cacheLoadImage(void *data)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     //  Safeguards...
-    if (!req_cache || !req_cache->content) {
+    if (!req_cache || !req_cache->content[req_cacheId]) {
         texLoading = 0;
         return;
     }
 
     item_list_t *handler = req_list;
     if (!handler) {
-        req_cache->content[req_cacheId].qr = 0;
+        req_cache->content[req_cacheId]->qr = 0;
         texLoading = 0;
         return;
     }
@@ -85,7 +88,7 @@ static void cacheLoadImage(void *data)
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
     if (cdFramesCount || forceSkipQr) {
-        req_cache->content[req_cacheId].qr = 0;
+        req_cache->content[req_cacheId]->qr = 0;
         texLoading = 0;
         return;
     }
@@ -94,14 +97,14 @@ static void cacheLoadImage(void *data)
     // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
     // texFree(texture);
 
-    if (handler->itemGetImage(handler, req_cache->prefix, req_cache->isPrefixRelative, req_value, req_cache->suffix, &req_cache->content[req_cacheId].texture, GS_PSM_CT24) < 0) {
-        req_cache->content[req_cacheId].lastUsed = 0;
-        req_cache->content[req_cacheId].texFound = 0;
+    if (handler->itemGetImage(handler, req_cache->prefix, req_cache->isPrefixRelative, req_value, req_cache->suffix, &req_cache->content[req_cacheId]->texture, GS_PSM_CT24) < 0) {
+        req_cache->content[req_cacheId]->lastUsed = 0;
+        req_cache->content[req_cacheId]->texFound = 0;
     } else {
-        req_cache->content[req_cacheId].lastUsed = guiFrameId;
-        req_cache->content[req_cacheId].texFound = 1;
+        req_cache->content[req_cacheId]->lastUsed = guiFrameId;
+        req_cache->content[req_cacheId]->texFound = 1;
     }
-    req_cache->content[req_cacheId].qr = 0;
+    req_cache->content[req_cacheId]->qr = 0;
     texLoading = 0;
     return;
 }
@@ -173,11 +176,11 @@ image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelati
     cache->suffix = (char *)malloc(length * sizeof(char));
     memcpy(cache->suffix, suffix, length);
     cache->nextUID = 1;
-    cache->content = (cache_entry_t *)malloc(count * sizeof(cache_entry_t));
+    cache->content = malloc(sizeof(cache_entry_t *) * count);
 
     int i;
     for (i = 0; i < count; ++i)
-        cacheClearItem(&cache->content[i], 0);
+        cache->content[i] = NULL;
 
     return cache;
 }
@@ -186,7 +189,8 @@ void cacheDestroyCache(image_cache_t *cache)
 {
     int i;
     for (i = 0; i < cache->count; ++i) {
-        cacheClearItem(&cache->content[i], 1);
+        cacheClearItem(cache->content[i], 1);
+        free(cache->content[i]);
     }
 
     free(cache->prefix);
@@ -298,9 +302,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return NULL;
     } else if (*cacheId != -1) {
         if (*UID != -1) {
-            if (cache->content[*cacheId].qr) {
-                return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-            } else if (cache->content[*cacheId].texFound == 0) {
+            if (cache->content[*cacheId]->qr) {
+                return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID]->texture;
+            } else if (cache->content[*cacheId]->texFound == 0) {
                 *cacheId = -2;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
@@ -310,8 +314,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
                 return NULL;
-            } else if (cache->content[*cacheId].texFound == 1) {
-                cache->content[*cacheId].lastUsed = guiFrameId;
+            } else if (cache->content[*cacheId]->texFound == 1) {
+                cache->content[*cacheId]->lastUsed = guiFrameId;
                 // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                 if (!strncmp("COV", cache->suffix, 3))
                     PrevCacheID_COV = *cacheId;
@@ -319,7 +323,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     PrevCacheID_ICO = *cacheId;
                 else if (!strncmp("BG", cache->suffix, 2))
                     PrevCacheID_BG = *cacheId;
-                return &cache->content[*cacheId].texture;
+                return &cache->content[*cacheId]->texture;
             }
         }
 
@@ -327,18 +331,22 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (skipQr || texLoading)
-        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID]->texture;
 
-    cache_entry_t *currEntry, *oldestEntry = NULL;
+    cache_entry_t *currEntry = NULL, *oldestEntry = NULL;
     int i;
     u64 rtime = guiFrameId;
 
     // 寻找可替换的槽
     for (i = 0; i < cache->count; i++) {
-        currEntry = &cache->content[i];
-        // 可用槽，但需保护正在使用的
-        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-            !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+        currEntry = cache->content[i];
+        if (!currEntry) {
+            cache->content[i] = malloc(sizeof(cache_entry_t));
+            oldestEntry = cache->content[i]; // 保证break之后，oldestEntry不是空的
+            *cacheId = i;
+            break;
+        } else if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+                   !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID]->texture))) { // 可替换的槽，保护正在使用的
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
             *cacheId = i;
@@ -351,7 +359,22 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req_list = list;
         req_value = value;
 
-        cacheClearItem(oldestEntry, 1);
+        // 用currEntry作判断，是为了区分之前是不是从break分支出来的，从break分支出来的，就不需要走if内的处理。
+        if (currEntry) {
+            if (oldestEntry->texture.Mem) {
+                rmUnloadTexture(&oldestEntry->texture);
+                free(oldestEntry->texture.Mem);
+                oldestEntry->texture.Mem = NULL;
+            }
+            if (oldestEntry->texture.Clut) {
+                free(oldestEntry->texture.Clut);
+                oldestEntry->texture.Clut = NULL;
+            }
+            free(oldestEntry);
+            oldestEntry = malloc(sizeof(cache_entry_t));
+            cache->content[*cacheId] = oldestEntry;
+        }
+        cacheClearItem(oldestEntry, 0);
         oldestEntry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
@@ -375,5 +398,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
-    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID]->texture;
 }

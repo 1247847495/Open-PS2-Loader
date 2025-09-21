@@ -38,7 +38,7 @@ typedef struct
     int nextUID;
 
     /// the cache entries itself
-    cache_entry_t *content;
+    cache_entry_t **content;
 } image_cache_t;
 
 /** Initializes the cache subsystem.
