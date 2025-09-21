@@ -28,10 +28,10 @@ static volatile int texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
-static item_list_t **lists;
-static image_cache_t **caches;
-static char **values;
-static int *cacheIds;
+static item_list_t *lists[MENU_MIN_INACTIVE_FRAMES];
+static image_cache_t *caches[MENU_MIN_INACTIVE_FRAMES];
+static char *values[MENU_MIN_INACTIVE_FRAMES];
+static int cacheIds[MENU_MIN_INACTIVE_FRAMES];
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
 
