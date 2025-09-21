@@ -347,17 +347,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     int i;
     u64 rtime = guiFrameId;
 
-    // 寻找可替换的槽
-    for (i = 0; i < cache->count; i++) {
-        currEntry = &cache->content[i];
-        // 可用槽，但需保护正在使用的
-        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-            !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
-            oldestEntry = currEntry;
-            rtime = currEntry->lastUsed;
-            *cacheId = i;
-        }
-    }
+    //// 寻找可替换的槽
+    //for (i = 0; i < cache->count; i++) {
+    //    currEntry = &cache->content[i];
+    //    // 可用槽，但需保护正在使用的
+    //    if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+    //        !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+    //        oldestEntry = currEntry;
+    //        rtime = currEntry->lastUsed;
+    //        *cacheId = i;
+    //    }
+    //}
 
     if (oldestEntry) {
         caches[batchRequestCount] = cache;
