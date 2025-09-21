@@ -130,6 +130,7 @@ void flushBatchRequests(void)
         ioRequestCount = batchRequestCount;
         batchRequestCount = 0;
         texLoading = 1;
+        forceCleanAllRequests();
         ioPutRequest(IO_CACHE_LOAD_ART, NULL);
 
         // 使用pthread的多线程方法
