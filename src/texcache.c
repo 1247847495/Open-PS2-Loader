@@ -327,7 +327,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || texLoading || batchRequestCount >= MENU_MIN_INACTIVE_FRAMES)
+    if (skipQr || texLoading)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
