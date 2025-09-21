@@ -214,7 +214,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             if (!padGetRepeating())
                 cdFramesCount = 1; // 触发连按CD
             stopQr = 1; // loading图片的时候移动光标，立即终止Qr
-            texLoading = 0;
         }
         curStartUp = value;
     }
@@ -348,16 +347,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     u64 rtime = guiFrameId;
 
     // 寻找可替换的槽
-    if (!stopQr) {
-        for (i = 0; i < cache->count; i++) {
-            currEntry = &cache->content[i];
-            // 可用槽，但需保护正在使用的
-            if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-                !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
-                oldestEntry = currEntry;
-                rtime = currEntry->lastUsed;
-                *cacheId = i;
-            }
+    for (i = 0; i < cache->count; i++) {
+        currEntry = &cache->content[i];
+        // 可用槽，但需保护正在使用的
+        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+            !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+            oldestEntry = currEntry;
+            rtime = currEntry->lastUsed;
+            *cacheId = i;
         }
     }
 
