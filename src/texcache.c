@@ -28,10 +28,10 @@ static volatile int texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 
-static item_list_t *lists[MENU_MIN_INACTIVE_FRAMES];
-static image_cache_t *caches[MENU_MIN_INACTIVE_FRAMES];
-static char *values[MENU_MIN_INACTIVE_FRAMES];
-static int cacheIds[MENU_MIN_INACTIVE_FRAMES];
+static item_list_t **lists;
+static image_cache_t **caches;
+static char **values;
+static int *cacheIds;
 static int batchRequestCount = 0;
 static int ioRequestCount = 0;
 
@@ -46,7 +46,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
             free(item->texture.Clut);
     }
 
-    memset(item, 0, sizeof(cache_entry_t));
+    //memset(item, 0, sizeof(cache_entry_t));
     item->texture.Width = 0;            // Must be set by loader
     item->texture.Height = 0;           // Must be set by loader
     item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
@@ -104,7 +104,6 @@ static void cacheLoadImage(void *data)
         caches[i]->content[cacheIds[i]].qr = 0;
     }
     texLoading = 0;
-    //return NULL;
 }
 
 void flushBatchRequests(void)
