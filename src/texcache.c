@@ -77,40 +77,44 @@ static void cacheLoadImage(void *data)
         return;
     }
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
+    item_list_t **req_lists = lists;
+    image_cache_t **req_caches = caches;
+    char **req_values = values;
+    int *req_cacheIds = cacheIds;
     for (int i = 0; i < ioRequestCount; i++) {
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
         if (forceSkipQr) {
             texLoading = 0;
-            caches[i]->content[cacheIds[i]].qr = 0;
+            req_caches[i]->content[req_cacheIds[i]].qr = 0;
             continue;
         }
 
         // Safeguards...
-        if (!caches[i] || !caches[i]->content) {
-            caches[i]->content[cacheIds[i]].qr = 0;
+        if (!req_caches[i] || !req_caches[i]->content) {
+            req_caches[i]->content[req_cacheIds[i]].qr = 0;
             continue;
         }
 
-        item_list_t *handler = lists[i];
+        item_list_t *handler = req_lists[i];
         if (!handler) {
-            caches[i]->content[cacheIds[i]].qr = 0;
+            req_caches[i]->content[req_cacheIds[i]].qr = 0;
             continue;
         }
 
         //// seems okay. we can proceed
-        // GSTEXTURE *texture = &caches[i]->content[cacheIds[i]].texture;
+        // GSTEXTURE *texture = &req_caches[i]->content[req_cacheIds[i]].texture;
         // texFree(texture);
 
-        if (handler->itemGetImage(handler, caches[i]->prefix, caches[i]->isPrefixRelative, values[i], caches[i]->suffix, &caches[i]->content[cacheIds[i]].texture, GS_PSM_CT24) < 0) {
-            caches[i]->content[cacheIds[i]].lastUsed = 0;
-            caches[i]->content[cacheIds[i]].texFound = 0;
+        if (handler->itemGetImage(handler, req_caches[i]->prefix, req_caches[i]->isPrefixRelative, req_values[i], req_caches[i]->suffix, &req_caches[i]->content[req_cacheIds[i]].texture, GS_PSM_CT24) < 0) {
+            req_caches[i]->content[req_cacheIds[i]].lastUsed = 0;
+            req_caches[i]->content[req_cacheIds[i]].texFound = 0;
         }
         else {
-            caches[i]->content[cacheIds[i]].lastUsed = guiFrameId;
-            caches[i]->content[cacheIds[i]].texFound = 1;
+            req_caches[i]->content[req_cacheIds[i]].lastUsed = guiFrameId;
+            req_caches[i]->content[req_cacheIds[i]].texFound = 1;
         }
-        caches[i]->content[cacheIds[i]].qr = 0;
+        req_caches[i]->content[req_cacheIds[i]].qr = 0;
     }
     texLoading = 0;
     //return NULL;
