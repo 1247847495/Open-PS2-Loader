@@ -201,7 +201,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (curStartUp != value) {
         // 移动光标时，如果有IO请求，就会跳过Qr，后台也会停止继续加载队列中的图片
         if (curStartUp && !padGetRepeating() && !ForceRefreshPrevTexCache && texLoading)
-            cdFramesCount = 1; // 触发连按CD
+            if (!padGetRepeating())
+                cdFramesCount = 1; // 触发连按CD
         curStartUp = value;
     }
 
