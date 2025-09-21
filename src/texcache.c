@@ -301,7 +301,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID_BG = *cacheId;
         return NULL;
     } else if (*cacheId != -1) {
-        if (cache->content[*cacheId].UID == *UID) {
+        if (cache->content[*cacheId]->UID == *UID) {
             if (cache->content[*cacheId]->qr) {
                 return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID]->texture;
             } else if (cache->content[*cacheId]->texFound == 0) {
