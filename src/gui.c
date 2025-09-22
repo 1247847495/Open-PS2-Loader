@@ -1810,8 +1810,8 @@ void guiMainLoop(void)
             }
         }
 
-        if (greetingAlpha > 0x00)
-            guiRenderGreeting(greetingAlpha);
+        //if (greetingAlpha > 0x00)
+        //    guiRenderGreeting(greetingAlpha);
 
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
