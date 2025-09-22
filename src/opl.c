@@ -2177,7 +2177,7 @@ int main(int argc, char *argv[])
             autoLaunchBDMGame(argv);
     }
 
-
+    init();
 
     // until this point in the code is reached, only PREINIT_LOG macro should be used
     LOG_ENABLE();
@@ -2186,7 +2186,6 @@ int main(int argc, char *argv[])
     ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
 
     guiIntroLoop();
-    init();
     guiMainLoop();
 
     return 0;
