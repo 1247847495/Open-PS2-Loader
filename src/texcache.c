@@ -68,7 +68,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 }
 
 // Io handled action...
-static void cacheLoadImage(void *data)
+static void cacheLoadImage(void)
 {
     //load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
     for (int i = 0; i < ioRequestCount; i++) {
@@ -127,7 +127,7 @@ void flushBatchRequests(void)
         ioRequestCount = batchRequestCount;
         batchRequestCount = 0;
         texLoading = 1;
-        ioPutRequest(IO_CACHE_LOAD_ART, NULL);
+        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &cacheLoadImage);
 
         // 使用pthread的多线程方法
         // pthread_t tid;
@@ -148,7 +148,7 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
+    //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
 }
 
 void cacheEnd()
