@@ -103,6 +103,8 @@ static void clearIOModuleT(opl_io_module_t *mod)
 static void clearMenuGameList(opl_io_module_t *mdl);
 static void moduleCleanup(opl_io_module_t *mod, int exception, int modeSelected);
 static void reset(void);
+static void deferredAudioInit(void);
+static void deferredInit(void);
 
 // 是否首次加载OPL
 static int firstOpenOPL = 1;
