@@ -163,11 +163,11 @@ static void ioWorkerThread(void *arg)
             gReqList = (gReqHeadIndex == gReqTailIndex ? NULL : gReqRing[gReqHeadIndex]);
             if (gReqHeadIndex == gReqTailIndex)
                 gReqEnd = NULL;
-            SignalSema(gEndSemaId);
 
             isIORunning = 1;
             ioProcessRequest(req);
             FreeIoRequest(req);
+            SignalSema(gEndSemaId);
         }
     }
     // 清理剩余请求
