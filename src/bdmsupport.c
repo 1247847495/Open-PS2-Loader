@@ -129,7 +129,7 @@ void bdmLoadModules(void)
     sysLoadModuleBuffer(&usbmass_bd_irx, size_usbmass_bd_irx, 0, NULL);
 
     // Load Optional Block Device drivers
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &bdmLoadBlockDeviceModules);
+    bdmLoadBlockDeviceModules();
 
     LOG("[BDMEVENT]:\n");
     sysLoadModuleBuffer(&bdmevent_irx, size_bdmevent_irx, 0, NULL);
@@ -168,7 +168,7 @@ static int bdmNeedsUpdate(item_list_t *itemList)
 
     bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
 
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &bdmLoadBlockDeviceModules);
+    bdmLoadBlockDeviceModules();
 
     // Check for forced refresh from deleting or renaming a game.
     if (pDeviceData->ForceRefresh != 0) {
@@ -820,12 +820,12 @@ void bdmEnumerateDevices()
 {
     LOG("bdmEnumerateDevices\n");
 
+    bdmLoadBlockDeviceModules();
     // Initialize the device list data if it hasn't been initialized yet.
     bdmInitDevicesData();
 
     // Because bdmLoadModules is called before the config file is loaded bdmLoadBlockDeviceModules will not have loaded any
     // optional bdm modules. Now that the config file has been loaded try loading any optional modules that weren't previously loaded.
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &bdmLoadBlockDeviceModules);
 
     LOG("bdmEnumerateDevices done\n");
 }

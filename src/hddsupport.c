@@ -364,7 +364,7 @@ void hddInit(item_list_t *itemList)
     LOG("HDDSUPPORT Init\n");
     hddForceUpdate = 0; // Use cache at initial startup.
     configGetInt(configGetByType(CONFIG_OPL), "hdd_frames_delay", &hddGameList.delay);
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &hddInitModules);
+    hddInitModules();
     hddGameList.enabled = 1;
 }
 
