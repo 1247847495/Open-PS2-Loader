@@ -103,7 +103,6 @@ static void clearIOModuleT(opl_io_module_t *mod)
 static void clearMenuGameList(opl_io_module_t *mdl);
 static void moduleCleanup(opl_io_module_t *mod, int exception, int modeSelected);
 static void reset(void);
-static void deferredAudioInit(void);
 
 // frame counter
 static unsigned int frameCounter;
@@ -996,7 +995,7 @@ static int tryAlternateDevice(int types)
     return 0;
 }
 
-static void _loadConfig()
+static void _loadConfig(void)
 {
     int value, themeID = -1, langID = -1;
     const char *temp;
@@ -1908,7 +1907,6 @@ static void init(void)
     setDefaults();
 
     padInit(0);
-    int padStatus = 0;
     configInit(NULL);
 
     rmInit();
@@ -1930,20 +1928,6 @@ static void init(void)
     cacheInit();
 
     gSelectButton = (InitConsoleRegionData() == CONSOLE_REGION_JAPAN) ? KEY_CIRCLE : KEY_CROSS;
-
-    while (!padStatus)
-        padStatus = startPads();
-    readPads();
-    if (!getKeyPressed(KEY_START)) {
-        _loadConfig(); // only try to restore config if emergency key is not being pressed
-    } else {
-        LOG("--- SKIPPING OPL CONFIG LOADING\n");
-        applyConfig(-1, -1, 0);
-    }
-
-
-    // queue deffered init of sound effects, which will take place after the preceding initialization steps within the queue are complete.
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredAudioInit);
 }
 
 static void deferredInit(void)
@@ -2145,6 +2129,22 @@ static void autoLaunchBDMGame(char *argv[])
     bdmLaunchGame(NULL, -1, configSet);
 }
 
+static void loadSupportsBackground(void)
+{
+    int padStatus = 0;
+    while (!padStatus)
+        padStatus = startPads();
+    readPads();
+    if (!getKeyPressed(KEY_START)) {
+        _loadConfig(); // only try to restore config if emergency key is not being pressed
+    } else {
+        LOG("--- SKIPPING OPL CONFIG LOADING\n");
+        applyConfig(-1, -1, 0);
+    }
+    deferredAudioInit();
+    deferredInit();
+}
+
 // --------------------- Main --------------------
 int main(int argc, char *argv[])
 {
@@ -2179,12 +2179,10 @@ int main(int argc, char *argv[])
     }
 
     init();
+    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
 
     // until this point in the code is reached, only PREINIT_LOG macro should be used
     LOG_ENABLE();
-
-    // queue deffered init which shuts down the intro screen later
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
 
     guiIntroLoop();
     guiMainLoop();
