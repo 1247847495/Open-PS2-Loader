@@ -104,6 +104,9 @@ static void clearMenuGameList(opl_io_module_t *mdl);
 static void moduleCleanup(opl_io_module_t *mod, int exception, int modeSelected);
 static void reset(void);
 
+// 是否首次加载OPL
+static int firstOpenOPL = 1;
+
 // frame counter
 static unsigned int frameCounter;
 
@@ -1313,14 +1316,7 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
-        initAllSupport(0);
-
-        for (int i = 0; i < MODE_COUNT; i++) {
-            if (list_support[i].support == NULL)
-                continue;
-
-            moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
-        }
+        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
     } else {
         if (changed) {
             for (int i = 0; i < MODE_COUNT; i++) {
@@ -1928,6 +1924,17 @@ static void init(void)
     cacheInit();
 
     gSelectButton = (InitConsoleRegionData() == CONSOLE_REGION_JAPAN) ? KEY_CIRCLE : KEY_CROSS;
+
+    int padStatus = 0;
+    while (!padStatus)
+        padStatus = startPads();
+    readPads();
+    if (!getKeyPressed(KEY_START)) {
+        _loadConfig(); // only try to restore config if emergency key is not being pressed
+    } else {
+        LOG("--- SKIPPING OPL CONFIG LOADING\n");
+        applyConfig(-1, -1, 0);
+    }
 }
 
 static void deferredInit(void)
@@ -2131,18 +2138,19 @@ static void autoLaunchBDMGame(char *argv[])
 
 static void loadSupportsBackground(void)
 {
-    int padStatus = 0;
-    while (!padStatus)
-        padStatus = startPads();
-    readPads();
-    if (!getKeyPressed(KEY_START)) {
-        _loadConfig(); // only try to restore config if emergency key is not being pressed
-    } else {
-        LOG("--- SKIPPING OPL CONFIG LOADING\n");
-        applyConfig(-1, -1, 0);
+    initAllSupport(0);
+
+    for (int i = 0; i < MODE_COUNT; i++) {
+        if (list_support[i].support == NULL)
+            continue;
+
+        moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
     }
-    deferredAudioInit();
-    deferredInit();
+    if (firstOpenOPL) {
+        firstOpenOPL = 0;
+        deferredAudioInit();
+        deferredInit();
+    }
 }
 
 // --------------------- Main --------------------
@@ -2179,7 +2187,6 @@ int main(int argc, char *argv[])
     }
 
     init();
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
 
     // until this point in the code is reached, only PREINIT_LOG macro should be used
     LOG_ENABLE();
