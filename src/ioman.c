@@ -9,7 +9,7 @@
 #include <sio.h>
 #endif
 
-#define MAX_IO_REQUESTS 16
+#define MAX_IO_REQUESTS 32
 #define MAX_IO_HANDLERS 64
 
 extern void *_gp;
@@ -24,6 +24,7 @@ struct io_request_t
 {
     int type;
     void *data;
+    struct io_request_t *next;
 };
 
 struct io_handler_t
@@ -31,10 +32,6 @@ struct io_handler_t
     int type;
     io_request_handler_t handler;
 };
-
-static struct io_request_t *gReqRing[MAX_IO_REQUESTS];
-static int gReqHeadIndex = 0;
-static int gReqTailIndex = 0;
 
 /// Circular request queue
 static struct io_request_t *gReqList;
@@ -150,37 +147,47 @@ static void ioWorkerThread(void *arg)
             if (gIOTerminate)
                 break;
 
+            // 队列取头节点，注意：此时队列仍然持有
             WaitSema(gEndSemaId);
-            if (gReqHeadIndex == gReqTailIndex) {
-                isIORunning = 0;
-                gReqList = NULL; // 队列空
-                gReqEnd = NULL;
-                SignalSema(gEndSemaId);
-                break;
-            }
-            struct io_request_t *req = gReqRing[gReqHeadIndex];
-            gReqHeadIndex = (gReqHeadIndex + 1) % MAX_IO_REQUESTS;
-            gReqList = (gReqHeadIndex == gReqTailIndex ? NULL : gReqRing[gReqHeadIndex]);
-            if (gReqHeadIndex == gReqTailIndex)
-                gReqEnd = NULL;
+            struct io_request_t *req = gReqList;
             SignalSema(gEndSemaId);
 
-            isIORunning = 1;
+            if (!req) {
+                isIORunning = 0; // 执行完毕清零
+                break;
+            }
+
+            isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
+
+            // 处理完再出队和释放
+            WaitSema(gEndSemaId);
+            // 确保此时 gReqList 仍然是 req，否则队列已被其他线程操作
+            if (gReqList == req) {
+                gReqList = req->next;
+                if (!gReqList)
+                    gReqEnd = NULL;
+            }
+            SignalSema(gEndSemaId);
+
             FreeIoRequest(req);
         }
     }
-    // 清理剩余请求
+
     WaitSema(gEndSemaId);
-    while (gReqHeadIndex != gReqTailIndex) {
-        struct io_request_t *req = gReqRing[gReqHeadIndex];
-        gReqHeadIndex = (gReqHeadIndex + 1) % MAX_IO_REQUESTS;
+    // 提前退出时，清理所有线程，防止内存泄露
+    struct io_request_t *req = gReqList;
+    gReqList = NULL;
+    gReqEnd = NULL;
+    while (req) {
+        struct io_request_t *next = req->next;
         FreeIoRequest(req);
+        req = next;
     }
-    gReqList = gReqEnd = NULL;
-    gReqHeadIndex = gReqTailIndex = 0;
     SignalSema(gEndSemaId);
+
     isIORunning = 0;
+
     ExitDeleteThread();
 }
 
@@ -204,7 +211,6 @@ void ioInit(void)
     gHandlerCount = 0;
     gReqList = NULL;
     gReqEnd = NULL;
-    gReqHeadIndex = gReqTailIndex = 0;
 
     gIOThreadId = 0;
 
@@ -247,32 +253,24 @@ int ioPutRequest(int type, void *data)
     }
 
     // We don't have to lock the tip of the queue...
-    // 检查队列是否满
-    if (((gReqTailIndex + 1) % MAX_IO_REQUESTS) == gReqHeadIndex) {
-        SignalSema(gEndSemaId);
-        return IO_ERR_IO_BLOCKED;
-    }
-
     // If it exists, it won't be touched, if it does not exist, it is not being processed
     struct io_request_t *new_req = AllocIoRequest();
     if (!new_req) {
         SignalSema(gEndSemaId);
-        return IO_ERR_IO_BLOCKED;
+        return IO_ERR_IO_BLOCKED; // 注意定义该错误码
     }
 
+    new_req->next = NULL;
     new_req->type = type;
     new_req->data = data;
 
-    // 放到环形缓冲区
-    gReqRing[gReqTailIndex] = new_req;
-    gReqEnd = new_req; // 末尾指针
-    gReqTailIndex = (gReqTailIndex + 1) % MAX_IO_REQUESTS;
-
-    // 队首指针（gReqList）赋值
-    if (gReqHeadIndex == ((gReqTailIndex - 1 + MAX_IO_REQUESTS) % MAX_IO_REQUESTS))
+    if (!gReqList) {
         gReqList = new_req;
-    else
-        gReqList = gReqRing[gReqHeadIndex];
+        gReqEnd = new_req;
+    } else {
+        gReqEnd->next = new_req;
+        gReqEnd = new_req;
+    }
 
     SignalSema(gEndSemaId);
 
@@ -285,27 +283,38 @@ int ioPutRequest(int type, void *data)
 
 int ioRemoveRequests(int type)
 {
+    // lock the deletion sema and the queue end sema as well
     WaitSema(gEndSemaId);
 
     int count = 0;
-    int src = gReqHeadIndex, dst = gReqHeadIndex;
-    while (src != gReqTailIndex) {
-        struct io_request_t *req = gReqRing[src];
+    struct io_request_t *req = gReqList;
+    struct io_request_t *last = NULL;
+
+    while (req) {
         if (req->type == type) {
-            FreeIoRequest(req);
+            struct io_request_t *next = req->next;
+
+            if (last)
+                last->next = next;
+
+            if (req == gReqList)
+                gReqList = next;
+
+            if (req == gReqEnd)
+                gReqEnd = last;
+
             count++;
+            FreeIoRequest(req);
+
+            req = next;
         } else {
-            gReqRing[dst] = req;
-            dst = (dst + 1) % MAX_IO_REQUESTS;
+            last = req;
+            req = req->next;
         }
-        src = (src + 1) % MAX_IO_REQUESTS;
     }
-    gReqTailIndex = dst;
-    // 更新gReqList/gReqEnd
-    gReqList = (gReqHeadIndex != gReqTailIndex) ? gReqRing[gReqHeadIndex] : NULL;
-    gReqEnd = (gReqHeadIndex != gReqTailIndex) ? gReqRing[(gReqTailIndex - 1 + MAX_IO_REQUESTS) % MAX_IO_REQUESTS] : NULL;
 
     SignalSema(gEndSemaId);
+
     return count;
 }
 
@@ -324,9 +333,15 @@ void ioEnd(void)
 
 int ioGetPendingRequestCount(void)
 {
-    int count;
+    int count = 0;
+
     WaitSema(gEndSemaId);
-    count = (gReqTailIndex - gReqHeadIndex + MAX_IO_REQUESTS) % MAX_IO_REQUESTS;
+    struct io_request_t *req = gReqList;
+    while (req) {
+        count++;
+        req = req->next;
+    }
+
     SignalSema(gEndSemaId);
     return count;
 }
