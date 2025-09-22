@@ -251,9 +251,9 @@ static void ethInitSMB(void)
 {
     int ret;
 
-    WaitSema(ethInitSemaID);
+    // WaitSema(ethInitSemaID);
     ret = ethInitApplyConfig();
-    SignalSema(ethInitSemaID);
+    // SignalSema(ethInitSemaID);
 
     if (ret != 0) {
         ethDisplayErrorStatus();
@@ -402,9 +402,9 @@ static void smbLoadModules(void)
 
     LOG("SMBSUPPORT LoadModules\n");
 
-    WaitSema(ethInitSemaID);
+    // WaitSema(ethInitSemaID);
     ret = ethLoadModules();
-    SignalSema(ethInitSemaID);
+    // SignalSema(ethInitSemaID);
 
     if (ret == 0) {
         gNetworkStartup = ERROR_ETH_MODULE_SMBMAN_FAILURE;
@@ -433,7 +433,8 @@ void ethInit(item_list_t *itemList)
         thmReinit(ethBase);
         ethULSizePrev = -2;
         ethGameCount = 0;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
+        // ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
+        ethInitSMB();
     } else {
         LOG("ETHSUPPORT Init\n");
         ethBase = "smb:";
@@ -444,7 +445,8 @@ void ethInit(item_list_t *itemList)
         ethGames = NULL;
         configGetInt(configGetByType(CONFIG_OPL), "eth_frames_delay", &ethGameList.delay);
         gNetworkStartup = ERROR_ETH_NOT_STARTED;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &smbLoadModules);
+        // ioPutRequest(IO_CUSTOM_SIMPLEACTION, &smbLoadModules);
+        smbLoadModules();
         ethGameList.enabled = 1;
     }
 }
@@ -595,7 +597,8 @@ static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet
         ethULSizePrev = -2;
         ethGameCount = 0;
         ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // clear the share list
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
+        // ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
+        ethInitSMB();
         ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // reload the game list
         forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
         return;
