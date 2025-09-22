@@ -1291,6 +1291,8 @@ static void _saveConfig()
     lscstatus = 0;
 }
 
+int changed_backLoad = 0;
+int langChanged_backLoad = 0;
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
     if (gDefaultDevice < 0 || gDefaultDevice > APP_MODE)
@@ -1316,6 +1318,8 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
+        changed_backLoad = changed;
+        langChanged_backLoad = langChanged;
         ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
     } else {
         if (changed) {
@@ -2144,7 +2148,7 @@ static void loadSupportsBackground(void)
         if (list_support[i].support == NULL)
             continue;
 
-        moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
+        moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
     }
     if (firstOpenOPL) {
         firstOpenOPL = 0;
