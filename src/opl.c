@@ -496,8 +496,7 @@ void initSupport(item_list_t *itemList, int mode, int force_reinit)
         if (((force_reinit) && (mod->support->enabled)) || (startMode == START_MODE_AUTO && !mod->support->enabled)) {
             mod->support->itemInit(mod->support);
             moduleUpdateMenuInternal(mod, 0, 0);
-            // ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[mode].support->mode); // can't use mode as the variable will die at end of execution
-            menuDeferredUpdate(&list_support[mode].support->mode); // 使用单线程，防止初始化时，数据不同步问题。
+            ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[mode].support->mode); // can't use mode as the variable will die at end of execution
         }
     } else {
         // If the module has a valid menu instance try to refresh the visibility state.
