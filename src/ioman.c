@@ -9,14 +9,14 @@
 #include <sio.h>
 #endif
 
-#define MAX_IO_REQUESTS 32
+#define MAX_IO_REQUESTS 16
 #define MAX_IO_HANDLERS 64
 
 extern void *_gp;
 
 static volatile int gIOTerminate = 0;
 
-#define THREAD_STACK_SIZE (128 * 1024)
+#define THREAD_STACK_SIZE (64 * 1024)
 
 static u8 thread_stack[THREAD_STACK_SIZE] ALIGNED(16);
 
