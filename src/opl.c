@@ -850,14 +850,14 @@ static void menuUpdateHook()
         }
     }
 
-    // BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
-    if (!mainScreenInitDone) {
-        for (i = BDM_MODE; i <= BDM_MODE4; i++) {
-            bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
-            if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
-                menuDeferredUpdate(&list_support[i].support->mode); // 这个重试使用单线程，防止阻塞线程队列。
-        }
-    }
+    //// BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
+    //if (!mainScreenInitDone) {
+    //    for (i = BDM_MODE; i <= BDM_MODE4; i++) {
+    //        bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
+    //        if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
+    //            menuDeferredUpdate(&list_support[i].support->mode); // 这个重试使用单线程，防止阻塞线程队列。
+    //    }
+    //}
     // Schedule updates of all list handlers that are to run every frame, regardless of whether auto refresh is active or not.
     //if (!mainScreenInitDone && (frameCounter % 5 == 0)) { // 列表界面没有准备好时，检测频率上升
     //    for (i = 0; i < MODE_COUNT; i++) {
