@@ -150,21 +150,26 @@ static void ioWorkerThread(void *arg)
             // 队列取头节点，注意：此时队列仍然持有
             WaitSema(gEndSemaId);
             struct io_request_t *req = gReqList;
-            if (req) {
-                gReqList = req->next;
-                if (!gReqList)
-                    gReqEnd = NULL;
-            } else
-                gReqEnd = NULL; // 队列为空时，保险起见设NULL
             SignalSema(gEndSemaId);
 
             if (!req) {
-                isIORunning = 0;
+                isIORunning = 0; // 执行完毕清零
                 break;
             }
 
             isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
+
+            // 处理完再出队和释放
+            WaitSema(gEndSemaId);
+            // 确保此时 gReqList 仍然是 req，否则队列已被其他线程操作
+            if (gReqList == req) {
+                gReqList = req->next;
+                if (!gReqList)
+                    gReqEnd = NULL;
+            }
+            SignalSema(gEndSemaId);
+
             FreeIoRequest(req);
         }
     }
