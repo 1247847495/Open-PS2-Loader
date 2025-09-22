@@ -79,8 +79,6 @@ static void bdmEventHandler(void *packet, void *opt)
 
 static void bdmLoadBlockDeviceModules(void)
 {
-    WaitSema(bdmLoadModuleLock);
-
     if (gEnableILK && !iLinkModLoaded) {
         // Load iLink Block Device drivers
         LOG("[ILINKMAN]:\n");
@@ -106,8 +104,6 @@ static void bdmLoadBlockDeviceModules(void)
 
         hddModLoaded = 1;
     }
-
-    SignalSema(bdmLoadModuleLock);
 }
 
 void bdmLoadModules(void)
