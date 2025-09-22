@@ -1810,11 +1810,12 @@ void guiMainLoop(void)
             }
         }
 
+        if (greetingAlpha > 0x00)
+            guiRenderGreeting(greetingAlpha);
+
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
                 // 启动画面的延迟期间，预加载art图片
-                if (greetingAlpha > 0x00)
-                    guiRenderGreeting(greetingAlpha);
                 if (busyAlpha <= 0x00) {
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
@@ -1828,13 +1829,10 @@ void guiMainLoop(void)
                 // Read the pad states to prepare for input processing in the screen handler
                 guiReadPads();
                 // 把intro界面淡出移到mainloop里，提升加载体验。
-                if (greetingAlpha > 0x00) {
-                    guiRenderGreeting(greetingAlpha);
+                if (greetingAlpha > 0x00)
                     greetingAlpha -= 0x04;
-                }
             }
-        } else if (greetingAlpha > 0x00)
-            guiRenderGreeting(greetingAlpha);
+        }
 
         // Render overlaying gui thingies :)
         guiDrawOverlays();
