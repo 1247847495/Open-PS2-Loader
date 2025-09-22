@@ -251,9 +251,7 @@ static void ethInitSMB(void)
 {
     int ret;
 
-    WaitSema(ethInitSemaID);
     ret = ethInitApplyConfig();
-    SignalSema(ethInitSemaID);
 
     if (ret != 0) {
         ethDisplayErrorStatus();
@@ -402,9 +400,7 @@ static void smbLoadModules(void)
 
     LOG("SMBSUPPORT LoadModules\n");
 
-    WaitSema(ethInitSemaID);
     ret = ethLoadModules();
-    SignalSema(ethInitSemaID);
 
     if (ret == 0) {
         gNetworkStartup = ERROR_ETH_MODULE_SMBMAN_FAILURE;
@@ -433,7 +429,7 @@ void ethInit(item_list_t *itemList)
         thmReinit(ethBase);
         ethULSizePrev = -2;
         ethGameCount = 0;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
+        ethInitSMB();
     } else {
         LOG("ETHSUPPORT Init\n");
         ethBase = "smb:";
@@ -444,7 +440,7 @@ void ethInit(item_list_t *itemList)
         ethGames = NULL;
         configGetInt(configGetByType(CONFIG_OPL), "eth_frames_delay", &ethGameList.delay);
         gNetworkStartup = ERROR_ETH_NOT_STARTED;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &smbLoadModules);
+        smbLoadModules();
         ethGameList.enabled = 1;
     }
 }
