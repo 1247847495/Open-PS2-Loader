@@ -1293,6 +1293,22 @@ static void _saveConfig()
 
 int changed_backLoad = 0;
 int langChanged_backLoad = 0;
+static void loadSupportsBackground(void)
+{
+    initAllSupport(0);
+
+    for (int i = 0; i < MODE_COUNT; i++) {
+        if (list_support[i].support == NULL)
+            continue;
+
+        moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
+    }
+    if (firstOpenOPL) {
+        firstOpenOPL = 0;
+        deferredAudioInit();
+        deferredInit();
+    }
+}
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
     if (gDefaultDevice < 0 || gDefaultDevice > APP_MODE)
@@ -2138,23 +2154,6 @@ static void autoLaunchBDMGame(char *argv[])
     configRead(configSet);
 
     bdmLaunchGame(NULL, -1, configSet);
-}
-
-static void loadSupportsBackground(void)
-{
-    initAllSupport(0);
-
-    for (int i = 0; i < MODE_COUNT; i++) {
-        if (list_support[i].support == NULL)
-            continue;
-
-        moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
-    }
-    if (firstOpenOPL) {
-        firstOpenOPL = 0;
-        deferredAudioInit();
-        deferredInit();
-    }
 }
 
 // --------------------- Main --------------------
