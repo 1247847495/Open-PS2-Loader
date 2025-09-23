@@ -37,6 +37,9 @@ static int ioRequestCount = 0;
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
+    if (!item)
+        return;
+
     if (freeTxt) {
         if (item->texture.Mem) {
             rmUnloadTexture(&item->texture);
@@ -46,7 +49,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
             free(item->texture.Clut);
     }
 
-    //memset(item, 0, sizeof(cache_entry_t));
+    memset(item, 0, sizeof(cache_entry_t));
     item->texture.Width = 0;            // Must be set by loader
     item->texture.Height = 0;           // Must be set by loader
     item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
@@ -327,7 +330,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || texLoading || batchRequestCount >= MENU_MIN_INACTIVE_FRAMES)
+    if (skipQr || ioHasPendingRequests() || batchRequestCount >= MENU_MIN_INACTIVE_FRAMES)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
