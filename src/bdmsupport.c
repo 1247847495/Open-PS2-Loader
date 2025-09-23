@@ -101,7 +101,7 @@ static void bdmLoadBlockDeviceModules(void)
         // Load dev9 and atad device drivers.
         LOG("bdmLoadBlockDeviceModules loading hdd drivers...\n");
         hddLoadModules();
-
+        usleep(200000); // 延迟0.2秒,加一点延迟,尤其在PS2上的HDD可能需要
         hddModLoaded = 1;
     }
 }
@@ -815,8 +815,10 @@ void bdmInitDevicesData()
 void bdmEnumerateDevices()
 {
     LOG("bdmEnumerateDevices\n");
-
-    bdmLoadBlockDeviceModules();
+    
+    bdmLoadModules();
+    usleep(200000); // 延迟0.2秒,加一点延迟,尤其在PS2上的HDD可能需要
+    
     // Initialize the device list data if it hasn't been initialized yet.
     bdmInitDevicesData();
 
