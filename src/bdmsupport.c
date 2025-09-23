@@ -777,7 +777,7 @@ void bdmInitDevicesData()
     // Refresh the visibility of the menu.
     for (int i = 0; i < MAX_BDM_DEVICES; i++) {
         // Register the device structure into the UI.
-        initSupport(&bdmDeviceList[i], i, 1);
+        initSupport(&bdmDeviceList[i], i, 0);
 
         // If bdm support is set to auto then make the page invisible and reset the bdm tick counter, when a bdm device is mounted it will dynamically be made visible.
         // If bdm support is set to manual then only make the first page visible.
