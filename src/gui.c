@@ -459,12 +459,10 @@ static void guiShowBlockDeviceConfig(void)
                 gHDDStartMode = 0;
                 guiMsgBox("检测到冲突！已自动关闭APA模式！", 0, NULL);
             }
+            applyConfig(-1, -1, 0);
+            if (BdmStarted)
+                reFindBDM();
         }
-
-        applyConfig(-1, -1, 0);
-        menuReinitMainMenu();
-        if (BdmStarted)
-            reFindBDM();
     }
 }
 
@@ -573,13 +571,6 @@ reConfig:
 
         // APA开启时，自动关闭BDMHDD
         diaGetInt(diaConfig, CFG_HDDMODE, &gHDDStartMode);
-        if (ret == UIID_BTN_OK) {
-            if (gHDDStartMode && gEnableBdmHDD) {
-                gEnableBdmHDD = 0;
-                guiMsgBox("检测到冲突！已自动关闭BDMHDD模式！", 0, NULL);
-            }
-        }
-
         diaGetInt(diaConfig, CFG_ETHMODE, &gETHStartMode);
         diaGetInt(diaConfig, CFG_APPMODE, &gAPPStartMode);
         diaGetInt(diaConfig, CFG_BDMCACHE, &bdmCacheSize);
@@ -592,7 +583,11 @@ reConfig:
             // 反回上个界面，并选中块设备
             UiId = BLOCKDEVICE_BUTTON; // 块设备的uiid
             goto reConfig;
-        } else {
+        } else if (ret == UIID_BTN_OK) {
+            if (gHDDStartMode && gEnableBdmHDD) {
+                gEnableBdmHDD = 0;
+                guiMsgBox("检测到冲突！已自动关闭BDMHDD模式！", 0, NULL);
+            }
             applyConfig(-1, -1, 0);
             menuReinitMainMenu();
             // BDM中途设为自动模式时
