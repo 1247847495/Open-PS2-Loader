@@ -260,11 +260,11 @@ void moduleUpdateMenuInternal(opl_io_module_t *mod, int themeChanged, int langCh
 static void itemInitSupport(item_list_t *support)
 {
     support->itemInit(support);
+    moduleUpdateMenuInternal((opl_io_module_t *)support->owner, 0, 0);
     // Manual refreshing can only be done if either auto refresh is disabled or auto refresh is disabled for the item.
     if (!gAutoRefresh || (support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
         menuDeferredUpdate(&support->mode);
         //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
-    moduleUpdateMenuInternal((opl_io_module_t *)support->owner, 0, 0);
 }
 
 static void backLoadSupports_Manual(void)
@@ -489,9 +489,9 @@ void initSupport(item_list_t *itemList, int mode, int force_reinit)
 
         if (((force_reinit) && (mod->support->enabled)) || (startMode == START_MODE_AUTO && !mod->support->enabled)) {
             mod->support->itemInit(mod->support);
+            moduleUpdateMenuInternal(mod, 0, 0);
             // ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[mode].support->mode); // can't use mode as the variable will die at end of execution
             menuDeferredUpdate(&list_support[mode].support->mode); // 使用单线程，防止初始化时，数据不同步问题。
-            moduleUpdateMenuInternal(mod, 0, 0);
         }
     } else {
         // If the module has a valid menu instance try to refresh the visibility state.
@@ -1294,6 +1294,11 @@ static void loadSupportsBackground(void)
             continue;
 
         moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
+    }
+    if (firstOpenOPL) {
+        firstOpenOPL = 0;
+        deferredAudioInit();
+        deferredInit();
     }
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
