@@ -211,6 +211,8 @@ void hddLoadModules(void)
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_IF_NOT_DETECTED);
             return;
         }
+        
+        usleep(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
     } else
         hddModulesLoadCount++;
 
