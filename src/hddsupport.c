@@ -47,7 +47,16 @@ static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *gam
 static void hddInitModules(void)
 {
     hddLoadModules();
-    hddLoadSupportModules();
+    // 如果驱动加载成功，就不断重试hddLoadSupportModules，直到超时2秒
+    if (hddLoadModulesSuccess) {
+        int retryCount = 0;
+        while (hddLoadSupportModules()) {
+            if (++retryCount >= 20)
+                break;
+            usleep(100000);
+        }
+    } else
+        hddLoadSupportModules();
 
     // update Themes
     char path[256];
@@ -177,6 +186,7 @@ static int hddCreateOPLPartition(const char *name)
     return result;
 }
 
+int hddLoadModulesSuccess = 0;
 void hddLoadModules(void)
 {
     int ret;
@@ -211,9 +221,8 @@ void hddLoadModules(void)
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_IF_NOT_DETECTED);
             return;
         }
-        
+        hddLoadModulesSuccess = 1;
         //usleep(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
-        sleep(3);
     } else
         hddModulesLoadCount++;
 
@@ -266,7 +275,7 @@ int hddDetectNonSonyFileSystem()
     return result;
 }
 
-void hddLoadSupportModules(void)
+int hddLoadSupportModules(void)
 {
     static char hddarg[] = "-o"
                            "\0"
@@ -291,7 +300,7 @@ void hddLoadSupportModules(void)
     if (hddDetectNonSonyFileSystem() != 0) {
         // Drive is MBR/GPT style, or unknown, bail out or risk corrupting the drive.
         LOG("HDDSUPPORT LoadSupportModules bailing out early...\n");
-        return;
+        return -1;
     }
 
     if (!hddSupportModulesLoaded) {
@@ -300,14 +309,14 @@ void hddLoadSupportModules(void)
         if (ret < 0) {
             LOG("HDD: No HardDisk Drive detected.\n");
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_MODULE_HDD_FAILURE);
-            return;
+            return -1;
         }
 
         // Check if a HDD unit is connected
         if (hddCheck() < 0) {
             LOG("HDD: No HardDisk Drive detected.\n");
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_NOT_DETECTED);
-            return;
+            return -1;
         }
 
         LOG("[PS2FS]:\n");
@@ -315,7 +324,7 @@ void hddLoadSupportModules(void)
         if (ret < 0) {
             LOG("HDD: HardDisk Drive not formatted (PFS).\n");
             setErrorMessageWithCode(_STR_HDD_NOT_FORMATTED_ERROR, ERROR_HDD_MODULE_PFS_FAILURE);
-            return;
+            return -1;
         }
 
         hddSupportModulesLoaded = 1;
@@ -359,6 +368,7 @@ void hddLoadSupportModules(void)
         //     fprintf(debugFile, "APAHDD启动时：传输模式校准为UDMA %d\r\n", gDmaMode - 3);
         //     fclose(debugFile);
         // }
+        return 0;
     }
 }
 

@@ -919,7 +919,16 @@ static int checkLoadConfigHDD(int types)
     char path[64];
 
     hddLoadModules();
-    hddLoadSupportModules();
+    // 如果驱动加载成功，就不断重试hddLoadSupportModules，直到超时2秒
+    if (hddLoadModulesSuccess) {
+        int retryCount = 0;
+        while (hddLoadSupportModules()) {
+            if (++retryCount >= 20)
+                break;
+            usleep(100000);
+        }
+    } else
+        hddLoadSupportModules();
 
     snprintf(path, sizeof(path), "%sconf_opl.cfg", gHDDPrefix);
     value = open(path, O_RDONLY);
@@ -2001,7 +2010,16 @@ static void miniInit(int mode)
 
     } else if (mode == HDD_MODE) {
         hddLoadModules();
-        hddLoadSupportModules();
+        // 如果驱动加载成功，就不断重试hddLoadSupportModules，直到超时2秒
+        if (hddLoadModulesSuccess) {
+            int retryCount = 0;
+            while (hddLoadSupportModules()) {
+                if (++retryCount >= 20)
+                    break;
+                usleep(100000);
+            }
+        } else
+            hddLoadSupportModules();
     }
 
     InitConsoleRegionData();
