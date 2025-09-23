@@ -1026,10 +1026,10 @@ int guiDeferUpdate(struct gui_update_t *op)
         gUpdateEnd->next = up;
         gUpdateEnd = up;
     }
-
+    int ret = gScheduledOps++;
     SignalSema(gSemaId);
 
-    return gScheduledOps++;
+    return ret;
 }
 
 static void guiHandleOp(struct gui_update_t *item)
@@ -1112,9 +1112,8 @@ static void guiHandleDeferredOps(void)
 
         gCompletedOps++;
     }
-    SignalSema(gSemaId);
-
     gUpdateEnd = NULL;
+    SignalSema(gSemaId);
 }
 
 void guiExecDeferredOps(void)
