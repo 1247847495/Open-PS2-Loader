@@ -212,7 +212,8 @@ void hddLoadModules(void)
             return;
         }
         
-        usleep(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
+        //usleep(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
+        sleep(3);
     } else
         hddModulesLoadCount++;
 
