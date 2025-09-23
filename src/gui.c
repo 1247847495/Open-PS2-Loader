@@ -755,7 +755,10 @@ reselect_video_mode:
             bgmStop();
 
         applyConfig(themeID, langID, 1);
-        sfxInit(0);
+
+        // 解决按确定键无音效问题，同时修复换主题后音效没更新的问题
+        if (previousTheme != themeID)
+            sfxInit(0);
 
         if (gEnableBGM && !isBgmPlaying())
             bgmStart();
