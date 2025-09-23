@@ -263,50 +263,9 @@ static void itemInitSupport(item_list_t *support)
     moduleUpdateMenuInternal((opl_io_module_t *)support->owner, 0, 0);
     // Manual refreshing can only be done if either auto refresh is disabled or auto refresh is disabled for the item.
     if (!gAutoRefresh || (support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
-        menuDeferredUpdate(&support->mode);
-        //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
 }
 
-static void backLoadSupports_Manual(void)
-{
-    for (int i = 0; i <= BDM_MODE4; i++) {
-
-        opl_io_module_t *mod = &list_support[i];
-        itemInitSupport(mod->support);
-
-        //// BDM手动模式启动后，USB如果关闭了，页面0保持不变，等重新找到GPT硬盘后再刷新
-        // if (i != 0)
-        //     itemInitSupport(mod->support);
-
-        //// BDM手动模式启动后，页面0保持不更新，等重新找到GPT硬盘后再刷新
-        // support->itemInit(mod->support);
-        // if (i == 0) {
-        //
-        // } else {
-        //     moduleUpdateMenuInternal((opl_io_module_t *)mod->support->owner, 0, 0);
-        //     // Manual refreshing can only be done if either auto refresh is disabled or auto refresh is disabled for the item.
-        //     if (!gAutoRefresh || (mod->support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
-        //         ioPutRequest(IO_MENU_UPDATE_DEFFERED, &mod->support->mode);
-        // }
-
-        // 手动模式根据设备开关，设定隐藏初始值（可能有负面影响）
-        mod->menuItem.visible = 0;
-        bdm_device_data_t *pDeviceData = mod->support->priv;
-        if (pDeviceData != NULL) {
-            if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
-                mod->menuItem.visible = gEnableUSB;
-            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
-                mod->menuItem.visible = gEnableILK;
-            else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
-                mod->menuItem.visible = gEnableMX4SIO;
-            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
-                mod->menuItem.visible = gEnableBdmHDD;
-        }
-    }
-    // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
-    bdmManualTrigger = 1;
-    reFindBDM();
-}
 static void itemExecSelect(struct menu_item *curMenu)
 {  
     if (mainScreenInitDone && !bdmManualTrigger)
@@ -323,7 +282,43 @@ static void itemExecSelect(struct menu_item *curMenu)
                 // If we're trying to enable BDM support we need to enable it for all BDM menu slots.
                 if (support->mode == BDM_MODE) {
                     // Initialize support for all bdm modules.
-                    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
+                    for (int i = 0; i <= BDM_MODE4; i++) {
+                        
+                        opl_io_module_t *mod = &list_support[i];
+                        itemInitSupport(mod->support);
+
+                        //// BDM手动模式启动后，USB如果关闭了，页面0保持不变，等重新找到GPT硬盘后再刷新
+                        //if (i != 0)
+                        //    itemInitSupport(mod->support);                       
+
+                        //// BDM手动模式启动后，页面0保持不更新，等重新找到GPT硬盘后再刷新
+                        //support->itemInit(mod->support);
+                        //if (i == 0) {
+                        // 
+                        //} else {
+                        //    moduleUpdateMenuInternal((opl_io_module_t *)mod->support->owner, 0, 0);
+                        //    // Manual refreshing can only be done if either auto refresh is disabled or auto refresh is disabled for the item.
+                        //    if (!gAutoRefresh || (mod->support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
+                        //        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &mod->support->mode);
+                        //}
+
+                        // 手动模式根据设备开关，设定隐藏初始值（可能有负面影响）
+                        mod->menuItem.visible = 0;
+                        bdm_device_data_t *pDeviceData = mod->support->priv;
+                        if (pDeviceData != NULL) {
+                            if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
+                                mod->menuItem.visible = gEnableUSB;
+                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
+                                mod->menuItem.visible = gEnableILK;
+                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
+                                mod->menuItem.visible = gEnableMX4SIO;
+                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
+                                mod->menuItem.visible = gEnableBdmHDD;
+                        }
+                    }
+                    // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
+                    bdmManualTrigger = 1;
+                    reFindBDM();
                 } else {
                     // Normal initialization.
                     itemInitSupport(support);
