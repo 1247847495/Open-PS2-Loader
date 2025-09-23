@@ -1815,6 +1815,9 @@ void guiMainLoop(void)
         if (greetingAlpha > 0x00)
             guiRenderGreeting(greetingAlpha);
 
+        // Render overlaying gui thingies :)
+        guiDrawOverlays();
+
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
                 // 启动画面的延迟期间，预加载art图片
@@ -1835,9 +1838,6 @@ void guiMainLoop(void)
                     greetingAlpha -= 0x04;
             }
         }
-
-        // Render overlaying gui thingies :)
-        guiDrawOverlays();
 
         if (gEnableNotifications)
             guiShowNotifications();
