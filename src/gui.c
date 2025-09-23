@@ -459,9 +459,6 @@ static void guiShowBlockDeviceConfig(void)
                 gHDDStartMode = 0;
                 guiMsgBox("检测到冲突！已自动关闭APA模式！", 0, NULL);
             }
-            applyConfig(-1, -1, 0);
-            if (BdmStarted)
-                reFindBDM();
         }
     }
 }
@@ -594,7 +591,8 @@ reConfig:
             if (!BdmStarted && (gBDMStartMode == START_MODE_AUTO)) {
                 if (gEnableUSB || gEnableILK || gEnableMX4SIO || gEnableBdmHDD)
                     reFindBDM();
-            }
+            } else if (BdmStarted)
+                reFindBDM();
         }
     }
     UiId = -1; // 还原uiid
