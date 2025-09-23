@@ -1295,11 +1295,6 @@ static void loadSupportsBackground(void)
 
         moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
     }
-    if (firstOpenOPL) {
-        firstOpenOPL = 0;
-        deferredAudioInit();
-        deferredInit();
-    }
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
