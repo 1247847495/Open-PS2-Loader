@@ -136,7 +136,7 @@ static int GetStartupExecName(const char *path, char *filename, int maxlength)
 
 static void freeISOGameListCache(struct game_cache_list *cache);
 
-static int loadISOGameListCache(const char *path, struct game_cache_list *cache)
+static int loadISOGameListCache(const char *path, struct game_cache_list *cache, char type)
 {
     char filename[256];
     FILE *file;
@@ -145,8 +145,11 @@ static int loadISOGameListCache(const char *path, struct game_cache_list *cache)
 
     freeISOGameListCache(cache);
 
-    //sprintf(filename, "mass0:txtCache.bin");
-    sprintf(filename, gTxtRename ? "%s/txtCache.bin" : "%s/Cache.bin", path);
+    if (type == SCECdPS2CD)
+        sprintf(filename, gTxtRename ? "%sCACHE/txtCache_CD.bin" : "%sCACHE/Cache_CD.bin", path);
+    else if (type == SCECdPS2DVD)
+        sprintf(filename, gTxtRename ? "%sCACHE/txtCache_DVD.bin" : "%sCACHE/Cache_DVD.bin", path);
+
     file = fopen(filename, "rb");
     if (file != NULL) {
         fseek(file, 0, SEEK_END);
@@ -192,7 +195,7 @@ static void freeISOGameListCache(struct game_cache_list *cache)
     }
 }
 
-static int updateISOGameList(const char *path, const struct game_cache_list *cache, const struct game_list_t *head, int count, int _forceUpdateCache)
+static int updateISOGameList(const char *path, const struct game_cache_list *cache, const struct game_list_t *head, int count, int _forceUpdateCache, char type)
 {
     char filename[256];
     FILE *file;
@@ -240,8 +243,11 @@ static int updateISOGameList(const char *path, const struct game_cache_list *cac
     LOG("updateISOGameList: caching new game list.\n");
 
     result = 0;
-    //sprintf(filename, "mass0:txtCache.bin");
-    sprintf(filename, gTxtRename ? "%s/txtCache.bin" : "%s/Cache.bin", path);
+    if (type == SCECdPS2CD)
+        sprintf(filename, gTxtRename ? "%sCACHE/txtCache_CD.bin" : "%sCACHE/Cache_CD.bin", path);
+    else if (type == SCECdPS2DVD)
+        sprintf(filename, gTxtRename ? "%sCACHE/txtCache_DVD.bin" : "%sCACHE/Cache_DVD.bin", path);
+
     if ((head != NULL) && (count > 0)) {
         list = (base_game_info_t *)memalign(64, sizeof(base_game_info_t) * count);
 
@@ -302,13 +308,18 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
     char fullpath[256];
     struct dirent *dirent;
     DIR *dir;
+    char prefixPath[64] = {0};
+    if (type == SCECdPS2CD)
+        strncpy(prefixPath, path, strlen(path) - 2);
+    else if (type == SCECdPS2DVD)
+        strncpy(prefixPath, path, strlen(path) - 3);
 
     // debug 文件
     //char debugFileDir[64];
     //snprintf(debugFileDir, 256, "%s%cdebug.txt", path, path[0] == 's' ? '\\' : '/');
     //FILE *debugFile = fopen(debugFileDir, "ab+");
 
-    int cacheLoaded = loadISOGameListCache(path, &cache) == 0;
+    int cacheLoaded = loadISOGameListCache(prefixPath, &cache, type) == 0;
     int skipTxtScan = 0;
     int forceUpdateCache = txtFileChanged;
 
@@ -512,10 +523,10 @@ static int scanForISO(char *path, char type, struct game_list_t **glist, FILE *f
     }
 
     if (cacheLoaded) {
-        updateISOGameList(path, &cache, *glist, count, forceUpdateCache);
+        updateISOGameList(prefixPath, &cache, *glist, count, forceUpdateCache, type);
         freeISOGameListCache(&cache);
     } else {
-        updateISOGameList(path, NULL, *glist, count, forceUpdateCache);
+        updateISOGameList(prefixPath, NULL, *glist, count, forceUpdateCache, type);
     }
 
     return count;
@@ -689,7 +700,11 @@ int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gam
         // fprintf(debugFile, "%s\r\n\r\n", txtPath);
         // fclose(debugFile);
 
-        sprintf(binPath, "%stxtInfo.bin", prefix);
+        if (prefix[0] == 's')
+            sprintf(binPath, "%sCACHE\\txtInfo.bin", prefix);
+        else
+            sprintf(binPath, "%sCACHE/txtInfo.bin", prefix);
+
         binFile = fopen(binPath, "rb");
         file = fopen(txtPath, "ab+, ccs=UTF-8");
 
