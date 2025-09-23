@@ -1571,9 +1571,9 @@ static void guiShow()
         // render with the set screen handler
         screenHandler->renderScreen();
 
-        // 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
-        if (bdmManualTrigger)
-            rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
+        //// 预加载Art图时，需要Showgui，但要黑屏，防止穿帮
+        //if (bdmManualTrigger)
+        //    rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
 }
 
@@ -1820,7 +1820,7 @@ void guiMainLoop(void)
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
-                        guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
+                        //guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                     }
                     artLoadDelayTime = 0;
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
