@@ -587,14 +587,14 @@ reConfig:
             }
             applyConfig(-1, -1, 0);
             menuReinitMainMenu();
-            // BDM中途设为自动模式时
-            if (!BdmStarted && (gBDMStartMode == START_MODE_AUTO)) {
-                if (gEnableUSB || gEnableILK || gEnableMX4SIO || gEnableBdmHDD)
-                    reFindBDM();
-            } else if (BdmStarted)
-                reFindBDM();
         }
     }
+    // BDM中途设为自动模式时
+    if (!BdmStarted && (gBDMStartMode == START_MODE_AUTO)) {
+        if (gEnableUSB || gEnableILK || gEnableMX4SIO || gEnableBdmHDD)
+            reFindBDM();
+    } else if (BdmStarted)
+        reFindBDM();
     UiId = -1; // 还原uiid
 }
 
