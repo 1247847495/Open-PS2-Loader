@@ -1308,6 +1308,7 @@ static void loadSupportsBackground(void)
         firstOpenOPL = 0;
         deferredAudioInit();
         deferredInit();
+        gInitComplete = 1; // 也许可以防止启动时无限转圈？
     }
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)

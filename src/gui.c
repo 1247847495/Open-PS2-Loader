@@ -33,7 +33,7 @@ static int BdmStarted = 0; // BDM模式已启动
 static int gScheduledOps;
 static int gCompletedOps;
 static int gTerminate;
-static int gInitComplete;
+int gInitComplete;
 
 static gui_callback_t gFrameHook;
 

@@ -169,4 +169,6 @@ void guiManageCheats(void);
 
 void reFindBDM(); // 重新扫描BDM设备，并刷新主界面
 
+extern int gInitComplete;
+
 #endif
