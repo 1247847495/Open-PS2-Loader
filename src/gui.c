@@ -172,12 +172,12 @@ void guiEnd()
 
 void guiLock(void)
 {
-    WaitSema(gGUILockSemaId);
+    //WaitSema(gGUILockSemaId);
 }
 
 void guiUnlock(void)
 {
-    SignalSema(gGUILockSemaId);
+    //SignalSema(gGUILockSemaId);
 }
 
 void guiStartFrame(void)
