@@ -1966,11 +1966,9 @@ static void init(void)
         applyConfig(-1, -1, 0);
     }
 
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredAudioInit);
+    deferredAudioInit();
+    deferredInit();
     ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
-    //deferredAudioInit();
-    //deferredInit();
-    //gInitComplete = 1;
 }
 
 static void deferredInit(void)

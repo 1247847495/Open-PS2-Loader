@@ -1013,7 +1013,7 @@ int guiGetOpCompleted(int opid)
 
 int guiDeferUpdate(struct gui_update_t *op)
 {
-    WaitSema(gSemaId);
+    // WaitSema(gSemaId);
 
     struct gui_update_list_t *up = (struct gui_update_list_t *)malloc(sizeof(struct gui_update_list_t));
     up->item = op;
@@ -1027,7 +1027,7 @@ int guiDeferUpdate(struct gui_update_t *op)
         gUpdateEnd = up;
     }
     int ret = gScheduledOps++;
-    SignalSema(gSemaId);
+    // SignalSema(gSemaId);
 
     return ret;
 }
