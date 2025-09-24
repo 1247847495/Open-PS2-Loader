@@ -165,6 +165,7 @@ static void ioWorkerThread(void *arg)
 
             isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
+            isIORunning = 0;
             FreeIoRequest(req);
         }
     }
