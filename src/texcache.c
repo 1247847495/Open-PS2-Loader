@@ -70,14 +70,22 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
     while (1) {
-        if (!texLoading) {
-            sleep(0);
-            continue;
+        pthread_mutex_lock(&mutex);
+        // 等待激活
+        while (!texLoading) {
+            pthread_cond_wait(&cond, &mutex);
         }
+        if (forceSkipQr) {
+            pthread_mutex_unlock(&mutex);
+            return NULL;
+        }
+        pthread_mutex_unlock(&mutex);
         // load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
         for (int i = 0; i < ioRequestCount; i++) {
             // Safeguards...
@@ -91,7 +99,6 @@ static void *cacheLoadImage(void *data)
             }
 
             // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-            // 中断读取，会引发UID混乱，同一个游戏有不同的UID，目前不知道会产生什么后果，也许没什么影响
             if (cdFramesCount || forceSkipQr) {
                 caches[i]->content[cacheIds[i]].qr = 0;
                 continue;
@@ -110,8 +117,6 @@ static void *cacheLoadImage(void *data)
             }
             caches[i]->content[cacheIds[i]].qr = 0;
         }
-        if (forceSkipQr)
-            break;
         texLoading = 0;
     }
     return NULL;
