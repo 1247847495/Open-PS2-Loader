@@ -147,31 +147,31 @@ void flushBatchRequests(void)
 
         // 使用ptheard来推送
         //pthread_mutex_lock(&mutex);
-        ioRequestCount = batchRequestCount;
-        batchRequestCount = 0;
-        texLoading = 1;
-        pthread_cond_signal(&cond);
+        //ioRequestCount = batchRequestCount;
+        //batchRequestCount = 0;
+        //texLoading = 1;
+        //pthread_cond_signal(&cond);
         //pthread_mutex_unlock(&mutex);
     }
 }
 
 void cacheInit()
 {
-    //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
-    // 使用pthread的多线程方法
-    pthread_t tid;
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
+    ////ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
+    //// 使用pthread的多线程方法
+    //pthread_t tid;
+    //pthread_attr_t attr;
+    //pthread_attr_init(&attr);
 
-    // 线程分离，如果不需要pthread_join
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    //// 线程分离，如果不需要pthread_join
+    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    // 设置合适的栈空间，防止爆栈等错误
-    pthread_attr_setstacksize(&attr, 96 * 1024);
+    //// 设置合适的栈空间，防止爆栈等错误
+    //pthread_attr_setstacksize(&attr, 96 * 1024);
 
-    // 创建线程
-    pthread_create(&tid, &attr, cacheLoadImage, NULL);
-    pthread_attr_destroy(&attr);
+    //// 创建线程
+    //pthread_create(&tid, &attr, cacheLoadImage, NULL);
+    //pthread_attr_destroy(&attr);
 }
 
 void cacheEnd()
