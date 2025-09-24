@@ -196,9 +196,6 @@ static void ioSimpleActionHandler(void *data)
 
 void ioInit(void)
 {
-    if (isIORunning)
-        return; // 防止重复初始化
-
     for (int i = 0; i < MAX_IO_REQUESTS; ++i)
         gRequestPoolInUse[i] = 0;
 
@@ -226,7 +223,7 @@ void ioInit(void)
     gIOThread.stack = thread_stack;
     gIOThread.initial_priority = 30;
 
-    isIORunning = 1;
+    isIORunning = 0;
     gIOThreadId = CreateThread(&gIOThread);
     StartThread(gIOThreadId, NULL);
 }
