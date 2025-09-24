@@ -140,10 +140,18 @@ void flushBatchRequests(void)
         //}
 
         ////  使用官方的多线程方法
+        //ioRequestCount = batchRequestCount;
+        //batchRequestCount = 0;
+        //texLoading = 1;
+        //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &cacheLoadImage);
+
+        // 使用ptheard来推送
+        pthread_mutex_lock(&mutex);
         ioRequestCount = batchRequestCount;
         batchRequestCount = 0;
         texLoading = 1;
-        //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &cacheLoadImage);
+        pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mutex);
     }
 }
 
@@ -159,10 +167,10 @@ void cacheInit()
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     // 设置合适的栈空间，防止爆栈等错误
-    pthread_attr_setstacksize(&attr, 128 * 1024);
+    pthread_attr_setstacksize(&attr, 16 * 1024);
 
     // 创建线程
-    pthread_create(&tid, NULL, cacheLoadImage, NULL);
+    pthread_create(&tid, &attr, cacheLoadImage, NULL);
     pthread_attr_destroy(&attr);
 }
 
