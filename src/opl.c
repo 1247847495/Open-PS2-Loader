@@ -1968,7 +1968,7 @@ static void init(void)
 
     deferredAudioInit();
     deferredInit();
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
+    //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
 }
 
 static void deferredInit(void)
