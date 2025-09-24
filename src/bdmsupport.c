@@ -816,7 +816,7 @@ void bdmEnumerateDevices()
 {
     LOG("bdmEnumerateDevices\n");
     
-    bdmLoadModules();
+    bdmLoadBlockDeviceModules();
     
     // Initialize the device list data if it hasn't been initialized yet.
     bdmInitDevicesData();
