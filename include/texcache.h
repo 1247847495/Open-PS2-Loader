@@ -61,6 +61,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
 extern int ForceRefreshPrevTexCache;
 extern volatile int forceSkipQr;
+extern volatile int texLoading;
 void flushBatchRequests(void);
 
 #endif
