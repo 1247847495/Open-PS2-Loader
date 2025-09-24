@@ -988,8 +988,8 @@ void menuHandleInputMenu()
 
 static void menuRenderElements(theme_element_t *elem)
 {
-    // selected_item can't be NULL here as we only allow to switch to "Main" rendering when there is at least one device activated
-    _menuRequestConfig();
+    //// selected_item can't be NULL here as we only allow to switch to "Main" rendering when there is at least one device activated
+    //_menuRequestConfig();
 
     WaitSema(menuSemaId);
 
