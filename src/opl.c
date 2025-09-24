@@ -2216,7 +2216,7 @@ int main(int argc, char *argv[])
     // until this point in the code is reached, only PREINIT_LOG macro should be used
     LOG_ENABLE();
 
-    guiIntroLoop();
+    //guiIntroLoop();
     guiMainLoop();
 
     return 0;
