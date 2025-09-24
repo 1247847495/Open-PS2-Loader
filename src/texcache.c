@@ -74,8 +74,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 static void *cacheLoadImage(void *data)
 {
     while (1) {
-        if (forceSkipQr)
-            break;
         if (!texLoading) {
             sleep(0);
             continue;
@@ -112,6 +110,8 @@ static void *cacheLoadImage(void *data)
             }
             caches[i]->content[cacheIds[i]].qr = 0;
         }
+        if (forceSkipQr)
+            break;
         texLoading = 0;
     }
     return NULL;
