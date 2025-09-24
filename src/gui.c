@@ -1100,7 +1100,7 @@ static void guiHandleOp(struct gui_update_t *item)
 static void guiHandleDeferredOps(void)
 {
 
-    //WaitSema(gSemaId);
+    WaitSema(gSemaId);
     while (gUpdateList) {
 
         guiHandleOp(gUpdateList->item);
@@ -1113,7 +1113,7 @@ static void guiHandleDeferredOps(void)
         gCompletedOps++;
     }
     gUpdateEnd = NULL;
-    //SignalSema(gSemaId);
+    SignalSema(gSemaId);
 }
 
 void guiExecDeferredOps(void)
