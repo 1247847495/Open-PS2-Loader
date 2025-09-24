@@ -1336,9 +1336,17 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
-        changed_backLoad = changed;
-        langChanged_backLoad = langChanged;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+        //changed_backLoad = changed;
+        //langChanged_backLoad = langChanged;
+        //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+        initAllSupport(0);
+
+        for (int i = 0; i < MODE_COUNT; i++) {
+            if (list_support[i].support == NULL)
+                continue;
+
+            moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
+        }
     } else {
         if (changed) {
             for (int i = 0; i < MODE_COUNT; i++) {
@@ -1957,6 +1965,9 @@ static void init(void)
         LOG("--- SKIPPING OPL CONFIG LOADING\n");
         applyConfig(-1, -1, 0);
     }
+
+    deferredAudioInit();
+    deferredInit();
 }
 
 static void deferredInit(void)
