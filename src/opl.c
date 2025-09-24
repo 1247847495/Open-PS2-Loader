@@ -1968,6 +1968,7 @@ static void init(void)
 
     deferredAudioInit();
     deferredInit();
+    gInitComplete = 1;
 }
 
 static void deferredInit(void)
