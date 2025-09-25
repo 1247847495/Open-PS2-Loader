@@ -107,7 +107,7 @@ static void deferredAudioInit(void);
 static void deferredInit(void);
 
 // 是否首次加载OPL
-static int firstOpenOPL = 1;
+static int firstOpenOPL = 1; // 设成0，可禁用单线程初始化
 
 // 多线程加载是否结束
 volatile int theardInitDone = 0;
@@ -1307,8 +1307,7 @@ static void loadSupportsBackground(void)
 
         moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
     }
-    if (firstOpenOPL) {
-        firstOpenOPL = 0;
+    if (!gInitComplete) {
         deferredAudioInit();
         deferredInit();
     }
@@ -1337,24 +1336,27 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     guiUpdateScreenScale();
 
-    //// 刚启动OPL时，如果不用多线程，就需要显示一帧启动画面，再进行初始化
-    //if (firstOpenOPL)
-    //    guiIntroFrame();
+    // 刚启动OPL时，如果不用多线程，就需要显示一帧启动画面，再进行初始化
+    if (firstOpenOPL)
+        guiIntroFrame();
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
-        changed_backLoad = changed;
-        langChanged_backLoad = langChanged;
-        theardInitDone = 0;
-        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
-        //initAllSupport(0);
+        if (firstOpenOPL) { // 第一次启动，用单线程加载所有设备，防止无限转圈
+            initAllSupport(0);
 
-        //for (int i = 0; i < MODE_COUNT; i++) {
-        //    if (list_support[i].support == NULL)
-        //        continue;
+            for (int i = 0; i < MODE_COUNT; i++) {
+                if (list_support[i].support == NULL)
+                    continue;
 
-        //    moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
-        //}
+                moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
+            }
+        } else {
+            changed_backLoad = changed;
+            langChanged_backLoad = langChanged;
+            theardInitDone = 0;
+            ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+        }
     } else {
         if (changed) {
             for (int i = 0; i < MODE_COUNT; i++) {
@@ -1974,8 +1976,13 @@ static void init(void)
         applyConfig(-1, -1, 0);
     }
 
-    //deferredAudioInit();
-    //deferredInit();
+    // 第一次启动时，用单线程初始化
+    if (firstOpenOPL) {
+        deferredAudioInit();
+        deferredInit();
+        firstOpenOPL = 0;
+        theardInitDone = 1;
+    }
 }
 //int defaultSupportInitDone(void)
 //{
