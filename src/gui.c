@@ -1835,7 +1835,7 @@ void guiMainLoop(void)
             if (artLoadDelayTime > 0) {
                 artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
-                if (busyAlpha <= 0x00)
+                if (busyAlpha <= 0x00 && !texLoading)
                     artLoadDelayTime = 0;
                 if (artLoadDelayTime <= 0) {
                     // 手动启动BDM后的变量处理
