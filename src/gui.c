@@ -1432,7 +1432,7 @@ void guiDrawSubMenuHints(void)
 }
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
-static int busyAlpha = 0x00; // Fully transparant
+static int busyAlpha = 0x80; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
@@ -1629,6 +1629,10 @@ void guiIntroLoop(void)
 
         if (!screenHandlerTarget && screenHandler)
             screenHandler->handleInput();
+
+        // 也许可以解决无限转圈
+        if (gFrameHook && !gInitComplete)
+            gFrameHook();
     }
 }
 
@@ -1828,17 +1832,18 @@ void guiMainLoop(void)
 
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
+                artLoadDelayTime--;
                 // 启动画面的延迟期间，预加载art图片
-                if (!texLoading) {
+                if (busyAlpha <= 0x00)
+                    artLoadDelayTime = 0;
+                if (artLoadDelayTime <= 0) {
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
                         guiSwitchScreenFadeIn(GUI_SCREEN_MAIN, 13);
                     }
-                    artLoadDelayTime = 0;
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
-                artLoadDelayTime--;
             } else {
                 // Read the pad states to prepare for input processing in the screen handler
                 guiReadPads();
