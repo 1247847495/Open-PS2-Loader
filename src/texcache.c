@@ -78,13 +78,17 @@ static void *cacheLoadImage(void *data)
 {
     while (1) {
         pthread_mutex_lock(&mutex);
-        // 等待激活
-        while (!texLoading) {
-            pthread_cond_wait(&cond, &mutex);
-        }
         if (forceSkipQr) {
             pthread_mutex_unlock(&mutex);
             return NULL;
+        }
+        // 等待激活
+        while (!texLoading) {
+            pthread_cond_wait(&cond, &mutex);
+            if (forceSkipQr) {
+                pthread_mutex_unlock(&mutex);
+                return NULL;
+            }
         }
         pthread_mutex_unlock(&mutex);
         // load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
@@ -167,7 +171,7 @@ void cacheInit()
     //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     // 设置合适的栈空间，防止爆栈等错误
-    pthread_attr_setstacksize(&attr, 8 * 1024 * 1024);
+    pthread_attr_setstacksize(&attr, 8 * 1024 * 1024); // 8mb
 
     // 创建线程
     pthread_create(&tid, &attr, cacheLoadImage, NULL);
@@ -179,7 +183,7 @@ void cacheEnd()
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     forceSkipQr = 1;
     pthread_cond_signal(&cond);
-    //pthread_join(tid, NULL); // 等待线程结束
+    pthread_join(tid, NULL); // 等待线程结束
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
