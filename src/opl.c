@@ -1333,9 +1333,9 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     guiUpdateScreenScale();
 
-    // 刚启动OPL时，需要显示一帧启动画面，再进行初始化
-    if (firstOpenOPL)
-        guiIntroFrame();
+    //// 刚启动OPL时，如果不用多线程，就需要显示一帧启动画面，再进行初始化
+    //if (firstOpenOPL)
+    //    guiIntroFrame();
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
