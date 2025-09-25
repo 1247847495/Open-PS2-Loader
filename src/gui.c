@@ -1631,7 +1631,7 @@ void guiIntroLoop(void)
             screenHandler->handleInput();
 
         // 也许可以解决无限转圈
-        if (gFrameHook && !gInitComplete)
+        if (gFrameHook && !gInitComplete && !initSuccess())
             gFrameHook();
     }
 }

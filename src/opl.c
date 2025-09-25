@@ -1972,7 +1972,10 @@ static void init(void)
     //deferredAudioInit();
     //deferredInit();
 }
-
+int initSuccess(void)
+{
+    return list_support[gDefaultDevice].support && !firstOpenOPL; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
+}
 static void deferredInit(void)
 {
 
