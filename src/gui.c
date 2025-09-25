@@ -1760,12 +1760,6 @@ void guiMainLoop(void)
             }
         }
 
-        guiStartFrame();
-
-        //  handle inputs and render screen
-        guiShow();
-        flushBatchRequests(); // 推送ART图到ioPutQuest
-
         // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
         if (endIntroDelayFrame > 0) {
             // 所有设备准备就绪，才可以结束延迟
@@ -1824,6 +1818,11 @@ void guiMainLoop(void)
                     BdmStarted = 1;
             }
         }
+        guiStartFrame();
+
+        //  handle inputs and render screen
+        guiShow();
+        flushBatchRequests(); // 推送ART图到ioPutQuest
 
         if (greetingAlpha > 0x00)
             guiRenderGreeting(greetingAlpha);
