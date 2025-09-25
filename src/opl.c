@@ -1310,7 +1310,7 @@ static void loadSupportsBackground(void)
     if (firstOpenOPL) {
         firstOpenOPL = 0;
         deferredAudioInit();
-        deferredInit();
+        //deferredInit();
     }
     theardInitDone = 1;
 }
