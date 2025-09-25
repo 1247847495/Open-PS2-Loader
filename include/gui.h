@@ -85,7 +85,8 @@ void guiLock();
 void guiUnlock();
 
 /** invokes the intro loop */
-void guiIntroLoop();
+void guiIntroLoop(void);
+void guiIntroFrame(void);
 
 /** invokes the main loop */
 void guiMainLoop();

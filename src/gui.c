@@ -1572,7 +1572,21 @@ static void guiShow()
             rmDrawRect(0, 0, screenWidth, screenHeight, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     }
 }
+void guiIntroFrame(void)
+{
+    guiStartFrame();
 
+    guiShow(); // 可以防止同时开启多个BDM设备时，欢迎界面会闪烁的问题
+
+    guiRenderGreeting(0x80);
+
+    guiHandleDeferredOps();
+
+    guiEndFrame();
+
+    if (!screenHandlerTarget && screenHandler)
+        screenHandler->handleInput();
+}
 void guiIntroLoop(void)
 {
     const int fadeFrameCount = 0x80 / 2;
