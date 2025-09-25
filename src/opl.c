@@ -1977,21 +1977,21 @@ static void init(void)
     //deferredAudioInit();
     //deferredInit();
 }
-int defaultSupportInitDone(void)
-{
-    int result = 0;
-    if (theardInitDone) {
-        result = list_support[gDefaultDevice].support != NULL;
-        if (gDefaultDevice == BDM_MODE) {
-            if (!gEnableUSB)
-                result = 1;
-            else {
-                result = 1; // USB开了，但没有插U盘应该怎么处理？
-            }
-        }
-    }
-    return result; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
-}
+//int defaultSupportInitDone(void)
+//{
+//    int result = 0;
+//    if (theardInitDone) {
+//        result = list_support[gDefaultDevice].support != NULL;
+//        if (gDefaultDevice == BDM_MODE) {
+//            if (!gEnableUSB)
+//                result = 1;
+//            else {
+//                result = 1; // USB开了，但没有插U盘应该怎么处理？
+//            }
+//        }
+//    }
+//    return result; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
+//}
 static void deferredInit(void)
 {
 
@@ -1999,11 +1999,11 @@ static void deferredInit(void)
     struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
     guiDeferUpdate(id);
 
-    //if (list_support[gDefaultDevice].support) {
-    //    id = guiOpCreate(GUI_OP_SELECT_MENU);
-    //    id->menu.menu = &list_support[gDefaultDevice].menuItem;
-    //    guiDeferUpdate(id);
-    //}
+    if (list_support[gDefaultDevice].support) {
+        id = guiOpCreate(GUI_OP_SELECT_MENU);
+        id->menu.menu = &list_support[gDefaultDevice].menuItem;
+        guiDeferUpdate(id);
+    }
 }
 
 static void deferredAudioInit(void)
