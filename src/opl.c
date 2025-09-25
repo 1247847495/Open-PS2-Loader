@@ -1999,11 +1999,11 @@ static void deferredInit(void)
     struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
     guiDeferUpdate(id);
 
-    if (list_support[gDefaultDevice].support) {
-        id = guiOpCreate(GUI_OP_SELECT_MENU);
-        id->menu.menu = &list_support[gDefaultDevice].menuItem;
-        guiDeferUpdate(id);
-    }
+    //if (list_support[gDefaultDevice].support) {
+    //    id = guiOpCreate(GUI_OP_SELECT_MENU);
+    //    id->menu.menu = &list_support[gDefaultDevice].menuItem;
+    //    guiDeferUpdate(id);
+    //}
 }
 
 static void deferredAudioInit(void)

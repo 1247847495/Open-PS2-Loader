@@ -1646,13 +1646,13 @@ void guiIntroLoop(void)
         if (!screenHandlerTarget && screenHandler)
             screenHandler->handleInput();
 
-        // 也许可以解决无限转圈
-        if (gFrameHook && !gInitComplete && theardInitDone) {
-            if (!defaultSupportInitDone())
-                gFrameHook();
-            else
-                gInitComplete = 1;
-        }
+        //// 也许可以解决无限转圈
+        //if (gFrameHook && !gInitComplete && theardInitDone) {
+        //    if (!defaultSupportInitDone())
+        //        gFrameHook();
+        //    else
+        //        gInitComplete = 1;
+        //}
     }
 }
 
