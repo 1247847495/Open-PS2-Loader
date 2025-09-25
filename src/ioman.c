@@ -9,8 +9,8 @@
 #include <sio.h>
 #endif
 
-#define MAX_IO_REQUESTS 16
-#define MAX_IO_HANDLERS 16
+#define MAX_IO_REQUESTS 8
+#define MAX_IO_HANDLERS 8
 
 extern void *_gp;
 
