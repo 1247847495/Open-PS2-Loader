@@ -177,6 +177,7 @@ void cacheInit()
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
+    forceSkipQr = 1;
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)

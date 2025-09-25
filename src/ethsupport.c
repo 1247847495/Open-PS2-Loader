@@ -582,7 +582,6 @@ static void ethRenameGame(item_list_t *itemList, int id, char *newName)
 
 static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 {
-    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     int i, compatmask;
     int EnablePS2Logo = 0;
     int result;
@@ -600,7 +599,6 @@ static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet
         // ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
         ethInitSMB();
         ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // reload the game list
-        forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
         return;
     }
 
@@ -629,7 +627,6 @@ static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet
                 char error[256];
                 snprintf(error, sizeof(error), _l(_STR_ERR_VMC_CONTINUE), vmc_name, (vmc_id + 1));
                 if (!guiMsgBox(error, 1, NULL)) {
-                    forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
                     return;
                 }
             }

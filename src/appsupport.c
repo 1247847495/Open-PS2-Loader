@@ -357,7 +357,6 @@ static void appRenameItem(item_list_t *itemList, int id, char *newName)
 
 static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet)
 {
-    forceSkipQr = 1; // 运行游戏后，不要再加载图片，否则会死机
     int fd;
     char filename[256];
     const char *argv1;
@@ -427,7 +426,6 @@ static void appLaunchItem(item_list_t *itemList, int id, config_set_t *configSet
         LoadELFFromFileWithPartition(filename, partition, argc, argv);
     } else {
         guiMsgBox(_l(_STR_ERR_FILE_INVALID), 0, NULL);
-        forceSkipQr = 0; // 运行报错，需要还原，否则无法显示封面
     }
 }
 

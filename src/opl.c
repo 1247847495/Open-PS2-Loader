@@ -1798,13 +1798,14 @@ void deinit(int exception, int modeSelected)
     deinitAllSupport(exception, modeSelected);
 
     audioEnd();
-    ioEnd();
     guiEnd();
     menuEnd();
     lngEnd();
+    cacheEnd();
     thmEnd();
     rmEnd();
     configEnd();
+    ioEnd();
 }
 
 void setDefaultColors(void)
