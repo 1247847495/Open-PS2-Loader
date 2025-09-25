@@ -1785,6 +1785,7 @@ static void moduleCleanup(opl_io_module_t *mod, int exception, int modeSelected)
 
 void deinit(int exception, int modeSelected)
 {
+    cacheEnd();
     // block all io ops, wait for the ones still running to finish
     ioBlockOps(1);
     guiExecDeferredOps();
@@ -1801,7 +1802,6 @@ void deinit(int exception, int modeSelected)
     guiEnd();
     menuEnd();
     lngEnd();
-    cacheEnd();
     thmEnd();
     rmEnd();
     configEnd();
