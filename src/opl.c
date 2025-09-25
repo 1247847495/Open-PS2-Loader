@@ -1304,6 +1304,11 @@ static void loadSupportsBackground(void)
 
         moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
     }
+    if (firstOpenOPL) {
+        firstOpenOPL = 0;
+        deferredAudioInit();
+        deferredInit();
+    }
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
@@ -1353,7 +1358,6 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
             }
         }
     }
-    firstOpenOPL = 0;
     bgmUnMute();
 
 #ifdef __DEBUG
@@ -1965,9 +1969,8 @@ static void init(void)
         applyConfig(-1, -1, 0);
     }
 
-    deferredAudioInit();
-    deferredInit();
-    //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredInit);
+    //deferredAudioInit();
+    //deferredInit();
 }
 
 static void deferredInit(void)
