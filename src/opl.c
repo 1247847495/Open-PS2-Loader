@@ -1304,12 +1304,6 @@ static void loadSupportsBackground(void)
 
         moduleUpdateMenuInternal(&list_support[i], changed_backLoad, langChanged_backLoad);
     }
-    if (firstOpenOPL) {
-        firstOpenOPL = 0;
-        deferredAudioInit();
-        deferredInit();
-        gInitComplete = 1; // 也许可以防止启动时无限转圈？
-    }
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
@@ -1340,17 +1334,17 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 
     // Check if we should refresh device support as well.
     if (skipDeviceRefresh == 0) {
-        //changed_backLoad = changed;
-        //langChanged_backLoad = langChanged;
-        //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
-        initAllSupport(0);
+        changed_backLoad = changed;
+        langChanged_backLoad = langChanged;
+        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+        //initAllSupport(0);
 
-        for (int i = 0; i < MODE_COUNT; i++) {
-            if (list_support[i].support == NULL)
-                continue;
+        //for (int i = 0; i < MODE_COUNT; i++) {
+        //    if (list_support[i].support == NULL)
+        //        continue;
 
-            moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
-        }
+        //    moduleUpdateMenuInternal(&list_support[i], changed, langChanged);
+        //}
     } else {
         if (changed) {
             for (int i = 0; i < MODE_COUNT; i++) {
