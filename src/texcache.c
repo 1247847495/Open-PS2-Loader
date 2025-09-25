@@ -70,27 +70,28 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-pthread_t tid;
+//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+//pthread_t tid;
 // Io handled action...
-static void *cacheLoadImage(void *data)
+static void cacheLoadImage(void)
 {
-    while (1) {
-        pthread_mutex_lock(&mutex);
-        if (forceSkipQr) {
-            pthread_mutex_unlock(&mutex);
-            return NULL;
-        }
-        // 等待激活
-        while (!texLoading) {
-            pthread_cond_wait(&cond, &mutex);
-            if (forceSkipQr) {
-                pthread_mutex_unlock(&mutex);
-                return NULL;
-            }
-        }
-        pthread_mutex_unlock(&mutex);
+    //while (1)
+    //{
+        //pthread_mutex_lock(&mutex);
+        //if (forceSkipQr) {
+        //    pthread_mutex_unlock(&mutex);
+        //    return NULL;
+        //}
+        //// 等待激活
+        //while (!texLoading) {
+        //    pthread_cond_wait(&cond, &mutex);
+        //    if (forceSkipQr) {
+        //        pthread_mutex_unlock(&mutex);
+        //        return NULL;
+        //    }
+        //}
+        //pthread_mutex_unlock(&mutex);
 
         if (texLoading) {
             // load_image_request_t **tempBatchRequests = (load_image_request_t **)data;
@@ -126,8 +127,9 @@ static void *cacheLoadImage(void *data)
             }
         }
         texLoading = 0;
-    }
-    return NULL;
+        return;
+    //}
+    //return NULL;
 }
 
 void flushBatchRequests(void)
@@ -147,46 +149,46 @@ void flushBatchRequests(void)
         //    fclose(debugFile);
         //}
 
-        ////  使用官方的多线程方法
-        //ioRequestCount = batchRequestCount;
-        //batchRequestCount = 0;
-        //texLoading = 1;
-        //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &cacheLoadImage);
-
-        // 使用ptheard来推送
-        //pthread_mutex_lock(&mutex);
+        //  使用官方的多线程方法
         ioRequestCount = batchRequestCount;
         batchRequestCount = 0;
         texLoading = 1;
-        pthread_cond_signal(&cond);
-        //pthread_mutex_unlock(&mutex);
+        ioPutRequest(IO_CUSTOM_SIMPLEACTION, &cacheLoadImage);
+
+        //// 使用ptheard来推送
+        ////pthread_mutex_lock(&mutex);
+        //ioRequestCount = batchRequestCount;
+        //batchRequestCount = 0;
+        //texLoading = 1;
+        //pthread_cond_signal(&cond);
+        ////pthread_mutex_unlock(&mutex);
     }
 }
 
 void cacheInit()
 {
     //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
-    // 使用pthread的多线程方法
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
+    //// 使用pthread的多线程方法
+    //pthread_attr_t attr;
+    //pthread_attr_init(&attr);
 
-    //// 线程分离，如果不需要pthread_join
-    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    ////// 线程分离，如果不需要pthread_join
+    ////pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    // 设置合适的栈空间，防止爆栈等错误
-    pthread_attr_setstacksize(&attr, 1 * 1024 * 1024); // 1mb
+    //// 设置合适的栈空间，防止爆栈等错误
+    //pthread_attr_setstacksize(&attr, 1 * 1024 * 1024); // 1mb
 
-    // 创建线程
-    pthread_create(&tid, &attr, cacheLoadImage, NULL);
-    pthread_attr_destroy(&attr);
+    //// 创建线程
+    //pthread_create(&tid, &attr, cacheLoadImage, NULL);
+    //pthread_attr_destroy(&attr);
 }
 
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     forceSkipQr = 1;
-    pthread_cond_signal(&cond);
-    pthread_join(tid, NULL); // 等待线程结束
+    //pthread_cond_signal(&cond);
+    //pthread_join(tid, NULL); // 等待线程结束
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
