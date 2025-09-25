@@ -1996,7 +1996,7 @@ static void deferredInit(void)
 {
 
     //// inform GUI main init part is over
-    //struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
+    struct gui_update_t *id = NULL;
     //guiDeferUpdate(id);
 
     if (list_support[gDefaultDevice].support) {
