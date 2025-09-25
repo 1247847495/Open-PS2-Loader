@@ -219,7 +219,7 @@ extern bdm_device_data_t *gAutoLaunchDeviceData;
 extern char *gHDDPrefix;
 extern char gOPLPart[128];
 
-extern int firstOpenOPL;
+extern volatile int theardInitDone;
 
 int defaultSupportInitDone(void);
 

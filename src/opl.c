@@ -107,7 +107,10 @@ static void deferredAudioInit(void);
 static void deferredInit(void);
 
 // 是否首次加载OPL
-int firstOpenOPL = 1;
+static int firstOpenOPL = 1;
+
+// 多线程加载是否结束
+volatile int theardInitDone = 0;
 
 // frame counter
 static unsigned int frameCounter;
@@ -846,7 +849,7 @@ static void menuUpdateHook()
     }
 
     // BDM设备会在欢迎界面或手动启动时不断尝试初始化，直到成功或超时为止
-    if (!mainScreenInitDone) {
+    if (!mainScreenInitDone && theardInitDone) {
         for (i = BDM_MODE; i <= BDM_MODE4; i++) {
             bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
             if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
@@ -1309,6 +1312,7 @@ static void loadSupportsBackground(void)
         deferredAudioInit();
         deferredInit();
     }
+    theardInitDone = 1;
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
@@ -1341,6 +1345,7 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
     if (skipDeviceRefresh == 0) {
         changed_backLoad = changed;
         langChanged_backLoad = langChanged;
+        theardInitDone = 0;
         ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
         //initAllSupport(0);
 
@@ -1974,7 +1979,18 @@ static void init(void)
 }
 int defaultSupportInitDone(void)
 {
-    return list_support[gDefaultDevice].support != NULL; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
+    int result = 0;
+    if (theardInitDone) {
+        result = list_support[gDefaultDevice].support != NULL;
+        if (gDefaultDevice == BDM_MODE) {
+            if (!gEnableUSB)
+                result = 1;
+            else {
+                result = 1; // USB开了，但没有插U盘应该怎么处理？
+            }
+        }
+    }
+    return result; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
 }
 static void deferredInit(void)
 {

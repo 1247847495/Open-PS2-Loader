@@ -53,6 +53,22 @@ static clock_t popupTimer;
 // forward decl.
 static void guiShow();
 
+int mainScreenInitDone = 0;
+int bdmManualTrigger = 0;
+int usbFound = 0;
+int ILKFound = 0;
+int MX4SIOFound = 0;
+int GptFound = 0;
+int txtFileCreated = 0;
+int txtFileRebuilded = 0;
+
+static int defaultDelayFrame = 360;
+// static int LongDelayTime = 18000;
+static int ShortDelayTime = 100;
+static int endIntroDelayFrame = 0;
+static int bdmTimeOut = 0;
+static int artLoadDelayTime = 600;
+
 #ifdef __DEBUG
 
 // debug version displays an FPS meter
@@ -1631,28 +1647,14 @@ void guiIntroLoop(void)
             screenHandler->handleInput();
 
         // 也许可以解决无限转圈
-        if (gFrameHook && !gInitComplete && !firstOpenOPL) {
+        if (gFrameHook && !gInitComplete && theardInitDone) {
             if (!defaultSupportInitDone())
                 gFrameHook();
+            else
+                gInitComplete = 1;
         }
     }
 }
-
-int mainScreenInitDone = 0;
-int bdmManualTrigger = 0;
-int usbFound = 0;
-int ILKFound = 0;
-int MX4SIOFound = 0;
-int GptFound = 0;
-int txtFileCreated = 0;
-int txtFileRebuilded = 0;
-
-static int defaultDelayFrame = 360;
-//static int LongDelayTime = 18000;
-static int ShortDelayTime = 100;
-static int endIntroDelayFrame = 0;
-static int bdmTimeOut = 0;
-static int artLoadDelayTime = 600;
 
 void reFindBDM()
 {
@@ -1784,7 +1786,8 @@ void guiMainLoop(void)
                 //}
                 endIntroDelayFrame = 0;
             } else {
-                endIntroDelayFrame--;
+                if (theardInitDone)
+                    endIntroDelayFrame--; // 多线程初始化结束后，才开始计时
 
                 // BDM设备超时，弹出提示框
                 if ((greetingAlpha <= 0x00) && (endIntroDelayFrame <= 0) && ((gBDMStartMode == START_MODE_AUTO) || BdmStarted || bdmManualTrigger))
