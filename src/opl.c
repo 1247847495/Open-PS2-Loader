@@ -107,7 +107,7 @@ static void deferredAudioInit(void);
 static void deferredInit(void);
 
 // 是否首次加载OPL
-static int firstOpenOPL = 1;
+int firstOpenOPL = 1;
 
 // frame counter
 static unsigned int frameCounter;
@@ -1972,9 +1972,9 @@ static void init(void)
     //deferredAudioInit();
     //deferredInit();
 }
-int initSuccess(void)
+int defaultSupportInitDone(void)
 {
-    return list_support[gDefaultDevice].support && !firstOpenOPL; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
+    return list_support[gDefaultDevice].support != NULL; // 判断是否初始化成功，如果不成功则由别的逻辑继续尝试初始化
 }
 static void deferredInit(void)
 {
