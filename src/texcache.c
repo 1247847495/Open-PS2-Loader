@@ -177,7 +177,7 @@ void cacheInit()
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
-    forceSkipQr = 1;
+    //forceSkipQr = 1;
     pthread_join(tid, NULL); // 等待线程结束
 }
 
