@@ -72,6 +72,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+pthread_t tid;
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
@@ -159,12 +160,11 @@ void cacheInit()
 {
     //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
     // 使用pthread的多线程方法
-    pthread_t tid;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
-    // 线程分离，如果不需要pthread_join
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    //// 线程分离，如果不需要pthread_join
+    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     // 设置合适的栈空间，防止爆栈等错误
     pthread_attr_setstacksize(&attr, 8 * 1024 * 1024);
@@ -178,6 +178,7 @@ void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     forceSkipQr = 1;
+    pthread_join(tid, NULL); // 等待线程结束
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
