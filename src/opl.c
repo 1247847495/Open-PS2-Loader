@@ -1995,9 +1995,9 @@ static void init(void)
 static void deferredInit(void)
 {
 
-    // inform GUI main init part is over
-    struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
-    guiDeferUpdate(id);
+    //// inform GUI main init part is over
+    //struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
+    //guiDeferUpdate(id);
 
     if (list_support[gDefaultDevice].support) {
         id = guiOpCreate(GUI_OP_SELECT_MENU);
