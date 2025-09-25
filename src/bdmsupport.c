@@ -19,6 +19,7 @@
 #define NEWLIB_PORT_AWARE
 #include <fileXio_rpc.h> // fileXioIoctl, fileXioDevctl
 
+static int bdmModLoaded = 0;
 static int iLinkModLoaded = 0;
 static int mx4sioModLoaded = 0;
 static int hddModLoaded = 0;
@@ -108,30 +109,33 @@ static void bdmLoadBlockDeviceModules(void)
 
 void bdmLoadModules(void)
 {
-    LOG("BDMSUPPORT LoadModules\n");
+    if (!bdmModLoaded) {
+        bdmModLoaded = 1;
+        LOG("BDMSUPPORT LoadModules\n");
 
-    // Load Block Device Manager (BDM)
-    LOG("[BDM]:\n");
-    sysLoadModuleBuffer(&bdm_irx, size_bdm_irx, 0, NULL);
+        // Load Block Device Manager (BDM)
+        LOG("[BDM]:\n");
+        sysLoadModuleBuffer(&bdm_irx, size_bdm_irx, 0, NULL);
 
-    // Load FATFS (mass:) driver
-    LOG("[BDMFS_FATFS]:\n");
-    sysLoadModuleBuffer(&bdmfs_fatfs_irx, size_bdmfs_fatfs_irx, 0, NULL);
+        // Load FATFS (mass:) driver
+        LOG("[BDMFS_FATFS]:\n");
+        sysLoadModuleBuffer(&bdmfs_fatfs_irx, size_bdmfs_fatfs_irx, 0, NULL);
 
-    // Load USB Block Device drivers
-    LOG("[USBD]:\n");
-    sysLoadModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL);
-    LOG("[USBMASS_BD]:\n");
-    sysLoadModuleBuffer(&usbmass_bd_irx, size_usbmass_bd_irx, 0, NULL);
+        // Load USB Block Device drivers
+        LOG("[USBD]:\n");
+        sysLoadModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL);
+        LOG("[USBMASS_BD]:\n");
+        sysLoadModuleBuffer(&usbmass_bd_irx, size_usbmass_bd_irx, 0, NULL);
+
+        LOG("[BDMEVENT]:\n");
+        sysLoadModuleBuffer(&bdmevent_irx, size_bdmevent_irx, 0, NULL);
+        SifAddCmdHandler(0, &bdmEventHandler, NULL);
+
+        LOG("BDMSUPPORT Modules loaded\n");
+    }
 
     // Load Optional Block Device drivers
     bdmLoadBlockDeviceModules();
-
-    LOG("[BDMEVENT]:\n");
-    sysLoadModuleBuffer(&bdmevent_irx, size_bdmevent_irx, 0, NULL);
-    SifAddCmdHandler(0, &bdmEventHandler, NULL);
-
-    LOG("BDMSUPPORT Modules loaded\n");
 }
 
 void bdmInit(item_list_t *itemList)
