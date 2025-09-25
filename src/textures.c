@@ -4,6 +4,7 @@
 #include "include/ioman.h"
 #include <png.h>
 #include <libjpg_ps2_addons.h>
+#include <pthread.h>
 //#include <timer.h>
 //#include "include/pad.h"
 
@@ -437,15 +438,19 @@ static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPt
     png_read_end(pngPtr, NULL);
 }
 
+pthread_mutex_t io_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 {
     texPrepare(texture);
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
+        pthread_mutex_lock(&io_mutex);
         int fd = open(filePath, O_RDONLY);
-        if (fd < 0)
+        if (fd < 0) {
+            pthread_mutex_unlock(&io_mutex);
             return ERR_BAD_FILE;
+        }
 
         int fileSize = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
@@ -453,6 +458,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         pFileBuffer = malloc(fileSize);
         if (pFileBuffer == NULL) {
             close(fd);
+            pthread_mutex_unlock(&io_mutex);
             return ERR_BAD_FILE; // There's no out of memory error...
         }
 
@@ -460,10 +466,11 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             LOG("texLoadAll: failed to read file %s\n", filePath);
             free(pFileBuffer);
             close(fd);
+            pthread_mutex_unlock(&io_mutex);
             return ERR_BAD_FILE;
         }
-
         close(fd);
+        pthread_mutex_unlock(&io_mutex);
 
         PngFileBufferPtr = pFileBuffer;
     } else {
