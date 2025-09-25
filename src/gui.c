@@ -1646,13 +1646,13 @@ static int defaultDelayFrame = 360;
 static int ShortDelayTime = 100;
 static int endIntroDelayFrame = 0;
 static int bdmTimeOut = 0;
-static int artLoadDelayTime = 50;
+static int artLoadDelayTime = 600;
 
 void reFindBDM()
 {
     if (bdmManualTrigger) {
         if (!artLoadDelayTime) {
-            artLoadDelayTime = 50;
+            artLoadDelayTime = 600;
             if (!gEnableUSB)
                 artLoadDelayTime *= 1.4f;
         }
@@ -1829,7 +1829,7 @@ void guiMainLoop(void)
         if (mainScreenInitDone) {
             if (artLoadDelayTime > 0) {
                 // 启动画面的延迟期间，预加载art图片
-                if (busyAlpha <= 0x00) {
+                if (!texLoading) {
                     // 手动启动BDM后的变量处理
                     if (bdmManualTrigger) {
                         bdmManualTrigger = 0; // 用于结束guishow的黑屏
@@ -1838,6 +1838,7 @@ void guiMainLoop(void)
                     artLoadDelayTime = 0;
                     sfxPlay(SFX_TRANSITION); // 声音放最后播，不容易死机
                 }
+                artLoadDelayTime--;
             } else {
                 // Read the pad states to prepare for input processing in the screen handler
                 guiReadPads();
