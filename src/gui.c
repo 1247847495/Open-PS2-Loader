@@ -1448,11 +1448,11 @@ void guiDrawSubMenuHints(void)
 }
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
-static int busyAlpha = 0x80; // Fully transparant
+static int busyAlpha = 0x10; // Fully transparant
 static void guiDrawOverlays()
 {
     // are there any pending operations?
-    int pending = (ioHasPendingRequests() || !mainScreenInitDone || texLoading);
+    int pending = (ioHasPendingRequests() || !mainScreenInitDone);
 
     if (!pending) {
         // Fade out
