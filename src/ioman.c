@@ -53,7 +53,7 @@ static ee_sema_t gQueueSema;
 
 static int isIOBlocked = 0;
 static int isIORunning = 0;
-static int isIOPending = 0;
+static volatile int isIOPending = 0;
 
 // 静态池相关，防止内存碎片化导致死机
 static struct io_request_t gRequestPool[MAX_IO_REQUESTS];
