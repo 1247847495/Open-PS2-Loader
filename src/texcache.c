@@ -77,34 +77,35 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
+    load_image_request_t ioReq = *(load_image_request_t *)data;
     // Safeguards...
-    if (!data->cache || !data->cache->content)
+    if (!ioReq.cache || !ioReq.cache->content)
         return;
 
-    item_list_t *handler = data->list;
+    item_list_t *handler = ioReq.list;
     if (!handler) {
-        data->cache->content[data->cacheId].qr = 0;
+        ioReq.cache->content[ioReq.cacheId].qr = 0;
         return;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (cdFramesCount || forceSkipQr) {
-        data->cache->content[data->cacheId].qr = 0;
+        ioReq.cache->content[ioReq.cacheId].qr = 0;
         return;
     }
 
     //// seems okay. we can proceed
-    // GSTEXTURE *texture = &data->cache->content[data->cacheId].texture;
+    // GSTEXTURE *texture = &ioReq.cache->content[ioReq.cacheId].texture;
     // texFree(texture);
 
-    if (handler->itemGetImage(handler, data->cache->prefix, data->cache->isPrefixRelative, data->value, data->cache->suffix, &data->cache->content[data->cacheId].texture, GS_PSM_CT24) < 0) {
-        data->cache->content[data->cacheId].lastUsed = 0;
-        data->cache->content[data->cacheId].texFound = 0;
+    if (handler->itemGetImage(handler, ioReq.cache->prefix, ioReq.cache->isPrefixRelative, ioReq.value, ioReq.cache->suffix, &ioReq.cache->content[ioReq.cacheId].texture, GS_PSM_CT24) < 0) {
+        ioReq.cache->content[ioReq.cacheId].lastUsed = 0;
+        ioReq.cache->content[ioReq.cacheId].texFound = 0;
     } else {
-        data->cache->content[data->cacheId].lastUsed = guiFrameId;
-        data->cache->content[data->cacheId].texFound = 1;
+        ioReq.cache->content[ioReq.cacheId].lastUsed = guiFrameId;
+        ioReq.cache->content[ioReq.cacheId].texFound = 1;
     }
-    data->cache->content[data->cacheId].qr = 0;
+    ioReq.cache->content[ioReq.cacheId].qr = 0;
 
     return;
 }
