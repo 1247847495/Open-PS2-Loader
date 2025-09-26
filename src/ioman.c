@@ -171,7 +171,7 @@ static void ioWorkerThread(void *arg)
             FreeIoRequest(req);
         }
     }
-
+    WaitSema(gEndSemaId);
     // 提前退出时，清理所有线程，防止内存泄露
     struct io_request_t *req = gReqList;
     gReqList = NULL;
@@ -183,6 +183,7 @@ static void ioWorkerThread(void *arg)
     }
     isIOPending = 0;
     isIORunning = 0;
+    SignalSema(gEndSemaId);
     // 此时信号量一定没人再用，可以销毁
     DeleteSema(gEndSemaId);
     DeleteSema(gIOPrintfSemaId);
@@ -321,7 +322,7 @@ void ioEnd(void)
 
     // 等待worker线程彻底退出
     while (isIORunning)
-        usleep(1000); // 或者YieldCPU(), 可以根据PS2线程API适当替换
+        sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
 }
 
 int ioGetPendingRequestCount(void)
@@ -383,7 +384,7 @@ int ioBlockOps(int block)
 
         // wait for all io to finish
         while (ioHasPendingRequests())
-            usleep(1000);
+            sleep(0);
 
         ChangeThreadPriority(ThreadID, status.current_priority);
 
