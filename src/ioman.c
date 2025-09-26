@@ -186,6 +186,8 @@ static void ioWorkerThread(void *arg)
     SignalSema(gEndSemaId);
 
     isIORunning = 0;
+
+    ExitDeleteThread();
 }
 
 static void ioSimpleActionHandler(void *data)
@@ -226,7 +228,6 @@ void ioInit(void)
     gIOThread.initial_priority = 30;
 
     isIORunning = 1;
-    isIOPending = 0;
     gIOThreadId = CreateThread(&gIOThread);
     StartThread(gIOThreadId, NULL);
 }
@@ -320,7 +321,7 @@ void ioEnd(void)
     // 等待worker线程彻底退出
     while (isIORunning)
         sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
-    ExitDeleteThread();
+
     // 此时信号量一定没人再用，可以销毁
     DeleteSema(gEndSemaId);
     DeleteSema(gIOPrintfSemaId);
