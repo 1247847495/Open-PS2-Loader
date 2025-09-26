@@ -52,7 +52,8 @@ static ee_thread_t gIOThread;
 static ee_sema_t gQueueSema;
 
 static int isIOBlocked = 0;
-static volatile int isIORunning = 0;
+static int isIORunning = 0;
+static volatile int isIOPending = 0;
 
 // 静态池相关，防止内存碎片化导致死机
 static struct io_request_t gRequestPool[MAX_IO_REQUESTS];
@@ -153,7 +154,6 @@ static void ioWorkerThread(void *arg)
             WaitSema(gEndSemaId);
             struct io_request_t *req = gReqList;
             if (req) {
-                isIORunning = 1; // 标记“正在执行”
                 gReqList = req->next;
                 if (!gReqList)
                     gReqEnd = NULL;
@@ -161,7 +161,7 @@ static void ioWorkerThread(void *arg)
                 gReqEnd = NULL; // 队列为空时，保险起见设NULL
 
             if (!req) {
-                isIORunning = 0;
+                isIOPending = 0;
                 SignalSema(gEndSemaId);
                 break;
             }
@@ -182,6 +182,7 @@ static void ioWorkerThread(void *arg)
         FreeIoRequest(req);
         req = next;
     }
+    isIOPending = 0;
     SignalSema(gEndSemaId);
 
     isIORunning = 0;
@@ -226,7 +227,7 @@ void ioInit(void)
     gIOThread.stack = thread_stack;
     gIOThread.initial_priority = 30;
 
-    isIORunning = 0;
+    isIORunning = 1;
     gIOThreadId = CreateThread(&gIOThread);
     StartThread(gIOThreadId, NULL);
 }
@@ -266,7 +267,7 @@ int ioPutRequest(int type, void *data)
         gReqEnd->next = new_req;
         gReqEnd = new_req;
     }
-
+    isIOPending = 1; // 标记“队列状态”
     SignalSema(gEndSemaId);
 
     // Worker thread cannot wake itself up (WakeupThread will return an error), but it will find the new request before sleeping.
@@ -343,7 +344,7 @@ int ioGetPendingRequestCount(void)
 
 int ioHasPendingRequests(void)
 {
-    return isIORunning;
+    return isIOPending;
 }
 
 #ifdef __EESIO_DEBUG
