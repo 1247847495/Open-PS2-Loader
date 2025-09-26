@@ -185,8 +185,6 @@ static void ioWorkerThread(void *arg)
     SignalSema(gEndSemaId);
 
     isIORunning = 0;
-
-    ExitDeleteThread();
 }
 
 static void ioSimpleActionHandler(void *data)
@@ -254,7 +252,7 @@ int ioPutRequest(int type, void *data)
         SignalSema(gEndSemaId);
         return IO_ERR_IO_BLOCKED; // 注意定义该错误码
     }
-
+    isIORunning = 1; // 标记“正在执行”
     new_req->next = NULL;
     new_req->type = type;
     new_req->data = data;
@@ -320,7 +318,7 @@ void ioEnd(void)
     // 等待worker线程彻底退出
     while (isIORunning)
         sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
-
+    ExitDeleteThread();
     // 此时信号量一定没人再用，可以销毁
     DeleteSema(gEndSemaId);
     DeleteSema(gIOPrintfSemaId);
