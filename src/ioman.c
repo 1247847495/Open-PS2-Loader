@@ -322,7 +322,7 @@ void ioEnd(void)
 
     // 等待worker线程彻底退出
     while (isIORunning)
-        sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
+        usleep(1000); // 或者YieldCPU(), 可以根据PS2线程API适当替换
 }
 
 int ioGetPendingRequestCount(void)
@@ -384,7 +384,7 @@ int ioBlockOps(int block)
 
         // wait for all io to finish
         while (ioHasPendingRequests())
-            sleep(0);
+            usleep(1000);
 
         ChangeThreadPriority(ThreadID, status.current_priority);
 
