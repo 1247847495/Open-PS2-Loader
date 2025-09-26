@@ -153,21 +153,21 @@ static void ioWorkerThread(void *arg)
             WaitSema(gEndSemaId);
             struct io_request_t *req = gReqList;
             if (req) {
+                isIORunning = 1; // 标记“正在执行”
                 gReqList = req->next;
                 if (!gReqList)
                     gReqEnd = NULL;
             } else
                 gReqEnd = NULL; // 队列为空时，保险起见设NULL
-            SignalSema(gEndSemaId);
 
             if (!req) {
                 isIORunning = 0;
+                SignalSema(gEndSemaId);
                 break;
             }
+            SignalSema(gEndSemaId);
 
-            isIORunning = 1; // 标记“正在执行”
             ioProcessRequest(req);
-            isIORunning = 0;
             FreeIoRequest(req);
         }
     }
