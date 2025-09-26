@@ -254,7 +254,7 @@ int ioPutRequest(int type, void *data)
         SignalSema(gEndSemaId);
         return IO_ERR_IO_BLOCKED; // 注意定义该错误码
     }
-
+    isIORunning = 1; // 标记“正在执行”
     new_req->next = NULL;
     new_req->type = type;
     new_req->data = data;
