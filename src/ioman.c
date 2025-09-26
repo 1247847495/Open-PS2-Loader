@@ -160,11 +160,13 @@ static void ioWorkerThread(void *arg)
             } else
                 gReqEnd = NULL; // 队列为空时，保险起见设NULL
 
-            SignalSema(gEndSemaId);
             if (!req) {
                 isIOPending = 0;
+                SignalSema(gEndSemaId);
                 break;
             }
+            SignalSema(gEndSemaId);
+
             ioProcessRequest(req);
             FreeIoRequest(req);
         }
