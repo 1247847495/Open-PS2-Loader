@@ -172,6 +172,7 @@ static void ioWorkerThread(void *arg)
         }
     }
 
+    WaitSema(gEndSemaId);
     // 提前退出时，清理所有线程，防止内存泄露
     struct io_request_t *req = gReqList;
     gReqList = NULL;
@@ -183,6 +184,7 @@ static void ioWorkerThread(void *arg)
     }
     isIOPending = 0;
     isIORunning = 0;
+    SignalSema(gEndSemaId);
 }
 
 static void ioSimpleActionHandler(void *data)
