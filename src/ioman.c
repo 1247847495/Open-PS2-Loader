@@ -318,9 +318,6 @@ void ioEnd(void)
 {
     gIOTerminate = 1;
     WakeupThread(gIOThreadId);
-    // 等待worker线程彻底退出
-    while (isIORunning)
-        sleep(0); // 或者YieldCPU(), 可以根据PS2线程API适当替换
 
     // 此时信号量一定没人再用，可以销毁
     DeleteSema(gEndSemaId);
