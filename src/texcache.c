@@ -77,36 +77,40 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 // Io handled action...
 static void cacheLoadImage(void *data)
 {
-    load_image_request_t ioReq = *(load_image_request_t *)data;
+    load_image_request_t *ioReq = (load_image_request_t *)data;
     // Safeguards...
-    if (!ioReq.cache || !ioReq.cache->content)
+    if (!ioReq->cache || !ioReq->cache->content) {
+        free(ioReq);
         return;
+    }
 
-    item_list_t *handler = ioReq.list;
+    item_list_t *handler = ioReq->list;
     if (!handler) {
-        ioReq.cache->content[ioReq.cacheId].qr = 0;
+        ioReq->cache->content[ioReq->cacheId].qr = 0;
+        free(ioReq);
         return;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (cdFramesCount || forceSkipQr) {
-        ioReq.cache->content[ioReq.cacheId].qr = 0;
+        ioReq->cache->content[ioReq->cacheId].qr = 0;
+        free(ioReq);
         return;
     }
 
     //// seems okay. we can proceed
-    // GSTEXTURE *texture = &ioReq.cache->content[ioReq.cacheId].texture;
+    // GSTEXTURE *texture = &ioReq->cache->content[ioReq->cacheId].texture;
     // texFree(texture);
 
-    if (handler->itemGetImage(handler, ioReq.cache->prefix, ioReq.cache->isPrefixRelative, ioReq.value, ioReq.cache->suffix, &ioReq.cache->content[ioReq.cacheId].texture, GS_PSM_CT24) < 0) {
-        ioReq.cache->content[ioReq.cacheId].lastUsed = 0;
-        ioReq.cache->content[ioReq.cacheId].texFound = 0;
+    if (handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24) < 0) {
+        ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
+        ioReq->cache->content[ioReq->cacheId].texFound = 0;
     } else {
-        ioReq.cache->content[ioReq.cacheId].lastUsed = guiFrameId;
-        ioReq.cache->content[ioReq.cacheId].texFound = 1;
+        ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
+        ioReq->cache->content[ioReq->cacheId].texFound = 1;
     }
-    ioReq.cache->content[ioReq.cacheId].qr = 0;
-
+    ioReq->cache->content[ioReq->cacheId].qr = 0;
+    free(ioReq);
     return;
 }
 
@@ -369,14 +373,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             oldestEntry->UID = *UID;
 
-        load_image_request_t req;
-        memset(&req, 0, sizeof(load_image_request_t));
-        req.cache = cache;
-        req.cacheId = *cacheId;
-        req.list = list;
-        req.value = value;
+        load_image_request_t *req = malloc(sizeof(load_image_request_t));
+        memset(req, 0, sizeof(load_image_request_t));
+        req->cache = cache;
+        req->cacheId = *cacheId;
+        req->list = list;
+        req->value = value;
 
-        ioPutRequest(IO_CACHE_LOAD_ART, &req);
+        ioPutRequest(IO_CACHE_LOAD_ART, req);
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
