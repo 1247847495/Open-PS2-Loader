@@ -321,8 +321,8 @@ void ioEnd(void)
     WakeupThread(gIOThreadId);
 
     // 等待worker线程彻底退出
-    while (isIORunning)
-        usleep(1000); // 或者YieldCPU(), 可以根据PS2线程API适当替换
+    while (isIORunning) {}
+        //usleep(1000); // 或者YieldCPU(), 可以根据PS2线程API适当替换
 }
 
 int ioGetPendingRequestCount(void)
