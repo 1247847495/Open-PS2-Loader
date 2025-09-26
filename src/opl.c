@@ -1814,8 +1814,8 @@ void deinit(int exception, int modeSelected)
     thmEnd();
     rmEnd();
     texFinish();
-    configEnd();
     ioEnd();
+    configEnd();
 }
 
 void setDefaultColors(void)
