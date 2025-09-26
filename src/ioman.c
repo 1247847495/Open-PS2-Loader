@@ -126,12 +126,12 @@ static void ioProcessRequest(struct io_request_t *req)
 {
     if (!req)
         return;
-    WaitSema(gEndSemaId);
+
     io_request_handler_t hlr = ioGetHandler(req->type);
 
     // invalidate the request
     void *data = req->data;
-    SignalSema(gEndSemaId);
+
     if (hlr)
         hlr(data);
 }
