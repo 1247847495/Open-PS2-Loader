@@ -180,9 +180,8 @@ static void ioWorkerThread(void *arg)
         FreeIoRequest(req);
         req = next;
     }
-    isIOPending = 0;
     SignalSema(gEndSemaId);
-
+    isIOPending = 0;
     isIORunning = 0;
 }
 
