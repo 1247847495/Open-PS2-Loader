@@ -53,7 +53,7 @@ static void hddInitModules(void)
         while (hddLoadSupportModules()) {
             if (++retryCount >= 20)
                 break;
-            DelayThread(100000);
+            usleep(100000);
         }
     } else
         hddLoadSupportModules();
@@ -222,7 +222,7 @@ void hddLoadModules(void)
             return;
         }
         hddLoadModulesSuccess = 1;
-        //DelayThread(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
+        //usleep(500000); // 延迟0.5秒,加一点延迟,尤其在PS2上的HDD可能需要
     } else
         hddModulesLoadCount++;
 
