@@ -1,6 +1,6 @@
 #include "include/opl.h"
 #include "include/ioman.h"
-#include "thbase.h"
+#include <thbase.h>
 #include <kernel.h>
 #include <string.h>
 #include <malloc.h>
