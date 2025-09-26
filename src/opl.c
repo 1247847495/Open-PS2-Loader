@@ -1813,6 +1813,7 @@ void deinit(int exception, int modeSelected)
     lngEnd();
     thmEnd();
     rmEnd();
+    texFinish();
     configEnd();
     ioEnd();
 }
@@ -1945,6 +1946,7 @@ static void init(void)
     padInit(0);
     configInit(NULL);
 
+    texInit();
     rmInit();
     lngInit();
     thmInit();
