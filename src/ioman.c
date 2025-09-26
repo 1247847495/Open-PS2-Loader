@@ -181,12 +181,12 @@ static void ioWorkerThread(void *arg)
         FreeIoRequest(req);
         req = next;
     }
+    isIOPending = 0;
+    isIORunning = 0;
     // 此时信号量一定没人再用，可以销毁
     DeleteSema(gEndSemaId);
     DeleteSema(gIOPrintfSemaId);
     ExitDeleteThread();
-    isIOPending = 0;
-    isIORunning = 0;
 }
 
 static void ioSimpleActionHandler(void *data)
