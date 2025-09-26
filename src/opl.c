@@ -928,7 +928,7 @@ static int checkLoadConfigHDD(int types)
         while (hddLoadSupportModules()) {
             if (++retryCount >= 20)
                 break;
-            usleep(100000);
+            DelayThread(100000);
         }
     } else
         hddLoadSupportModules();
@@ -2059,7 +2059,7 @@ static void miniInit(int mode)
             while (hddLoadSupportModules()) {
                 if (++retryCount >= 20)
                     break;
-                usleep(100000);
+                DelayThread(100000);
             }
         } else
             hddLoadSupportModules();
