@@ -957,8 +957,8 @@ void setErrorMessage(int strId)
 // ------------------ Configuration handling ----------------
 // ----------------------------------------------------------
 
-static volatile int lscstatus = CONFIG_ALL;
-static volatile int lscret = 0;
+static int lscstatus = CONFIG_ALL;
+static int lscret = 0;
 
 static int checkLoadConfigBDM(int types)
 {
