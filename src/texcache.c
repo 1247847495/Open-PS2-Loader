@@ -28,6 +28,8 @@ volatile u32 texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
+//static int texLoadingTimeOut1 = 0;  // 用于判断加载计数异常时，将texLoading置为0
+//static int texLoadingTimeOut2 = 0; // 用于判断加载计数异常时，将texLoading置为0
 
 typedef struct
 {
@@ -141,6 +143,21 @@ void flushBatchRequests(void)
     // 左右切页签强制刷新缓存的变量，需要判断当前游戏所有图片是否都处理完毕
     if (ForceRefreshPrevTexCache > 1)
         ForceRefreshPrevTexCache = 0;
+
+    //// texLoading状态异常时，将texLoading置为0(补救措施)
+    //if (texLoading == 1) {
+    //    texLoadingTimeOut1++;
+    //    if (texLoadingTimeOut1 >= 600)
+    //        texLoading = 0;
+    //} else
+    //    texLoadingTimeOut1 = 0;
+
+    //if (texLoading == 2) {
+    //    texLoadingTimeOut2++;
+    //    if (texLoadingTimeOut2 >= 600)
+    //        texLoading = 0;
+    //} else
+    //    texLoadingTimeOut2 = 0;
 
     //// 有堆积的图片待加载
     //if (batchRequestCount > 0 && !texLoading) {
@@ -374,7 +391,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr)
+    if (skipQr || texLoading >= 3)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
@@ -427,7 +444,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
             // 创建线程
             pthread_mutex_lock(&texLoadingMutex);
-            texLoading++;
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
             pthread_mutex_unlock(&texLoadingMutex);
             pthread_create(&tid, &attr, cacheLoadImage, req);
             pthread_attr_destroy(&attr);
