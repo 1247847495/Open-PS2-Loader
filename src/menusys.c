@@ -109,7 +109,21 @@ static void menuRenameGame(submenu_list_t **submenu)
                     // to be deleted on certain file systems.
                     if (strcmp(newName, selected_item->item->current->item.text) != 0) {
                         support->itemRename(support, selected_item->item->current->item.id, newName);
-                        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                        //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                        //   使用pthread的多线程方法
+                        pthread_t tid;
+                        pthread_attr_t attr;
+                        pthread_attr_init(&attr);
+
+                        // 线程分离，如果不需要pthread_join
+                        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                        // 设置合适的栈空间，防止爆栈等错误
+                        pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+                        // 创建线程
+                        pthread_create(&tid, &attr, menuDeferredUpdate, &support->mode);
+                        pthread_attr_destroy(&attr);
                     }
                 }
             }
@@ -135,7 +149,21 @@ static void menuDeleteGame(submenu_list_t **submenu)
                     guiSwitchScreen(GUI_SCREEN_MAIN);
                     submenuDestroy(submenu);
                     support->itemDelete(support, selected_item->item->current->item.id);
-                    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                    //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                    //   使用pthread的多线程方法
+                    pthread_t tid;
+                    pthread_attr_t attr;
+                    pthread_attr_init(&attr);
+
+                    // 线程分离，如果不需要pthread_join
+                    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                    // 设置合适的栈空间，防止爆栈等错误
+                    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+                    // 创建线程
+                    pthread_create(&tid, &attr, menuDeferredUpdate, &support->mode);
+                    pthread_attr_destroy(&attr);
                 }
             }
         }
@@ -143,7 +171,7 @@ static void menuDeleteGame(submenu_list_t **submenu)
         guiMsgBox("NULL Support object. Please report", 0, NULL);
 }
 
-static void _menuLoadConfig()
+static void *_menuLoadConfig(void *data)
 {
     WaitSema(menuSemaId);
     if (!itemConfig) {
@@ -152,9 +180,10 @@ static void _menuLoadConfig()
     }
     actionStatus = 0;
     SignalSema(menuSemaId);
+    return NULL;
 }
 
-static void _menuSaveConfig()
+static void *_menuSaveConfig(void *data)
 {
     int result;
 
@@ -166,9 +195,11 @@ static void _menuSaveConfig()
 
     if (!result)
         setErrorMessage(_STR_ERROR_SAVING_SETTINGS);
+
+    return NULL;
 }
 
-static void _menuRequestConfig()
+static void *_menuRequestConfig(void *data)
 {
     WaitSema(menuSemaId);
     if (selected_item->item->current != NULL && itemConfigId != selected_item->item->current->item.id) {
@@ -180,19 +211,34 @@ static void _menuRequestConfig()
         //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
         if (itemConfigId == -1) {
             itemConfigId = selected_item->item->current->item.id;
-            ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
+            //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
+            //   使用pthread的多线程方法
+            pthread_t tid;
+            pthread_attr_t attr;
+            pthread_attr_init(&attr);
+
+            // 线程分离，如果不需要pthread_join
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            // 设置合适的栈空间，防止爆栈等错误
+            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+            // 创建线程
+            pthread_create(&tid, &attr, _menuLoadConfig, NULL);
+            pthread_attr_destroy(&attr);
         }
     } else if (itemConfig)
         actionStatus = 0;
 
     SignalSema(menuSemaId);
+    return NULL;
 }
 
 config_set_t *menuLoadConfig()
 {
     actionStatus = 1;
     itemConfigId = -1;
-    guiHandleDeferedIO(&actionStatus, _l(_STR_LOADING_SETTINGS), IO_CUSTOM_SIMPLEACTION, &_menuRequestConfig);
+    guiHandleDeferedIO(&actionStatus, _l(_STR_LOADING_SETTINGS), NULL, _menuRequestConfig);
     return itemConfig;
 }
 
@@ -201,14 +247,14 @@ config_set_t *gameMenuLoadConfig(struct UIItem *ui)
 {
     actionStatus = 1;
     itemConfigId = -1;
-    guiGameHandleDeferedIO(&actionStatus, ui, IO_CUSTOM_SIMPLEACTION, &_menuRequestConfig);
+    guiGameHandleDeferedIO(&actionStatus, ui, NULL, _menuRequestConfig);
     return itemConfig;
 }
 
 void menuSaveConfig()
 {
     actionStatus = 1;
-    guiHandleDeferedIO(&actionStatus, _l(_STR_SAVING_SETTINGS), IO_CUSTOM_SIMPLEACTION, &_menuSaveConfig);
+    guiHandleDeferedIO(&actionStatus, _l(_STR_SAVING_SETTINGS), NULL, _menuSaveConfig);
 }
 
 static void menuInitMainMenu(void)

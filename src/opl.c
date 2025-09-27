@@ -59,7 +59,8 @@ int configGetStat(config_set_t *configSet, iox_stat_t *stat);
 #define LOG_INIT() \
     do {           \
     } while (0)
-#define LOG_ENABLE() ioPutRequest(IO_CUSTOM_SIMPLEACTION, &debugSetActive)
+#define LOG_ENABLE() \
+// #define LOG_ENABLE() ioPutRequest(IO_CUSTOM_SIMPLEACTION, &debugSetActive)
 #else
 #define LOG_INIT() \
     do {           \
@@ -270,7 +271,7 @@ static void itemInitSupport(item_list_t *support)
         //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
 }
 
-static void backLoadSupports_Manual(void)
+static void *backLoadSupports_Manual(void *data)
 {
     for (int i = 0; i <= BDM_MODE4; i++) {
 
@@ -293,6 +294,7 @@ static void backLoadSupports_Manual(void)
     }
     // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
     reFindBDM();
+    return NULL;
 }
 static void itemExecSelect(struct menu_item *curMenu)
 {  
@@ -311,7 +313,21 @@ static void itemExecSelect(struct menu_item *curMenu)
                 if (support->mode == BDM_MODE) {
                     // Initialize support for all bdm modules.
                     bdmManualTrigger = 1;
-                    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
+                    //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
+                    //   使用pthread的多线程方法
+                    pthread_t tid;
+                    pthread_attr_t attr;
+                    pthread_attr_init(&attr);
+
+                    // 线程分离，如果不需要pthread_join
+                    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                    // 设置合适的栈空间，防止爆栈等错误
+                    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+                    // 创建线程
+                    pthread_create(&tid, &attr, backLoadSupports_Manual, NULL);
+                    pthread_attr_destroy(&attr);
                 } else {
                     // Normal initialization.
                     itemInitSupport(support);
@@ -333,8 +349,23 @@ static void itemExecRefresh(struct menu_item *curMenu)
 
     // 刷新所有页面
     for (int i = 0; i < MODE_COUNT; i++) {
-        if (list_support[i].support && list_support[i].support->enabled)
-            ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+        if (list_support[i].support && list_support[i].support->enabled) {
+            //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+            //   使用pthread的多线程方法
+            pthread_t tid;
+            pthread_attr_t attr;
+            pthread_attr_init(&attr);
+
+            // 线程分离，如果不需要pthread_join
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            // 设置合适的栈空间，防止爆栈等错误
+            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+            // 创建线程
+            pthread_create(&tid, &attr, menuDeferredUpdate, &list_support[i].support->mode);
+            pthread_attr_destroy(&attr);
+        }
     }
     sfxPlay(SFX_CONFIRM);
 }
@@ -804,13 +835,13 @@ static void updateMenuFromGameList(opl_io_module_t *mdl)
     }
 }
 
-void menuDeferredUpdate(void *data)
+void *menuDeferredUpdate(void *data)
 {
     short int *mode = data;
 
     opl_io_module_t *mod = &list_support[*mode];
     if (!mod->support)
-        return;
+        return NULL;
 
     // see if we have to update
     if (mod->support->itemNeedsUpdate(mod->support)) {
@@ -820,6 +851,7 @@ void menuDeferredUpdate(void *data)
         if (mod->support->mode != APP_MODE)
             shouldAppsUpdate = 1;
     }
+    return NULL;
 }
 
 #define MENU_GENERAL_UPDATE_DELAY 60
@@ -835,15 +867,45 @@ static void menuUpdateHook()
     if (gAutoRefresh) {
         // 自动刷新手动设置了updateDelay的设备，如SMB和APP
         for (i = 0; i < MODE_COUNT; i++) {
-            if ((list_support[i].support && list_support[i].support->enabled) && ((list_support[i].support->updateDelay > 0) && (frameCounter % list_support[i].support->updateDelay == 0)))
-                ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+            if ((list_support[i].support && list_support[i].support->enabled) && ((list_support[i].support->updateDelay > 0) && (frameCounter % list_support[i].support->updateDelay == 0))) {
+                //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+                //   使用pthread的多线程方法
+                pthread_t tid;
+                pthread_attr_t attr;
+                pthread_attr_init(&attr);
+
+                // 线程分离，如果不需要pthread_join
+                pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                // 设置合适的栈空间，防止爆栈等错误
+                pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+                // 创建线程
+                pthread_create(&tid, &attr, menuDeferredUpdate, &list_support[i].support->mode);
+                pthread_attr_destroy(&attr);
+            }
         }
 
         // 自动刷新MENU_UPD_DELAY_GENREFRESH的设备，如使BDM的热插拔正常生效
         if ((frameCounter % MENU_GENERAL_UPDATE_DELAY == 0) && mainScreenInitDone) {
             for (i = 0; i < MODE_COUNT; i++) {
-                if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->updateDelay == MENU_UPD_DELAY_GENREFRESH))
-                    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+                if ((list_support[i].support && list_support[i].support->enabled) && (list_support[i].support->updateDelay == MENU_UPD_DELAY_GENREFRESH)) {
+                    //ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
+                    //   使用pthread的多线程方法
+                    pthread_t tid;
+                    pthread_attr_t attr;
+                    pthread_attr_init(&attr);
+
+                    // 线程分离，如果不需要pthread_join
+                    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                    // 设置合适的栈空间，防止爆栈等错误
+                    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+                    // 创建线程
+                    pthread_create(&tid, &attr, menuDeferredUpdate, &list_support[i].support->mode);
+                    pthread_attr_destroy(&attr);
+                }
             }
         }
     }
@@ -1297,7 +1359,7 @@ static void _saveConfig()
 
 int changed_backLoad = 0;
 int langChanged_backLoad = 0;
-static void loadSupportsBackground(void)
+static void *loadSupportsBackground(void *data)
 {
     initAllSupport(0);
 
@@ -1312,6 +1374,7 @@ static void loadSupportsBackground(void)
         deferredInit();
     }
     theardInitDone = 1;
+    return NULL;
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
 {
@@ -1355,7 +1418,21 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
             changed_backLoad = changed;
             langChanged_backLoad = langChanged;
             theardInitDone = 0;
-            ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+            //ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
+            //   使用pthread的多线程方法
+            pthread_t tid;
+            pthread_attr_t attr;
+            pthread_attr_init(&attr);
+
+            // 线程分离，如果不需要pthread_join
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            // 设置合适的栈空间，防止爆栈等错误
+            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+            // 创建线程
+            pthread_create(&tid, &attr, loadSupportsBackground, NULL);
+            pthread_attr_destroy(&attr);
         }
     } else {
         if (changed) {
@@ -1587,11 +1664,12 @@ static void compatUpdate(item_list_t *support, unsigned char mode, config_set_t 
     LOG("CompatUpdate: completed with status %d\n", CompatUpdateStatus);
 }
 
-static void compatDeferredUpdate(void *data)
+static void *compatDeferredUpdate(void *data)
 {
     opl_io_module_t *mod = &list_support[*(short int *)data];
 
     compatUpdate(mod->support, CompatUpdateFlags, NULL, -1);
+    return NULL;
 }
 
 int oplGetUpdateGameCompatStatus(unsigned int *done, unsigned int *total)
@@ -1604,7 +1682,7 @@ int oplGetUpdateGameCompatStatus(unsigned int *done, unsigned int *total)
 void oplAbortUpdateGameCompat(void)
 {
     CompatUpdateStopFlag = 1;
-    ioRemoveRequests(IO_COMPAT_UPDATE_DEFFERED);
+    //ioRemoveRequests(IO_COMPAT_UPDATE_DEFFERED);
 }
 
 void oplUpdateGameCompat(int UpdateAll)
@@ -1621,7 +1699,21 @@ void oplUpdateGameCompat(int UpdateAll)
     for (i = 0, started = 0; i < MODE_COUNT; i++) {
         if (list_support[i].support && list_support[i].support->enabled && !(list_support[i].support->flags & MODE_FLAG_NO_UPDATE) && (count = list_support[i].support->itemGetCount(list_support[i].support)) > 0) {
             CompatUpdateTotal += count;
-            ioPutRequest(IO_COMPAT_UPDATE_DEFFERED, &list_support[i].support->mode);
+            //ioPutRequest(IO_COMPAT_UPDATE_DEFFERED, &list_support[i].support->mode);
+            //   使用pthread的多线程方法
+            pthread_t tid;
+            pthread_attr_t attr;
+            pthread_attr_init(&attr);
+
+            // 线程分离，如果不需要pthread_join
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            // 设置合适的栈空间，防止爆栈等错误
+            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+            // 创建线程
+            pthread_create(&tid, &attr, compatDeferredUpdate, &list_support[i].support->mode);
+            pthread_attr_destroy(&attr);
             started++;
 
             LOG("CompatUpdate: started for mode %d (%d games)\n", list_support[i].support->mode, count);
@@ -1815,7 +1907,7 @@ void deinit(int exception, int modeSelected)
     rmEnd();
     texFinish();
     configEnd();
-    ioEnd();
+    //ioEnd();
 }
 
 void setDefaultColors(void)
@@ -1951,18 +2043,18 @@ static void init(void)
     lngInit();
     thmInit();
     guiInit();
-    ioInit();
+    //ioInit();
     menuInit();
 
     startPads();
 
     bdmInitSemaphore();
 
-    // compatibility update handler
-    ioRegisterHandler(IO_COMPAT_UPDATE_DEFFERED, &compatDeferredUpdate);
+    //// compatibility update handler
+    //ioRegisterHandler(IO_COMPAT_UPDATE_DEFFERED, &compatDeferredUpdate);
 
-    // handler for deffered menu updates
-    ioRegisterHandler(IO_MENU_UPDATE_DEFFERED, &menuDeferredUpdate);
+    //// handler for deffered menu updates
+    //ioRegisterHandler(IO_MENU_UPDATE_DEFFERED, &menuDeferredUpdate);
     cacheInit();
 
     gSelectButton = (InitConsoleRegionData() == CONSOLE_REGION_JAPAN) ? KEY_CIRCLE : KEY_CROSS;
@@ -2038,7 +2130,7 @@ static void miniInit(int mode)
     setDefaults();
     configInit(NULL);
 
-    ioInit();
+    //ioInit();
     LOG_ENABLE();
 
     if (mode == BDM_MODE) {
@@ -2100,7 +2192,7 @@ void miniDeinit(config_set_t *configSet)
 #endif
     configFree(configSet);
 
-    ioEnd();
+    //ioEnd();
     configEnd();
 }
 

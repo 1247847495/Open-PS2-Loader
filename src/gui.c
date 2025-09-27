@@ -1969,17 +1969,47 @@ int guiMsgBox(const char *text, int addAccept, struct UIItem *ui)
     return terminate - 1;
 }
 
-void guiHandleDeferedIO(int *ptr, const char *message, int type, void *data)
+void guiHandleDeferedIO(int *ptr, const char *message, void *data, void *function)
 {
-    ioPutRequest(type, data);
+    //ioPutRequest(type, data);
+    //  使用pthread的多线程方法
+    pthread_t tid;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
 
-    while (*ptr)
+    // 线程分离，如果不需要pthread_join
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    // 设置合适的栈空间，防止爆栈等错误
+    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+    // 创建线程
+    pthread_create(&tid, &attr, function, data);
+    pthread_attr_destroy(&attr);
+
+    while (*ptr) {
         guiRenderTextScreen(message);
+        usleep(1000); // 给1毫秒间隔，防止卡死在循环里
+    }
 }
 
-void guiGameHandleDeferedIO(int *ptr, struct UIItem *ui, int type, void *data)
+void guiGameHandleDeferedIO(int *ptr, struct UIItem *ui, void *data, void *function)
 {
-    ioPutRequest(type, data);
+    //ioPutRequest(type, data);
+    // 使用pthread的多线程方法
+    pthread_t tid;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+
+    // 线程分离，如果不需要pthread_join
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    // 设置合适的栈空间，防止爆栈等错误
+    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+
+    // 创建线程
+    pthread_create(&tid, &attr, function, data);
+    pthread_attr_destroy(&attr);
 
     while (*ptr) {
         guiStartFrame();
@@ -1988,6 +2018,7 @@ void guiGameHandleDeferedIO(int *ptr, struct UIItem *ui, int type, void *data)
         else
             guiShow();
         guiEndFrame();
+        usleep(1000); // 给1毫秒间隔，防止卡死在循环里
     }
 }
 
