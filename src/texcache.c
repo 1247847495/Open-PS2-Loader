@@ -76,14 +76,17 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 //pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 //pthread_t tid;
 // Io handled action...
+pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 static void *cacheLoadImage(void *data)
 {
     load_image_request_t *ioReq = (load_image_request_t *)data;
     // Safeguards...
     if (!ioReq->cache || !ioReq->cache->content) {
         free(ioReq);
+        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
         return NULL;
     }
 
@@ -91,8 +94,10 @@ static void *cacheLoadImage(void *data)
     if (!handler) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
+        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
         return NULL;
     }
 
@@ -100,8 +105,10 @@ static void *cacheLoadImage(void *data)
     if (cdFramesCount || forceSkipQr) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
+        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
         return NULL;
     }
 
@@ -118,8 +125,10 @@ static void *cacheLoadImage(void *data)
     }
     ioReq->cache->content[ioReq->cacheId].qr = 0;
     free(ioReq);
+    pthread_mutex_lock(&texLoadingMutex);
     if (texLoading)
         texLoading--;
+    pthread_mutex_unlock(&texLoadingMutex);
     return NULL;
 }
 static void cacheLoadImage_Official(void *data)
@@ -417,7 +426,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             pthread_attr_setstacksize(&attr, 64 * 1024); // kb
 
             // 创建线程
+            pthread_mutex_lock(&texLoadingMutex);
             texLoading++;
+            pthread_mutex_unlock(&texLoadingMutex);
             pthread_create(&tid, &attr, cacheLoadImage, req);
             pthread_attr_destroy(&attr);
         }
