@@ -1969,7 +1969,7 @@ int guiMsgBox(const char *text, int addAccept, struct UIItem *ui)
     return terminate - 1;
 }
 
-void guiHandleDeferedIO(int *ptr, const char *message, void *data, void *(*function)(void *))
+void guiHandleDeferedIO(volatile int *ptr, const char *message, void *data, void *(*function)(void *))
 {
     //ioPutRequest(type, data);
     //  使用pthread的多线程方法

@@ -152,7 +152,7 @@ void guiCheckNotifications(int checkTheme, int checkLang);
  * @param type the io operation type
  * @param data the data for the operation
  */
-void guiHandleDeferedIO(int *ptr, const char *message, void *data, void *(*function)(void *));
+void guiHandleDeferedIO(volatile int *ptr, const char *message, void *data, void *(*function)(void *));
 
 void guiGameHandleDeferedIO(int *ptr, struct UIItem *ui, void *data, void *(*function)(void *));
 
