@@ -420,7 +420,7 @@ static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t s
 }
 
 static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPtr,
-                        void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture))
+                        void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture), png_texture_t *pngTexture)
 {
     int rowBytes = png_get_rowbytes(pngPtr, infoPtr);
     size_t size = gsKit_texture_size_ee(texture->Width, texture->Height, texture->PSM);
@@ -579,7 +579,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DIMENSION);
     }
 
-    texReadData(texture, pngPtr, infoPtr, texPngReadPixels);
+    texReadData(texture, pngPtr, infoPtr, texPngReadPixels, &pngTexture);
 
     return texEnd(pngPtr, infoPtr, pFileBuffer, 0);
 }
