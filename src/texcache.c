@@ -414,7 +414,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
             // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 16 * 1024); // 16kb
+            pthread_attr_setstacksize(&attr, 32 * 1024); // 16kb
 
             // 创建线程
             texLoading++;
