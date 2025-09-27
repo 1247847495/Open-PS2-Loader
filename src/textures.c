@@ -386,7 +386,7 @@ static void texReadPixels8(GSTEXTURE *texture, png_bytep *rowPointers, size_t si
         memcpy(&pixel[i * texture->Width], rowPointers[i], texture->Width);
 }
 
-static void texReadPixels24(GSTEXTURE *texture, png_bytep *rowPointers, size_t size)
+static void texReadPixels24(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture)
 {
     struct pixel3
     {
@@ -402,7 +402,7 @@ static void texReadPixels24(GSTEXTURE *texture, png_bytep *rowPointers, size_t s
     }
 }
 
-static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t size)
+static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture)
 {
     struct pixel
     {
@@ -420,7 +420,7 @@ static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t s
 }
 
 static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPtr,
-                        void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size))
+                        void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture))
 {
     int rowBytes = png_get_rowbytes(pngPtr, infoPtr);
     size_t size = gsKit_texture_size_ee(texture->Width, texture->Height, texture->PSM);
@@ -446,7 +446,7 @@ static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPt
 
     png_read_image(pngPtr, rowPointers);
 
-    texPngReadPixels(texture, rowPointers, size);
+    texPngReadPixels(texture, rowPointers, size, pngTexture);
 
     free(allRows);
     free(rowPointers);
