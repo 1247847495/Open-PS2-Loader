@@ -60,7 +60,7 @@ enum GAME_MENU_IDs {
 static menu_list_t *menu;
 static menu_list_t *selected_item;
 
-static volatile int actionStatus;
+static int actionStatus;
 static int itemConfigId;
 static config_set_t *itemConfig;
 
