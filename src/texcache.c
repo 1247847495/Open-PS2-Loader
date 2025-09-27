@@ -72,6 +72,10 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
+static void cacheLoadImage_Official(void *data)
+{
+    cacheLoadImage(data);
+}
 //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 //pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 //pthread_t tid;
@@ -160,7 +164,7 @@ void flushBatchRequests(void)
 void cacheInit()
 {
     if (!usePthread)
-        ioRegisterHandler(IO_CACHE_LOAD_ART, cacheLoadImage);
+        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
 
     //// 使用pthread的多线程方法
     //pthread_t tid;
@@ -410,7 +414,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
             // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 16 * 1024); // 96kb
+            pthread_attr_setstacksize(&attr, 16 * 1024); // 16kb
 
             // 创建线程
             texLoading++;
