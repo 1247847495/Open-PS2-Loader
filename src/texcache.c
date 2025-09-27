@@ -132,10 +132,10 @@ static void *cacheLoadImage(void *data)
     pthread_mutex_unlock(&texLoadingMutex);
     return NULL;
 }
-static void cacheLoadImage_Official(void *data)
-{
-    cacheLoadImage(data);
-}
+//static void cacheLoadImage_Official(void *data)
+//{
+//    cacheLoadImage(data);
+//}
 
 void flushBatchRequests(void)
 {
@@ -188,7 +188,7 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    if (!usePthread)
+    //if (!usePthread)
         //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
 
     //// 使用pthread的多线程方法
