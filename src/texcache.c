@@ -72,10 +72,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
-static void cacheLoadImage_Official(void *data)
-{
-    cacheLoadImage(data);
-}
 //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 //pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 //pthread_t tid;
@@ -125,6 +121,10 @@ static void *cacheLoadImage(void *data)
     if (texLoading)
         texLoading--;
     return NULL;
+}
+static void cacheLoadImage_Official(void *data)
+{
+    cacheLoadImage(data);
 }
 
 void flushBatchRequests(void)
