@@ -1141,7 +1141,7 @@ void guiExecDeferredOps(void)
 static void guiDrawBusy(int alpha)
 {
     if (gTheme->loadingIcon) {
-        GSTEXTURE *texture = thmGetTexture(LOAD0_ICON + (guiFrameId) % gTheme->loadingIconCount);
+        GSTEXTURE *texture = thmGetTexture(LOAD0_ICON + (guiFrameId >> 1) % gTheme->loadingIconCount);
         if (texture && texture->Mem) {
             u64 mycolor = GS_SETREG_RGBA(0x80, 0x80, 0x80, alpha);
             rmDrawPixmap(texture, gTheme->loadingIcon->posX, gTheme->loadingIcon->posY, gTheme->loadingIcon->aligned, gTheme->loadingIcon->width, gTheme->loadingIcon->height, gTheme->loadingIcon->scaled, mycolor);
