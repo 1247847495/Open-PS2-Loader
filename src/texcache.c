@@ -6,7 +6,7 @@
 #include "include/util.h"
 #include "include/renderman.h"
 #include "include/pad.h"
-//#include <pthread.h>
+#include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
 volatile int forceSkipQr = 0;
@@ -75,27 +75,27 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 //pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 //pthread_t tid;
 // Io handled action...
-static void cacheLoadImage(void *data)
+static void *cacheLoadImage(void *data)
 {
     load_image_request_t *ioReq = (load_image_request_t *)data;
     // Safeguards...
     if (!ioReq->cache || !ioReq->cache->content) {
         free(ioReq);
-        return;
+        return NULL;
     }
 
     item_list_t *handler = ioReq->list;
     if (!handler) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
-        return;
+        return NULL;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (cdFramesCount || forceSkipQr) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
-        return;
+        return NULL;
     }
 
     //// seems okay. we can proceed
@@ -111,7 +111,7 @@ static void cacheLoadImage(void *data)
     }
     ioReq->cache->content[ioReq->cacheId].qr = 0;
     free(ioReq);
-    return;
+    return NULL;
 }
 
 void flushBatchRequests(void)
@@ -150,8 +150,9 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
+    //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage);
     //// 使用pthread的多线程方法
+    //pthread_t tid;
     //pthread_attr_t attr;
     //pthread_attr_init(&attr);
 
@@ -385,7 +386,23 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req->list = list;
         req->value = value;
 
-        ioPutRequest(IO_CACHE_LOAD_ART, req);
+        //// 使用官方的多线程方法
+        //ioPutRequest(IO_CACHE_LOAD_ART, req);
+
+        // 使用pthread的多线程方法
+        pthread_t tid;
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+
+        // 线程分离，如果不需要pthread_join
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        // 设置合适的栈空间，防止爆栈等错误
+        pthread_attr_setstacksize(&attr, 96 * 1024); // 96kb
+
+        // 创建线程
+        pthread_create(&tid, &attr, cacheLoadImage, req);
+        pthread_attr_destroy(&attr);
 
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
