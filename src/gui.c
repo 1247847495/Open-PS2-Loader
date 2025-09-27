@@ -1989,7 +1989,7 @@ void guiHandleDeferedIO(int *ptr, const char *message, void *data, void *(*funct
 
     while (*ptr) {
         guiRenderTextScreen(message);
-        usleep(1000); // 给1毫秒间隔，防止卡死在循环里
+        usleep(1000000); // 给1毫秒间隔，防止卡死在循环里
     }
 }
 
