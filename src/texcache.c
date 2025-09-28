@@ -411,8 +411,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             oldestEntry->UID = *UID;
 
-        load_image_request_t *req = malloc(sizeof(load_image_request_t));
-        memset(req, 0, sizeof(load_image_request_t));
+        load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
         req->cache = cache;
         req->cacheId = *cacheId;
         req->list = list;
