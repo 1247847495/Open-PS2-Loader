@@ -430,26 +430,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             //// 使用官方的多线程方法
             //ioPutRequest(IO_CACHE_LOAD_ART, req);
         } else {
-            // 使用pthread的多线程方法
-            pthread_t tid;
-            pthread_attr_t attr;
-            pthread_attr_init(&attr);
+            //// 使用pthread的多线程方法
+            //pthread_t tid;
+            //pthread_attr_t attr;
+            //pthread_attr_init(&attr);
 
-            // 线程分离，如果不需要pthread_join
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+            //// 线程分离，如果不需要pthread_join
+            //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-            // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 96 * 1024); // kb
+            //// 设置合适的栈空间，防止爆栈等错误
+            //pthread_attr_setstacksize(&attr, 96 * 1024); // kb
 
-            // 创建线程
-            pthread_mutex_lock(&texLoadingMutex);
-            if (texLoading < 1000)
-                texLoading++;
-            else
-                texLoading = 1;
-            pthread_mutex_unlock(&texLoadingMutex);
-            pthread_create(&tid, &attr, cacheLoadImage, req);
-            pthread_attr_destroy(&attr);
+            //// 创建线程
+            //pthread_mutex_lock(&texLoadingMutex);
+            //if (texLoading < 1000)
+            //    texLoading++;
+            //else
+            //    texLoading = 1;
+            //pthread_mutex_unlock(&texLoadingMutex);
+            //pthread_create(&tid, &attr, cacheLoadImage, req);
+            //pthread_attr_destroy(&attr);
+            cacheLoadImage(req);
         }
 
         // prevGuiFrameId = guiFrameId;
