@@ -1320,6 +1320,7 @@ static void *_saveConfig(void *data)
         configSetInt(configOPL, CONFIG_OPL_YSENSITIVITY, gYSensitivity);
 
         configSetInt(configOPL, CONFIG_OPL_SWAP_SEL_BUTTON, gSelectButton == KEY_CIRCLE ? 0 : 1);
+        return NULL;
     }
 
     if (lscstatus & CONFIG_NETWORK) {
@@ -1356,7 +1357,6 @@ static void *_saveConfig(void *data)
     if (lscret == 0)
         lscret = trySaveAlternateDevice(lscstatus);
     lscstatus = 0;
-    return NULL;
 }
 
 int changed_backLoad = 0;
