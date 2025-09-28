@@ -358,7 +358,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 if (entry->qr) {
                     return NULL;
                 } else if (entry->texFound == 0) {
-                    return NULL;
                     *cacheId = -2;
                     // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                     if (!strncmp("COV", cache->suffix, 3))
@@ -369,7 +368,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_BG = *cacheId;
                     return NULL;
                 } else if (entry->texFound == 1) {
-                    return NULL;
                     if (&entry->texture && entry->texture.Mem) {
                         entry->lastUsed = guiFrameId;
                         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
@@ -379,6 +377,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                             PrevCacheID_ICO = *cacheId;
                         else if (!strncmp("BG", cache->suffix, 2))
                             PrevCacheID_BG = *cacheId;
+                        return NULL;
                     }
                 }
             }
@@ -387,7 +386,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (skipQr || texLoading >= 3)
-        return NULL;
+        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i;
@@ -459,5 +458,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    fclose(debugFile);
         //}
     }
-    return NULL;
+    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 }
