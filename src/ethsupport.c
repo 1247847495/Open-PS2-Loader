@@ -307,6 +307,7 @@ static int ethLoadModules(void)
                     HttpInit();
 
                     LOG("ETHSUPPORT Modules loaded\n");
+                    usleep(100000); // 加载完驱动后，延迟100毫秒再进行后续初始化
                     return 0;
                 }
             }

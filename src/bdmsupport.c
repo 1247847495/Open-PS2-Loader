@@ -105,6 +105,7 @@ static void bdmLoadBlockDeviceModules(void)
 
         hddModLoaded = 1;
     }
+    usleep(100000); // 加载完驱动后，延迟100毫秒再进行后续初始化
 }
 
 void bdmLoadModules(void)
