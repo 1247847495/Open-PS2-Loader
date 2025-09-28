@@ -80,44 +80,43 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 static void *cacheLoadImage(void *data)
 {
+    pthread_mutex_lock(&texLoadingMutex);
     load_image_request_t *ioReq = (load_image_request_t *)data;
     // Safeguards...
     if (!ioReq->cache || !ioReq->cache->content) {
-        free(ioReq);
-        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
         return NULL;
     }
 
     item_list_t *handler = ioReq->list;
     if (!handler) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
-        free(ioReq);
-        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
         return NULL;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
     if (cdFramesCount || forceSkipQr) {
         ioReq->cache->content[ioReq->cacheId].qr = 0;
-        free(ioReq);
-        pthread_mutex_lock(&texLoadingMutex);
         if (texLoading)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
         return NULL;
     }
+    pthread_mutex_unlock(&texLoadingMutex);
 
-    //// seems okay. we can proceed
-    // GSTEXTURE *texture = &ioReq->cache->content[ioReq->cacheId].texture;
-    // texFree(texture);
+    // 加载图片
+    int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24);
 
-    if (handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24) < 0) {
+    pthread_mutex_lock(&texLoadingMutex);
+    if (result < 0) {
         ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
         ioReq->cache->content[ioReq->cacheId].texFound = 0;
     } else {
@@ -125,11 +124,10 @@ static void *cacheLoadImage(void *data)
         ioReq->cache->content[ioReq->cacheId].texFound = 1;
     }
     ioReq->cache->content[ioReq->cacheId].qr = 0;
-    free(ioReq);
-    pthread_mutex_lock(&texLoadingMutex);
     if (texLoading)
         texLoading--;
     pthread_mutex_unlock(&texLoadingMutex);
+    free(ioReq);
     return NULL;
 }
 static void cacheLoadImage_Official(void *data)
