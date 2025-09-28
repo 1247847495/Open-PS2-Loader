@@ -318,13 +318,16 @@ void texFree(GSTEXTURE *texture)
     }
 }
 
-static int texEnd(png_structp pngPtr, png_infop infoPtr, void *pFileBuffer, int status)
+static int texEnd(png_structp pngPtr, png_infop infoPtr, void *pFileBuffer, int status, png_texture_t *pngTexture)
 {
     if (pFileBuffer)
         free(pFileBuffer);
 
     if (infoPtr || pngPtr)
         png_destroy_read_struct(&pngPtr, &infoPtr, (png_infopp)NULL);
+
+    if (pngTexture)
+        free(pngTexture);
 
     return status;
 }
@@ -498,14 +501,14 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 
     png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!pngPtr)
-        return texEnd(pngPtr, NULL, pFileBuffer, ERR_READ_STRUCT);
+        return texEnd(pngPtr, NULL, pFileBuffer, ERR_READ_STRUCT, NULL);
 
     png_infop infoPtr = png_create_info_struct(pngPtr);
     if (!infoPtr)
-        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_INFO_STRUCT);
+        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_INFO_STRUCT, NULL);
 
     if (setjmp(png_jmpbuf(pngPtr)))
-        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_SET_JMP);
+        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_SET_JMP, NULL);
 
     png_voidp readData = &PngFileBufferPtr;
     png_rw_ptr readFunction = &texReadMemFunction;
@@ -533,7 +536,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     png_set_filler(pngPtr, 0xff, PNG_FILLER_AFTER);
     png_read_update_info(pngPtr, infoPtr);
 
-    png_texture_t pngTexture = {NULL, 0, 0, NULL};
+    png_texture_t *pngTexture = malloc(sizeof(png_texture_t));
     void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture);
     switch (png_get_color_type(pngPtr, infoPtr)) {
         case PNG_COLOR_TYPE_RGB_ALPHA:
@@ -545,13 +548,13 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             texPngReadPixels = &texReadPixels24;
             break;
         case PNG_COLOR_TYPE_PALETTE:
-            pngTexture.palette = NULL;
-            pngTexture.numPalette = 0;
-            pngTexture.trans = NULL;
-            pngTexture.numTrans = 0;
+            pngTexture->palette = NULL;
+            pngTexture->numPalette = 0;
+            pngTexture->trans = NULL;
+            pngTexture->numTrans = 0;
 
-            png_get_PLTE(pngPtr, infoPtr, &pngTexture.palette, &pngTexture.numPalette);
-            png_get_tRNS(pngPtr, infoPtr, &pngTexture.trans, &pngTexture.numTrans, NULL);
+            png_get_PLTE(pngPtr, infoPtr, &pngTexture->palette, &pngTexture->numPalette);
+            png_get_tRNS(pngPtr, infoPtr, &pngTexture->trans, &pngTexture->numTrans, NULL);
             texture->ClutPSM = GS_PSM_CT32;
 
             if (bitDepth == 4) {
@@ -567,21 +570,21 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
 
                 texPngReadPixels = &texReadPixels8;
             } else
-                return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DEPTH);
+                return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DEPTH, pngTexture);
             break;
         default:
-            return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DEPTH);
+            return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DEPTH, pngTexture);
     }
 
     if (texSizeValidate(texture->Width, texture->Height, texture->PSM) < 0) {
         texFree(texture);
 
-        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DIMENSION);
+        return texEnd(pngPtr, infoPtr, pFileBuffer, ERR_BAD_DIMENSION, pngTexture);
     }
 
-    texReadData(texture, pngPtr, infoPtr, texPngReadPixels, &pngTexture);
+    texReadData(texture, pngPtr, infoPtr, texPngReadPixels, pngTexture);
 
-    return texEnd(pngPtr, infoPtr, pFileBuffer, 0);
+    return texEnd(pngPtr, infoPtr, pFileBuffer, 0, pngTexture);
 }
 
 static int texLoad(GSTEXTURE *texture, const char *filePath)
