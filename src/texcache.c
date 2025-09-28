@@ -27,8 +27,7 @@ volatile u32 texLoading = 0;
 static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
-//static int texLoadingTimeOut1 = 0;  // 用于判断加载计数异常时，将texLoading置为0
-//static int texLoadingTimeOut2 = 0; // 用于判断加载计数异常时，将texLoading置为0
+static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
 
 typedef struct
 {
@@ -143,20 +142,12 @@ void flushBatchRequests(void)
     if (ForceRefreshPrevTexCache > 1)
         ForceRefreshPrevTexCache = 0;
 
-    //// texLoading状态异常时，将texLoading置为0(补救措施)
-    //if (texLoading == 1) {
-    //    texLoadingTimeOut1++;
-    //    if (texLoadingTimeOut1 >= 600)
-    //        texLoading = 0;
-    //} else
-    //    texLoadingTimeOut1 = 0;
-
-    //if (texLoading == 2) {
-    //    texLoadingTimeOut2++;
-    //    if (texLoadingTimeOut2 >= 600)
-    //        texLoading = 0;
-    //} else
-    //    texLoadingTimeOut2 = 0;
+    // texLoading状态异常时，将texLoading置为0(补救措施)
+    if (texLoading) {
+        if (++texLoadingTimeOut >= 600 && !padGetRepeating()) // 没有按住按键，且加载超过10秒时，重置texLoading
+            texLoading = 0;
+    } else
+        texLoadingTimeOut = 0;
 
     //// 有堆积的图片待加载
     //if (batchRequestCount > 0 && !texLoading) {
