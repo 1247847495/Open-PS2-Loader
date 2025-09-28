@@ -1064,7 +1064,7 @@ static int tryAlternateDevice(int types)
     return 0;
 }
 
-static void *_loadConfig(void *data)
+static void _loadConfig(void)
 {
     int value, themeID = -1, langID = -1;
     const char *temp;
@@ -1193,7 +1193,6 @@ static void *_loadConfig(void *data)
     lscret = result;
     lscstatus = 0;
     showCfgPopup = 1;
-    return NULL;
 }
 
 static int trySaveConfigBDM(int types)
@@ -1260,7 +1259,7 @@ static int trySaveAlternateDevice(int types)
     return 0;
 }
 
-static void *_saveConfig(void *data)
+static void _saveConfig()
 {
     char temp[256];
 
@@ -1320,7 +1319,6 @@ static void *_saveConfig(void *data)
         configSetInt(configOPL, CONFIG_OPL_YSENSITIVITY, gYSensitivity);
 
         configSetInt(configOPL, CONFIG_OPL_SWAP_SEL_BUTTON, gSelectButton == KEY_CIRCLE ? 0 : 1);
-        return NULL;
     }
 
     if (lscstatus & CONFIG_NETWORK) {
@@ -1456,7 +1454,7 @@ int loadConfig(int types)
     lscstatus = types;
     lscret = 0;
 
-    guiHandleDeferedIO(&lscstatus, _l(_STR_LOADING_SETTINGS), NULL, _loadConfig);
+    guiHandleDeferedIO(&lscstatus, _l(_STR_LOADING_SETTINGS), IO_CUSTOM_SIMPLEACTION, &_loadConfig);
 
     return lscret;
 }
@@ -1467,7 +1465,7 @@ int saveConfig(int types, int showUI)
     lscstatus = types;
     lscret = 0;
 
-    guiHandleDeferedIO(&lscstatus, _l(_STR_SAVING_SETTINGS), NULL, _saveConfig);
+    guiHandleDeferedIO(&lscstatus, _l(_STR_SAVING_SETTINGS), IO_CUSTOM_SIMPLEACTION, &_saveConfig);
 
     if (showUI) {
         if (lscret) {
@@ -1730,11 +1728,10 @@ static int CompatUpdSingleID, CompatUpdSingleStatus;
 static item_list_t *CompatUpdSingleSupport;
 static config_set_t *CompatUpdSingleConfigSet;
 
-static void *_updateCompatSingle(void *data)
+static void _updateCompatSingle(void)
 {
     compatUpdate(CompatUpdSingleSupport, COMPAT_UPD_MODE_UPD_USR, CompatUpdSingleConfigSet, CompatUpdSingleID);
     CompatUpdSingleStatus = 0;
-    return NULL;
 }
 
 int oplUpdateGameCompatSingle(int id, item_list_t *support, config_set_t *configSet)
@@ -1748,7 +1745,7 @@ int oplUpdateGameCompatSingle(int id, item_list_t *support, config_set_t *config
     CompatUpdSingleConfigSet = configSet;
     CompatUpdSingleStatus = 1;
 
-    guiHandleDeferedIO(&CompatUpdSingleStatus, _l(_STR_PLEASE_WAIT), NULL, _updateCompatSingle);
+    guiHandleDeferedIO(&CompatUpdSingleStatus, _l(_STR_PLEASE_WAIT), IO_CUSTOM_SIMPLEACTION, &_updateCompatSingle);
 
     return CompatUpdateStatus;
 }
@@ -2067,7 +2064,7 @@ static void init(void)
         padStatus = startPads();
     readPads();
     if (!getKeyPressed(KEY_START)) {
-        _loadConfig(NULL); // only try to restore config if emergency key is not being pressed
+        _loadConfig(); // only try to restore config if emergency key is not being pressed
     } else {
         LOG("--- SKIPPING OPL CONFIG LOADING\n");
         applyConfig(-1, -1, 0);
