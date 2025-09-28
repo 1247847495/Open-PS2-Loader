@@ -1916,8 +1916,8 @@ void guiUpdateScrollSpeed(void)
     // fast - 80 ms
     // medium - 160 ms
     // slow - 600 ms
-    setButtonDelay(KEY_UP, !gScrollSpeed ? 5 : (10 / gScrollSpeed)); // 0,1,2 -> 600, 160, 80(换算成帧数36,10,5)
-    setButtonDelay(KEY_DOWN, !gScrollSpeed ? 5 : (10 / gScrollSpeed));
+    setButtonDelay(KEY_UP, !gScrollSpeed ? 40 : (10 / gScrollSpeed)); // 0,1,2 -> 600, 160, 80(换算成帧数36,10,5)
+    setButtonDelay(KEY_DOWN, !gScrollSpeed ? 40 : (10 / gScrollSpeed));
 }
 
 void guiUpdateScreenScale(void)
