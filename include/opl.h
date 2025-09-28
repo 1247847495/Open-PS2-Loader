@@ -1,7 +1,6 @@
 #ifndef __OPL_H
 #define __OPL_H
 
-#include <pthread.h>
 #include <tamtypes.h>
 #include <kernel.h>
 #include <sifrpc.h>
