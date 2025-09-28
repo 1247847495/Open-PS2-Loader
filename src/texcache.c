@@ -352,11 +352,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID_BG = *cacheId;
         return NULL;
     } else if (*cacheId != -1) {
+        return NULL;
         cache_entry_t *entry = &cache->content[*cacheId];
         if (entry) {
             if (entry->UID == *UID) {
                 if (entry->qr) {
-                    return NULL;
+                    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
                 } else if (entry->texFound == 0) {
                     *cacheId = -2;
                     // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
@@ -377,7 +378,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                             PrevCacheID_ICO = *cacheId;
                         else if (!strncmp("BG", cache->suffix, 2))
                             PrevCacheID_BG = *cacheId;
-                        return NULL;
+                        return &entry->texture;
                     }
                 }
             }
