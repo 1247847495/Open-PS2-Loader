@@ -190,7 +190,7 @@ void flushBatchRequests(void)
 void cacheInit()
 {
     if (!usePthread)
-        //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
+        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
 
     //// 使用pthread的多线程方法
     //pthread_t tid;
@@ -428,8 +428,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req->value = value;
 
         if (!usePthread) {
-            //// 使用官方的多线程方法
-            //ioPutRequest(IO_CACHE_LOAD_ART, req);
+            // 使用官方的多线程方法
+            ioPutRequest(IO_CACHE_LOAD_ART, req);
         } else {
             // 使用pthread的多线程方法
             pthread_t tid;
@@ -440,7 +440,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
             // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+            pthread_attr_setstacksize(&attr, 64 * 1024); // kb
 
             // 创建线程
             pthread_mutex_lock(&texLoadingMutex);

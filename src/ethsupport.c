@@ -595,12 +595,10 @@ static void ethLaunchGame(item_list_t *itemList, int id, config_set_t *configSet
         memcpy(gPCShareName, game->name, sizeof(gPCShareName));
         ethULSizePrev = -2;
         ethGameCount = 0;
-        // ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // clear the share list
+        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // clear the share list
         // ioPutRequest(IO_CUSTOM_SIMPLEACTION, &ethInitSMB);
-        // ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // reload the game list
-        menuDeferredUpdate(&ethGameList.mode); // 使用单线程，防止初始化时，数据不同步问题。
         ethInitSMB();
-        menuDeferredUpdate(&ethGameList.mode); // 使用单线程，防止初始化时，数据不同步问题。
+        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &ethGameList.mode); // reload the game list
         return;
     }
 
