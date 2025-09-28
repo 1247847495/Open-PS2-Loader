@@ -554,7 +554,6 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
     if (item) {
         GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);
         if (!texture || !texture->Mem) {
-            return;
             if (gameImage->defaultTexture)
                 texture = &gameImage->defaultTexture->source;
             else {
@@ -858,6 +857,10 @@ static void drawItemsList(struct menu_list *menu, struct submenu_list *item, con
                 GSTEXTURE *itemIconTex = getGameImageTexture(itemsList->decoratorImage->cache, menu->item->userdata, &ps->item);
                 if (itemIconTex && itemIconTex->Mem)
                     rmDrawPixmap(itemIconTex, posX, posY, elem->aligned, DECORATOR_SIZE, DECORATOR_SIZE, elem->scaled, gDefaultCol);
+                else {
+                    if (itemsList->decoratorImage->defaultTexture)
+                        rmDrawPixmap(&itemsList->decoratorImage->defaultTexture->source, posX, posY, elem->aligned, DECORATOR_SIZE, DECORATOR_SIZE, elem->scaled, gDefaultCol);
+                }
                 fntRenderString(elem->font, elem->posX + DECORATOR_SIZE, posY, elem->aligned, elem->width, elem->height, submenuItemGetText(&ps->item), color);
             } else
                 fntRenderString(elem->font, elem->posX, posY, elem->aligned, elem->width, elem->height, submenuItemGetText(&ps->item), color);
