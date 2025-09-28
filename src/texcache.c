@@ -30,6 +30,12 @@ static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
 
+// pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+// pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+// pthread_t tid;
+pthread_attr_t attr;
+pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
+
 typedef struct
 {
     image_cache_t *cache;
@@ -73,11 +79,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
-//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-//pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-//pthread_t tid;
 // Io handled action...
-pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 static void *cacheLoadImage(void *data)
 {
     pthread_mutex_lock(&texLoadingMutex);
@@ -180,6 +182,16 @@ void cacheInit()
 {
     if (!usePthread)
         ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
+    else {
+        // 初始化pthread线程属性
+        pthread_attr_init(&attr);
+
+        // 线程分离，如果不需要pthread_join
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        // 设置合适的栈空间，防止爆栈等错误
+        pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+    }
 
     //// 使用pthread的多线程方法
     //pthread_t tid;
@@ -201,6 +213,7 @@ void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     forceSkipQr = 1;
+    pthread_attr_destroy(&attr);
     //pthread_cond_signal(&cond);
     //pthread_join(tid, NULL); // 等待线程结束
 }
@@ -423,25 +436,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             ioPutRequest(IO_CACHE_LOAD_ART, req);
         } else {
             // 使用pthread的多线程方法
-            pthread_t tid;
-            pthread_attr_t attr;
-            pthread_attr_init(&attr);
-
-            // 线程分离，如果不需要pthread_join
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-            // 设置合适的栈空间，防止爆栈等错误
-            pthread_attr_setstacksize(&attr, 32 * 1024); // kb
-
-            // 创建线程
             pthread_mutex_lock(&texLoadingMutex);
             if (texLoading < 1000)
                 texLoading++;
             else
                 texLoading = 1;
             pthread_mutex_unlock(&texLoadingMutex);
+            pthread_t tid;
             pthread_create(&tid, &attr, cacheLoadImage, req);
-            pthread_attr_destroy(&attr);
         }
 
         // prevGuiFrameId = guiFrameId;
