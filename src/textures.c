@@ -536,7 +536,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     png_set_filler(pngPtr, 0xff, PNG_FILLER_AFTER);
     png_read_update_info(pngPtr, infoPtr);
 
-    png_texture_t *pngTexture = malloc(sizeof(png_texture_t));
+    png_texture_t *pngTexture = calloc(1, sizeof(png_texture_t));
     void (*texPngReadPixels)(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture);
     switch (png_get_color_type(pngPtr, infoPtr)) {
         case PNG_COLOR_TYPE_RGB_ALPHA:
