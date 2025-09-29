@@ -341,6 +341,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (forceSkipQr)
         skipQr = 1;
 
+
+    GSTEXTURE *curTex = NULL;
+    if (!strncmp("COV", cache->suffix, 3))
+        curTex = &texture2;
+    else if (!strncmp("ICO", cache->suffix, 3))
+        curTex = &texture3;
+    else if (!strncmp("BG", cache->suffix, 2))
+        curTex = &texture1;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
         ForceRefreshPrevTexCache++;
@@ -359,6 +367,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID = -2;
     }
 
+    if (curTex && curTex->Mem)
+        return curTex;
+
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
@@ -369,39 +380,40 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else if (!strncmp("BG", cache->suffix, 2))
             PrevCacheID_BG = *cacheId;
         return NULL;
-    } else if (*cacheId != -1) {
-        cache_entry_t *entry = &cache->content[*cacheId];
-        if (entry) {
-            if (entry->UID == *UID) {
-                if (entry->qr) {
-                    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-                } else if (entry->texFound == 0) {
-                    *cacheId = -2;
-                    // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                    if (!strncmp("COV", cache->suffix, 3))
-                        PrevCacheID_COV = *cacheId;
-                    else if (!strncmp("ICO", cache->suffix, 3))
-                        PrevCacheID_ICO = *cacheId;
-                    else if (!strncmp("BG", cache->suffix, 2))
-                        PrevCacheID_BG = *cacheId;
-                    return NULL;
-                } else if (entry->texFound == 1) {
-                    if (&entry->texture && entry->texture.Mem) {
-                        //entry->lastUsed = guiFrameId;
-                        // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                        if (!strncmp("COV", cache->suffix, 3))
-                            PrevCacheID_COV = *cacheId;
-                        else if (!strncmp("ICO", cache->suffix, 3))
-                            PrevCacheID_ICO = *cacheId;
-                        else if (!strncmp("BG", cache->suffix, 2))
-                            PrevCacheID_BG = *cacheId;
-                        return &entry->texture;
-                    }
-                }
-            }
-        }
-        *cacheId = -1;
     }
+    //else if (*cacheId != -1) {
+    //    cache_entry_t *entry = &cache->content[*cacheId];
+    //    if (entry) {
+    //        if (entry->UID == *UID) {
+    //            if (entry->qr) {
+    //                return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+    //            } else if (entry->texFound == 0) {
+    //                *cacheId = -2;
+    //                // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
+    //                if (!strncmp("COV", cache->suffix, 3))
+    //                    PrevCacheID_COV = *cacheId;
+    //                else if (!strncmp("ICO", cache->suffix, 3))
+    //                    PrevCacheID_ICO = *cacheId;
+    //                else if (!strncmp("BG", cache->suffix, 2))
+    //                    PrevCacheID_BG = *cacheId;
+    //                return NULL;
+    //            } else if (entry->texFound == 1) {
+    //                if (&entry->texture && entry->texture.Mem) {
+    //                    //entry->lastUsed = guiFrameId;
+    //                    // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
+    //                    if (!strncmp("COV", cache->suffix, 3))
+    //                        PrevCacheID_COV = *cacheId;
+    //                    else if (!strncmp("ICO", cache->suffix, 3))
+    //                        PrevCacheID_ICO = *cacheId;
+    //                    else if (!strncmp("BG", cache->suffix, 2))
+    //                        PrevCacheID_BG = *cacheId;
+    //                    return &entry->texture;
+    //                }
+    //            }
+    //        }
+    //    }
+    //    *cacheId = -1;
+    //}
 
     if (skipQr || texLoading >= 3)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
@@ -458,6 +470,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             oldestEntry->lastUsed = 0;
             oldestEntry->texFound = 0;
             oldestEntry->qr = 0;
+            *cacheId = -2;
         } else {
             if (!strncmp("COV", cache->suffix, 3))
                 oldestEntry->texture = texture2;
@@ -481,5 +494,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             fclose(debugFile);
         }
     }
-    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+    return curTex && curTex->Mem ? curTex : NULL;
 }
