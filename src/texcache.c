@@ -446,20 +446,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    pthread_t tid;
         //    pthread_create(&tid, &attr, cacheLoadImage, req);
         //}
-        GSTEXTURE texture = {0};
+        int result = -1;
         // 加载图片
-        int result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture, GS_PSM_CT24);
+        if (!strncmp("COV", cache->suffix, 3))
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2, GS_PSM_CT24);
+        else if (!strncmp("ICO", cache->suffix, 3))
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3, GS_PSM_CT24);
+        else if (!strncmp("BG", cache->suffix, 2))
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1, GS_PSM_CT24);
         if (result < 0) {
             oldestEntry->lastUsed = 0;
             oldestEntry->texFound = 0;
             oldestEntry->qr = 0;
         } else {
-            if (!strncmp("COV", cache->suffix, 3))
-                texture1 = texture;
-            else if (!strncmp("ICO", cache->suffix, 3))
-                texture2 = texture;
-            else if (!strncmp("BG", cache->suffix, 2))
-                texture3 = texture;
             oldestEntry->lastUsed = guiFrameId;
             oldestEntry->texFound = 1;
             oldestEntry->qr = 0;
