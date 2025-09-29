@@ -542,15 +542,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             currEntry->qr = 0;
             // prevGuiFrameId = guiFrameId;
             // artQrCount++;
-
-            // debug  打印debug信息
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-currEntry.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "result:%d\r\n", result);
-                fclose(debugFile);
-            }
+        }
+        // debug  打印debug信息
+        char debugFileDir[64];
+        strcpy(debugFileDir, "smb:debug-currEntry.txt");
+        FILE *debugFile = fopen(debugFileDir, "ab+");
+        if (debugFile != NULL) {
+            fprintf(debugFile, "result:%d  %s_%s\r\n", result, cache->suffix,value);
+            fclose(debugFile);
         }
     }
     return curTex && curTex->Mem ? curTex : NULL;
