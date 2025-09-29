@@ -227,6 +227,12 @@ void cacheInit()
     memset(&texture1_load, 0, sizeof(GSTEXTURE));
     memset(&texture2_load, 0, sizeof(GSTEXTURE));
     memset(&texture3_load, 0, sizeof(GSTEXTURE));
+    texture1_show.Mem = NULL;
+    texture2_show.Mem = NULL;
+    texture3_show.Mem = NULL;
+    texture1_load.Mem = NULL;
+    texture2_load.Mem = NULL;
+    texture3_load.Mem = NULL;
     //if (!usePthread)
     //    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
     //else {
