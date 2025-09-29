@@ -137,10 +137,10 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 //    free(ioReq);
 //    return NULL;
 //}
-static void cacheLoadImage_Official(void *data)
-{
-    cacheLoadImage(data);
-}
+//static void cacheLoadImage_Official(void *data)
+//{
+//    cacheLoadImage(data);
+//}
 
 void flushBatchRequests(void)
 {
@@ -186,7 +186,7 @@ void flushBatchRequests(void)
 void cacheInit()
 {
     if (!usePthread)
-        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
+        //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
     else {
         // 初始化pthread线程属性
         pthread_attr_init(&attr);
