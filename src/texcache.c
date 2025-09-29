@@ -437,7 +437,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //}
     *cacheId = 0;
     cache_entry_t *currEntry = &cache->content[*cacheId];
-    if (currEntry->texFound == -1 && !currEntry->qr) {
+    if (!currEntry->qr) {
         cacheClearItem(currEntry, 1);
         currEntry->qr = 1;
 
