@@ -55,16 +55,16 @@ typedef struct
 
 static void cacheTexFree(GSTEXTURE tex, int unloadTex)
 {
-    //if (tex.Mem) {
-    //    if (unloadTex)
-    //        rmUnloadTexture(&tex);
-    //    free(tex.Mem);
-    //    tex.Mem = NULL; // Must be allocated by loader
-    //    if (tex.Clut) {
-    //        free(tex.Clut);
-    //        tex.Clut = NULL; // Default, can be set by loader
-    //    }
-    //}
+    if (tex.Mem) {
+        if (unloadTex)
+            rmUnloadTexture(&tex);
+        free(tex.Mem);
+        tex.Mem = NULL; // Must be allocated by loader
+        if (tex.Clut) {
+            free(tex.Clut);
+            tex.Clut = NULL; // Default, can be set by loader
+        }
+    }
     memset(&tex, 0, sizeof(GSTEXTURE));
     tex.Width = 0;                 // Must be set by loader
     tex.Height = 0;                // Must be set by loader
