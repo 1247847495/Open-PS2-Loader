@@ -185,18 +185,18 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    if (!usePthread)
-        //ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
-    else {
-        // 初始化pthread线程属性
-        pthread_attr_init(&attr);
+    //if (!usePthread)
+    //    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
+    //else {
+    //    // 初始化pthread线程属性
+    //    pthread_attr_init(&attr);
 
-        // 线程分离，如果不需要pthread_join
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    //    // 线程分离，如果不需要pthread_join
+    //    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-        // 设置合适的栈空间，防止爆栈等错误
-        pthread_attr_setstacksize(&attr, 32 * 1024); // kb
-    }
+    //    // 设置合适的栈空间，防止爆栈等错误
+    //    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+    //}
 
     //// 使用pthread的多线程方法
     //pthread_t tid;
