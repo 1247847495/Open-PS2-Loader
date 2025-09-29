@@ -45,6 +45,20 @@ typedef struct
     char *value;
 } load_image_request_t;
 
+static void cacheTexFree(GSTEXTURE tex)
+{
+    if (tex.Mem) {
+        WaitSema(fileLockId);
+        rmUnloadTexture(&tex);
+        free(tex.Mem);
+        tex.Mem = NULL; // Must be allocated by loader
+        if (tex.Clut) {
+            free(tex.Clut);
+            tex.Clut = NULL; // Default, can be set by loader
+        }
+        SignalSema(fileLockId);
+    }
+}
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
     if (!item)
@@ -263,9 +277,14 @@ void cacheDestroyCache(image_cache_t *cache)
     free(cache->content);
     free(cache);
 }
-GSTEXTURE texture1;
-GSTEXTURE texture2;
-GSTEXTURE texture3;
+// 只给主线程使用和显示
+GSTEXTURE texture1_show;
+GSTEXTURE texture2_show;
+GSTEXTURE texture3_show;
+// 给加载线程使用
+GSTEXTURE texture1_load;
+GSTEXTURE texture2_load;
+GSTEXTURE texture3_load;
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
@@ -347,11 +366,11 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     GSTEXTURE *curTex = NULL;
     if (!strncmp("COV", cache->suffix, 3))
-        curTex = &texture2;
+        curTex = &texture2_show;
     else if (!strncmp("ICO", cache->suffix, 3))
-        curTex = &texture3;
+        curTex = &texture3_show;
     else if (!strncmp("BG", cache->suffix, 2))
-        curTex = &texture1;
+        curTex = &texture1_show;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
         ForceRefreshPrevTexCache++;
@@ -463,12 +482,18 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //}
         int result = -1;
         // 加载图片
-        if (!strncmp("COV", cache->suffix, 3))
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2, GS_PSM_CT24);
-        else if (!strncmp("ICO", cache->suffix, 3))
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3, GS_PSM_CT24);
-        else if (!strncmp("BG", cache->suffix, 2))
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1, GS_PSM_CT24);
+        if (!strncmp("COV", cache->suffix, 3)) {
+            cacheTexFree(texture2_load);
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2_load, GS_PSM_CT24);
+        }
+        else if (!strncmp("ICO", cache->suffix, 3)) {
+            cacheTexFree(texture3_load);
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3_load, GS_PSM_CT24);
+        }
+        else if (!strncmp("BG", cache->suffix, 2)) {
+            cacheTexFree(texture1_load);
+            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1_load, GS_PSM_CT24);
+        }
         if (result < 0) {
             currEntry->lastUsed = 0;
             currEntry->texFound = 0;
@@ -477,6 +502,19 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         } else {
             currEntry->lastUsed = guiFrameId;
             currEntry->texFound = 1;
+
+            if (!strncmp("COV", cache->suffix, 3)) {
+                cacheTexFree(texture2_show);
+                texture2_show = texture2_load;
+            }
+            else if (!strncmp("ICO", cache->suffix, 3)) {
+                cacheTexFree(texture3_show);
+                texture2_show = texture3_load;
+            }
+            else if (!strncmp("BG", cache->suffix, 2)) {
+                cacheTexFree(texture1_show);
+                texture2_show = texture1_load;
+            }
             currEntry->qr = 0;
         }
         // prevGuiFrameId = guiFrameId;
