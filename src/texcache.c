@@ -377,11 +377,11 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     GSTEXTURE *curTex = NULL;
     if (!strncmp("COV", cache->suffix, 3))
-        curTex = &texture2_show;
+        curTex = &texture2_load;
     else if (!strncmp("ICO", cache->suffix, 3))
-        curTex = &texture3_show;
+        curTex = &texture3_load;
     else if (!strncmp("BG", cache->suffix, 2))
-        curTex = &texture1_show;
+        curTex = &texture1_load;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
         ForceRefreshPrevTexCache++;
