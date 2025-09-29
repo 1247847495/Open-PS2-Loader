@@ -384,7 +384,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                         PrevCacheID_BG = *cacheId;
                     return NULL;
                 } else if (entry->texFound == 1) {
-                    if (&entry->texture && entry->texture.Mem) {
+                    if (entry->texture.Mem) {
                         //entry->lastUsed = guiFrameId;
                         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
                         if (!strncmp("COV", cache->suffix, 3))
@@ -413,7 +413,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         currEntry = &cache->content[i];
         // 可用槽，但需保护正在使用的
         if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-            !(PrevCacheID >= 0 && (&currEntry->texture) && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+            !(PrevCacheID >= 0 && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
             *cacheId = i;
