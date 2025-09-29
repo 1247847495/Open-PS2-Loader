@@ -370,7 +370,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID = -2;
     }
 
-    if (curTex && curTex->Mem)
+    if (curTex && curTex->Mem && !texNeedUpdate)
         return curTex;
 
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
