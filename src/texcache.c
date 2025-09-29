@@ -450,8 +450,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         // 加载图片
         int result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture, GS_PSM_CT24);
         if (result < 0) {
-            ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
-            ioReq->cache->content[ioReq->cacheId].texFound = 0;
+            oldestEntry->lastUsed = 0;
+            oldestEntry->texFound = 0;
             oldestEntry->qr = 0;
         } else {
             if (!strncmp("COV", cache->suffix, 3))
@@ -460,8 +460,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 texture2 = &texture;
             else if (!strncmp("BG", cache->suffix, 2))
                 texture3 = &texture;
-            ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
-            ioReq->cache->content[ioReq->cacheId].texFound = 1;
+            oldestEntry->lastUsed = guiFrameId;
+            oldestEntry->texFound = 1;
             oldestEntry->qr = 0;
         }
         // prevGuiFrameId = guiFrameId;
