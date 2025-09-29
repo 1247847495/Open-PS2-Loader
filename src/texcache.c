@@ -293,9 +293,9 @@ GSTEXTURE texture1_show = {0};
 GSTEXTURE texture2_show = {0};
 GSTEXTURE texture3_show = {0};
 // 给加载线程使用
-GSTEXTURE texture1_load = {0};
-GSTEXTURE texture2_load = {0};
-GSTEXTURE texture3_load = {0};
+GSTEXTURE texture1_load;
+GSTEXTURE texture2_load;
+GSTEXTURE texture3_load;
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
