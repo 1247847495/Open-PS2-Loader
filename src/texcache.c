@@ -30,6 +30,14 @@ static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
 static int texNeedUpdate = 1;
+// 只给主线程使用和显示
+GSTEXTURE texture1_show;
+GSTEXTURE texture2_show;
+GSTEXTURE texture3_show;
+// 给加载线程使用
+GSTEXTURE texture1_load;
+GSTEXTURE texture2_load;
+GSTEXTURE texture3_load;
 
 // pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -295,14 +303,7 @@ void cacheDestroyCache(image_cache_t *cache)
     free(cache->content);
     free(cache);
 }
-// 只给主线程使用和显示
-GSTEXTURE texture1_show;
-GSTEXTURE texture2_show;
-GSTEXTURE texture3_show;
-// 给加载线程使用
-GSTEXTURE texture1_load;
-GSTEXTURE texture2_load;
-GSTEXTURE texture3_load;
+
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
