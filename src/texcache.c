@@ -29,6 +29,7 @@ static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
+static int texNeedUpdate = 1;
 
 // pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -155,6 +156,7 @@ void flushBatchRequests(void)
     } else
         texLoadingTimeOut = 0;
 
+    texNeedUpdate = 0;
     //// 有堆积的图片待加载
     //if (batchRequestCount > 0 && !texLoading) {
     //    //// debug  打印debug信息
@@ -284,6 +286,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 skipQr = 1; // 按住时，还有图片请求，就跳过本次Qr
         }
         curStartUp = value;
+        texNeedUpdate = 1;
     }
 
     if (cdFramesCount) {
