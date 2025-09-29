@@ -48,7 +48,6 @@ typedef struct
 static void cacheTexFree(GSTEXTURE tex)
 {
     if (tex.Mem) {
-        WaitSema(fileLockId);
         rmUnloadTexture(&tex);
         free(tex.Mem);
         tex.Mem = NULL; // Must be allocated by loader
@@ -56,7 +55,6 @@ static void cacheTexFree(GSTEXTURE tex)
             free(tex.Clut);
             tex.Clut = NULL; // Default, can be set by loader
         }
-        SignalSema(fileLockId);
     }
 }
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
