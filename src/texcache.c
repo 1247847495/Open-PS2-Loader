@@ -528,16 +528,16 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             } else {
                 currEntry->lastUsed = guiFrameId;
                 currEntry->texFound = 1;
-                if (!strncmp("COV", cache->suffix, 3)) {
-                    cacheTexFree(texture2_show, 0);
-                    texture2_show = texture2_load;
-                } else if (!strncmp("ICO", cache->suffix, 3)) {
-                    cacheTexFree(texture3_show, 0);
-                    texture2_show = texture3_load;
-                } else if (!strncmp("BG", cache->suffix, 2)) {
-                    cacheTexFree(texture1_show, 0);
-                    texture2_show = texture1_load;
-                }
+                //if (!strncmp("COV", cache->suffix, 3)) {
+                //    cacheTexFree(texture2_show, 0);
+                //    texture2_show = texture2_load;
+                //} else if (!strncmp("ICO", cache->suffix, 3)) {
+                //    cacheTexFree(texture3_show, 0);
+                //    texture2_show = texture3_load;
+                //} else if (!strncmp("BG", cache->suffix, 2)) {
+                //    cacheTexFree(texture1_show, 0);
+                //    texture2_show = texture1_load;
+                //}
             }
             currEntry->qr = 0;
             // prevGuiFrameId = guiFrameId;
