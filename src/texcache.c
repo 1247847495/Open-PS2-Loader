@@ -49,34 +49,34 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     if (!item)
         return;
 
-    if (freeTxt) {
-        if (item->texture.Mem) {
-            WaitSema(fileLockId);
-            rmUnloadTexture(&item->texture);
-            free(item->texture.Mem);
-            item->texture.Mem = NULL; // Must be allocated by loader
-            SignalSema(fileLockId);
-        }
-        if (item->texture.Clut) {
-            WaitSema(fileLockId);
-            free(item->texture.Clut);
-            item->texture.Clut = NULL; // Default, can be set by loader
-            SignalSema(fileLockId);
-        }
-    }
+    //if (freeTxt) {
+    //    if (item->texture.Mem) {
+    //        WaitSema(fileLockId);
+    //        rmUnloadTexture(&item->texture);
+    //        free(item->texture.Mem);
+    //        item->texture.Mem = NULL; // Must be allocated by loader
+    //        SignalSema(fileLockId);
+    //    }
+    //    if (item->texture.Clut) {
+    //        WaitSema(fileLockId);
+    //        free(item->texture.Clut);
+    //        item->texture.Clut = NULL; // Default, can be set by loader
+    //        SignalSema(fileLockId);
+    //    }
+    //}
 
     memset(item, 0, sizeof(cache_entry_t));
-    item->texture.Width = 0;            // Must be set by loader
-    item->texture.Height = 0;           // Must be set by loader
-    item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
-    item->texture.ClutPSM = 0;          // Default, can be set by loader
-    item->texture.TBW = 0;              // gsKit internal value
-    item->texture.Vram = 0;             // VRAM allocation handled by texture manager
-    item->texture.VramClut = 0;         // VRAM allocation handled by texture manager
-    item->texture.Filter = GS_FILTER_LINEAR; // Default
-    // item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
-    //  Do not load the texture to VRAM directly, only load it to EE RAM
-    item->texture.Delayed = 1;
+    //item->texture.Width = 0;            // Must be set by loader
+    //item->texture.Height = 0;           // Must be set by loader
+    //item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
+    //item->texture.ClutPSM = 0;          // Default, can be set by loader
+    //item->texture.TBW = 0;              // gsKit internal value
+    //item->texture.Vram = 0;             // VRAM allocation handled by texture manager
+    //item->texture.VramClut = 0;         // VRAM allocation handled by texture manager
+    //item->texture.Filter = GS_FILTER_LINEAR; // Default
+    //// item->texture.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
+    ////  Do not load the texture to VRAM directly, only load it to EE RAM
+    //item->texture.Delayed = 1;
 
     item->qr = 0;
     item->lastUsed = 0;
@@ -418,31 +418,31 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (skipQr || texLoading >= 3)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
-    cache_entry_t *currEntry, *oldestEntry = NULL;
-    int i;
-    u64 rtime = guiFrameId;
+    //cache_entry_t *currEntry, *oldestEntry = NULL;
+    //int i;
+    //u64 rtime = guiFrameId;
 
-    // 寻找可替换的槽
-    for (i = 0; i < cache->count; i++) {
-        currEntry = &cache->content[i];
-        // 可用槽，但需保护正在使用的
-        if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
-            !(PrevCacheID >= 0 && (&currEntry->texture) && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
-            oldestEntry = currEntry;
-            rtime = currEntry->lastUsed;
-            *cacheId = i;
-        }
-    }
-
-    if (oldestEntry) {
-        cacheClearItem(oldestEntry, 1);
-        oldestEntry->qr = 1;
+    //// 寻找可替换的槽
+    //for (i = 0; i < cache->count; i++) {
+    //    currEntry = &cache->content[i];
+    //    // 可用槽，但需保护正在使用的
+    //    if (!currEntry->qr && (currEntry->lastUsed < rtime) &&
+    //        !(PrevCacheID >= 0 && (&currEntry->texture) && (&currEntry->texture == &cache->content[PrevCacheID].texture))) {
+    //        oldestEntry = currEntry;
+    //        rtime = currEntry->lastUsed;
+    //        *cacheId = i;
+    //    }
+    //}
+    cache_entry_t *currEntry = &cache->content[*cacheId];
+    if (currEntry->texFound == -1 && !currEntry->qr) {
+        cacheClearItem(currEntry, 1);
+        currEntry->qr = 1;
 
         // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
         if (*UID == -1)
-            oldestEntry->UID = *UID = cache->nextUID++;
+            currEntry->UID = *UID = cache->nextUID++;
         else
-            oldestEntry->UID = *UID;
+            currEntry->UID = *UID;
 
         //if (!usePthread) {
         //    // 使用官方的多线程方法
@@ -467,27 +467,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else if (!strncmp("BG", cache->suffix, 2))
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1, GS_PSM_CT24);
         if (result < 0) {
-            oldestEntry->lastUsed = 0;
-            oldestEntry->texFound = 0;
-            oldestEntry->qr = 0;
+            currEntry->lastUsed = 0;
+            currEntry->texFound = 0;
+            currEntry->qr = 0;
             *cacheId = -2;
         } else {
             if (!strncmp("COV", cache->suffix, 3))
-                oldestEntry->texture = texture2;
+                currEntry->texture = texture2;
             else if (!strncmp("ICO", cache->suffix, 3))
-                oldestEntry->texture = texture3;
+                currEntry->texture = texture3;
             else if (!strncmp("BG", cache->suffix, 2))
-                oldestEntry->texture = texture1;
-            oldestEntry->lastUsed = guiFrameId;
-            oldestEntry->texFound = 1;
-            oldestEntry->qr = 0;
+                currEntry->texture = texture1;
+            currEntry->lastUsed = guiFrameId;
+            currEntry->texFound = 1;
+            currEntry->qr = 0;
         }
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
 
         // debug  打印debug信息
         char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-oldestEntry.txt");
+        strcpy(debugFileDir, "smb:debug-currEntry.txt");
         FILE *debugFile = fopen(debugFileDir, "ab+");
         if (debugFile != NULL) {
             fprintf(debugFile, "result:%d\r\n", result);

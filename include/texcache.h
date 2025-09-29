@@ -6,8 +6,6 @@
 /// A single cache entry...
 typedef struct
 {
-    GSTEXTURE texture;
-
     // NULL not queued, otherwise queue request record
     int qr;
 
