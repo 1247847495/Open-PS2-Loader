@@ -443,7 +443,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
-    if (curTex && curTex->Mem && !texNeedUpdate && !skipQr)
+    if (curTex && curTex->Mem && !texNeedUpdate && skipQr)
         return curTex && curTex->Mem ? curTex : NULL;
 
     //if (skipQr || texLoading >= 3)
@@ -466,7 +466,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //}
     *cacheId = 0;
     cache_entry_t *currEntry = &cache->content[*cacheId];
-    if (!currEntry->qr) {
+    if (texNeedUpdate) {
         cacheClearItem(currEntry, 1);
         currEntry->qr = 1;
 
@@ -507,12 +507,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (result < 0) {
             currEntry->lastUsed = 0;
             currEntry->texFound = 0;
-            currEntry->qr = 0;
             *cacheId = -2;
         } else {
             currEntry->lastUsed = guiFrameId;
             currEntry->texFound = 1;
-
             if (!strncmp("COV", cache->suffix, 3)) {
                 cacheTexFree(texture2_show);
                 texture2_show = texture2_load;
@@ -525,8 +523,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 cacheTexFree(texture1_show);
                 texture2_show = texture1_load;
             }
-            currEntry->qr = 0;
         }
+        currEntry->qr = 0;
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
 
