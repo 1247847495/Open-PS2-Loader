@@ -106,7 +106,7 @@ extern void *apps_case_png;
 static int maxSize = 720 * 512 * 4;
 
 // 尝试添加open文件时的临界区
-static s32 fileLockId;
+s32 fileLockId;
 static ee_sema_t fileLockSema;
 
 //// 用来计算搜索图片的消耗时间
@@ -308,12 +308,16 @@ void texFree(GSTEXTURE *texture)
 {
     if (texture) {
         if (texture->Mem) {
+            WaitSema(fileLockId);
             free(texture->Mem);
             texture->Mem = NULL;
+            SignalSema(fileLockId);
         }
         if (texture->Clut) {
+            WaitSema(fileLockId);
             free(texture->Clut);
             texture->Clut = NULL;
+            SignalSema(fileLockId);
         }
     }
 }

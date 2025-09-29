@@ -51,11 +51,18 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 
     if (freeTxt) {
         if (item->texture.Mem) {
+            WaitSema(fileLockId);
             rmUnloadTexture(&item->texture);
             free(item->texture.Mem);
+            item->texture.Mem = NULL; // Must be allocated by loader
+            SignalSema(fileLockId);
         }
-        if (item->texture.Clut)
+        if (item->texture.Clut) {
+            WaitSema(fileLockId);
             free(item->texture.Clut);
+            item->texture.Clut = NULL; // Default, can be set by loader
+            SignalSema(fileLockId);
+        }
     }
 
     memset(item, 0, sizeof(cache_entry_t));
@@ -64,8 +71,6 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texture.PSM = GS_PSM_CT24;    // Must be set by loader
     item->texture.ClutPSM = 0;          // Default, can be set by loader
     item->texture.TBW = 0;              // gsKit internal value
-    item->texture.Mem = NULL;           // Must be allocated by loader
-    item->texture.Clut = NULL;          // Default, can be set by loader
     item->texture.Vram = 0;             // VRAM allocation handled by texture manager
     item->texture.VramClut = 0;         // VRAM allocation handled by texture manager
     item->texture.Filter = GS_FILTER_LINEAR; // Default
