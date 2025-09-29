@@ -261,9 +261,9 @@ void cacheDestroyCache(image_cache_t *cache)
     free(cache->content);
     free(cache);
 }
-TEXTURE *texture1 = NULL;
-TEXTURE *texture2 = NULL;
-TEXTURE *texture3 = NULL;
+GSTEXTURE *texture1 = NULL;
+GSTEXTURE *texture2 = NULL;
+GSTEXTURE *texture3 = NULL;
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
@@ -446,7 +446,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    pthread_t tid;
         //    pthread_create(&tid, &attr, cacheLoadImage, req);
         //}
-        TEXTURE texture = {0};
+        GSTEXTURE texture = {0};
         // 加载图片
         int result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture, GS_PSM_CT24);
         if (result < 0) {
