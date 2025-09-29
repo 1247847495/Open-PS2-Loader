@@ -45,10 +45,11 @@ typedef struct
     char *value;
 } load_image_request_t;
 
-static void cacheTexFree(GSTEXTURE tex)
+static void cacheTexFree(GSTEXTURE tex, int unloadTex)
 {
     if (tex.Mem) {
-        rmUnloadTexture(&tex);
+        if (unloadTex)
+            rmUnloadTexture(&tex);
         free(tex.Mem);
         tex.Mem = NULL; // Must be allocated by loader
         if (tex.Clut) {
@@ -493,15 +494,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         int result = -1;
         // 加载图片
         if (!strncmp("COV", cache->suffix, 3)) {
-            cacheTexFree(texture2_load);
+            cacheTexFree(texture2_load, 0);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2_load, GS_PSM_CT24);
         }
         else if (!strncmp("ICO", cache->suffix, 3)) {
-            cacheTexFree(texture3_load);
+            cacheTexFree(texture3_load, 0);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3_load, GS_PSM_CT24);
         }
         else if (!strncmp("BG", cache->suffix, 2)) {
-            cacheTexFree(texture1_load);
+            cacheTexFree(texture1_load, 0);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1_load, GS_PSM_CT24);
         }
         if (result < 0) {
@@ -512,15 +513,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             currEntry->lastUsed = guiFrameId;
             currEntry->texFound = 1;
             if (!strncmp("COV", cache->suffix, 3)) {
-                cacheTexFree(texture2_show);
+                cacheTexFree(texture2_show, 0);
                 texture2_show = texture2_load;
             }
             else if (!strncmp("ICO", cache->suffix, 3)) {
-                cacheTexFree(texture3_show);
+                cacheTexFree(texture3_show, 0);
                 texture2_show = texture3_load;
             }
             else if (!strncmp("BG", cache->suffix, 2)) {
-                cacheTexFree(texture1_show);
+                cacheTexFree(texture1_show, 0);
                 texture2_show = texture1_load;
             }
         }
