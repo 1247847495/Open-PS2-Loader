@@ -84,59 +84,59 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
-// Io handled action...
-static void *cacheLoadImage(void *data)
-{
-    pthread_mutex_lock(&texLoadingMutex);
-    load_image_request_t *ioReq = (load_image_request_t *)data;
-    // Safeguards...
-    if (!ioReq->cache || !ioReq->cache->content) {
-        if (texLoading)
-            texLoading--;
-        pthread_mutex_unlock(&texLoadingMutex);
-        free(ioReq);
-        return NULL;
-    }
-
-    item_list_t *handler = ioReq->list;
-    if (!handler) {
-        ioReq->cache->content[ioReq->cacheId].qr = 0;
-        if (texLoading)
-            texLoading--;
-        pthread_mutex_unlock(&texLoadingMutex);
-        free(ioReq);
-        return NULL;
-    }
-
-    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
-    if (cdFramesCount || forceSkipQr) {
-        ioReq->cache->content[ioReq->cacheId].qr = 0;
-        if (texLoading)
-            texLoading--;
-        pthread_mutex_unlock(&texLoadingMutex);
-        free(ioReq);
-        return NULL;
-    }
-    pthread_mutex_unlock(&texLoadingMutex);
-
-    // 加载图片
-    int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24);
-
-    pthread_mutex_lock(&texLoadingMutex);
-    if (result < 0) {
-        ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
-        ioReq->cache->content[ioReq->cacheId].texFound = 0;
-    } else {
-        ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
-        ioReq->cache->content[ioReq->cacheId].texFound = 1;
-    }
-    ioReq->cache->content[ioReq->cacheId].qr = 0;
-    if (texLoading)
-        texLoading--;
-    pthread_mutex_unlock(&texLoadingMutex);
-    free(ioReq);
-    return NULL;
-}
+//// Io handled action...
+//static void *cacheLoadImage(void *data)
+//{
+//    pthread_mutex_lock(&texLoadingMutex);
+//    load_image_request_t *ioReq = (load_image_request_t *)data;
+//    // Safeguards...
+//    if (!ioReq->cache || !ioReq->cache->content) {
+//        if (texLoading)
+//            texLoading--;
+//        pthread_mutex_unlock(&texLoadingMutex);
+//        free(ioReq);
+//        return NULL;
+//    }
+//
+//    item_list_t *handler = ioReq->list;
+//    if (!handler) {
+//        ioReq->cache->content[ioReq->cacheId].qr = 0;
+//        if (texLoading)
+//            texLoading--;
+//        pthread_mutex_unlock(&texLoadingMutex);
+//        free(ioReq);
+//        return NULL;
+//    }
+//
+//    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+//    if (cdFramesCount || forceSkipQr) {
+//        ioReq->cache->content[ioReq->cacheId].qr = 0;
+//        if (texLoading)
+//            texLoading--;
+//        pthread_mutex_unlock(&texLoadingMutex);
+//        free(ioReq);
+//        return NULL;
+//    }
+//    pthread_mutex_unlock(&texLoadingMutex);
+//
+//    // 加载图片
+//    int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24);
+//
+//    pthread_mutex_lock(&texLoadingMutex);
+//    if (result < 0) {
+//        ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
+//        ioReq->cache->content[ioReq->cacheId].texFound = 0;
+//    } else {
+//        ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
+//        ioReq->cache->content[ioReq->cacheId].texFound = 1;
+//    }
+//    ioReq->cache->content[ioReq->cacheId].qr = 0;
+//    if (texLoading)
+//        texLoading--;
+//    pthread_mutex_unlock(&texLoadingMutex);
+//    free(ioReq);
+//    return NULL;
+//}
 static void cacheLoadImage_Official(void *data)
 {
     cacheLoadImage(data);
@@ -416,7 +416,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //}
 
     if (skipQr || texLoading >= 3)
-        return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+        return curTex && curTex->Mem ? curTex : NULL;
 
     //cache_entry_t *currEntry, *oldestEntry = NULL;
     //int i;
@@ -472,12 +472,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             currEntry->qr = 0;
             *cacheId = -2;
         } else {
-            if (!strncmp("COV", cache->suffix, 3))
-                currEntry->texture = texture2;
-            else if (!strncmp("ICO", cache->suffix, 3))
-                currEntry->texture = texture3;
-            else if (!strncmp("BG", cache->suffix, 2))
-                currEntry->texture = texture1;
             currEntry->lastUsed = guiFrameId;
             currEntry->texFound = 1;
             currEntry->qr = 0;
