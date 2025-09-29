@@ -370,9 +370,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             PrevCacheID = -2;
     }
 
-    if (curTex && curTex->Mem && !texNeedUpdate && !skipQr)
-        return curTex;
-
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
@@ -417,9 +414,11 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
-
-    if (skipQr || texLoading >= 3)
+    if (curTex && curTex->Mem && !texNeedUpdate && !skipQr)
         return curTex && curTex->Mem ? curTex : NULL;
+
+    //if (skipQr || texLoading >= 3)
+    //    return curTex && curTex->Mem ? curTex : NULL;
 
     //cache_entry_t *currEntry, *oldestEntry = NULL;
     //int i;
