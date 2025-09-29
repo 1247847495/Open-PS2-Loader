@@ -261,7 +261,9 @@ void cacheDestroyCache(image_cache_t *cache)
     free(cache->content);
     free(cache);
 }
-
+TEXTURE *texture1 = NULL;
+TEXTURE *texture2 = NULL;
+TEXTURE *texture3 = NULL;
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
     // 默认情况下，触发重复按键时，就会跳过所有Qr
@@ -452,6 +454,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             ioReq->cache->content[ioReq->cacheId].texFound = 0;
             oldestEntry->qr = 0;
         } else {
+            if (!strncmp("COV", cache->suffix, 3))
+                texture1 = &texture;
+            else if (!strncmp("ICO", cache->suffix, 3))
+                texture2 = &texture;
+            else if (!strncmp("BG", cache->suffix, 2))
+                texture3 = &texture;
             ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
             ioReq->cache->content[ioReq->cacheId].texFound = 1;
             oldestEntry->qr = 0;
