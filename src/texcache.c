@@ -430,27 +430,32 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         else
             oldestEntry->UID = *UID;
 
-        load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
-        req->cache = cache;
-        req->cacheId = *cacheId;
-        req->list = list;
-        req->value = value;
-
-        if (!usePthread) {
-            // 使用官方的多线程方法
-            ioPutRequest(IO_CACHE_LOAD_ART, req);
+        //if (!usePthread) {
+        //    // 使用官方的多线程方法
+        //    ioPutRequest(IO_CACHE_LOAD_ART, req);
+        //} else {
+        //    // 使用pthread的多线程方法
+        //    pthread_mutex_lock(&texLoadingMutex);
+        //    if (texLoading < 1000)
+        //        texLoading++;
+        //    else
+        //        texLoading = 1;
+        //    pthread_mutex_unlock(&texLoadingMutex);
+        //    pthread_t tid;
+        //    pthread_create(&tid, &attr, cacheLoadImage, req);
+        //}
+        TEXTURE texture = {0};
+        // 加载图片
+        int result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture, GS_PSM_CT24);
+        if (result < 0) {
+            ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
+            ioReq->cache->content[ioReq->cacheId].texFound = 0;
+            oldestEntry->qr = 0;
         } else {
-            // 使用pthread的多线程方法
-            pthread_mutex_lock(&texLoadingMutex);
-            if (texLoading < 1000)
-                texLoading++;
-            else
-                texLoading = 1;
-            pthread_mutex_unlock(&texLoadingMutex);
-            pthread_t tid;
-            pthread_create(&tid, &attr, cacheLoadImage, req);
+            ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
+            ioReq->cache->content[ioReq->cacheId].texFound = 1;
+            oldestEntry->qr = 0;
         }
-
         // prevGuiFrameId = guiFrameId;
         // artQrCount++;
 
