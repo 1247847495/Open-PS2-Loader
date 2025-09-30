@@ -542,6 +542,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->lastUsed = 0;
                 currEntry->texFound = 0;
                 *cacheId = -2;
+                if (!strncmp("COV", cache->suffix, 3)) {
+                    cacheTexFree(&texture2_show, 1);
+                } else if (!strncmp("ICO", cache->suffix, 3)) {
+                    cacheTexFree(&texture3_show, 1);
+                } else if (!strncmp("BG", cache->suffix, 2)) {
+                    cacheTexFree(&texture1_show, 1);
+                }
             } else {
                 currEntry->lastUsed = guiFrameId;
                 currEntry->texFound = 1;
