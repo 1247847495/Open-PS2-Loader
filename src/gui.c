@@ -1613,6 +1613,7 @@ void guiIntroLoop(void)
         guiStartFrame();
 
         guiShow(); // 可以防止同时开启多个BDM设备时，欢迎界面会闪烁的问题
+        flushBatchRequests(); // 推送ART图到ioPutQuest
 
         guiRenderGreeting(0x80);
 
