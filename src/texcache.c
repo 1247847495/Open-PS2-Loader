@@ -530,7 +530,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
-    if (curTex && curTex->Mem && (!texNeedUpdate || skipQr))
+    if (!texNeedUpdate || skipQr)
         return curTex && curTex->Mem ? curTex : NULL;
 
     //if (skipQr || texLoading >= 3)
