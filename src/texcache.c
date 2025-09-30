@@ -163,6 +163,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
         ioReq->cache->content[0].lastUsed = 0;
         ioReq->cache->content[0].texFound = 0;
         *ioReq->cacheId = -2;
+        WaitSema(fileLockId);
         if (!strncmp("COV", ioReq->cache->suffix, 3)) {
             cacheTexFree(&texture2_show, 1);
         } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
@@ -170,9 +171,11 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
         } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
             cacheTexFree(&texture1_show, 1);
         }
+        SignalSema(fileLockId);
     } else {
         ioReq->cache->content[0].lastUsed = guiFrameId;
         ioReq->cache->content[0].texFound = 1;
+        WaitSema(fileLockId);
         if (!strncmp("COV", ioReq->cache->suffix, 3)) {
             cacheTexFree(&texture2_show, 1);
             texture2_show = *ioReq->cache->content[0].texture;
@@ -186,6 +189,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
             texture1_show = *ioReq->cache->content[0].texture;
             cacheTexFree(ioReq->cache->content[0].texture, 0);
         }
+        SignalSema(fileLockId);
     }
     ioReq->cache->content[0].qr = 0;
     if (texLoading)

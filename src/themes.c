@@ -562,14 +562,14 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
                 return;
             }
         }
-
+        WaitSema(fileLockId);
         if (gameImage->overlayTexture) {
             rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                 texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
                                 gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
         } else
             rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
-
+        SignalSema(fileLockId);
     } else if (elem->type == ELEM_TYPE_BACKGROUND) {
         if (gameImage->defaultTexture)
             rmDrawPixmap(&gameImage->defaultTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
