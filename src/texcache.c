@@ -548,9 +548,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //        *cacheId = i;
     //    }
     //}
-    if (texNeedUpdate) {
-        *cacheId = 0;
-        cache_entry_t *currEntry = &cache->content[*cacheId];
+    *cacheId = 0;
+    cache_entry_t *currEntry = &cache->content[*cacheId];
+    if (texNeedUpdate && !currEntry->qr) {
         //if (!usePthread) {
         //    // 使用官方的多线程方法
         //    ioPutRequest(IO_CACHE_LOAD_ART, req);
@@ -622,6 +622,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //}
         //else
         if (!strncmp("BG", cache->suffix, 2)) {
+            cacheClearItem(currEntry, 1);
+            currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
                 currEntry->UID = *UID = cache->nextUID++;
@@ -642,8 +644,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req->cacheId = cacheId;
             req->list = list;
             req->value = value;
-            cacheClearItem(currEntry, 1);
-            currEntry->qr = 1;
             pthread_t tid;
             //pthread_create(&tid, &attr, cacheLoadImage2, req);
             cacheLoadImage2(req);
