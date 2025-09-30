@@ -56,30 +56,30 @@ typedef struct
 static void cacheTexFree(GSTEXTURE *tex, int freeTxt)
 {
     if (freeTxt) {
-        if (&tex->Mem) {
-            rmUnloadTexture(&tex);
-            free(&tex->Mem);
-            &tex->Mem = NULL; // Must be allocated by loader
-            if (&tex->Clut) {
-                free(&tex->Clut);
-                &tex->Clut = NULL; // Default, can be set by loader
+        if (tex->Mem) {
+            rmUnloadTexture(tex);
+            free(tex->Mem);
+            tex->Mem = NULL; // Must be allocated by loader
+            if (tex->Clut) {
+                free(tex->Clut);
+                tex->Clut = NULL; // Default, can be set by loader
             }
         }
     }
     memset(tex, 0, sizeof(GSTEXTURE));
-    &tex->Mem = NULL;                // Must be allocated by loader
-    &tex->Clut = NULL;               // Default, can be set by loader
-    &tex->Width = 0;                 // Must be set by loader
-    &tex->Height = 0;                // Must be set by loader
-    &tex->PSM = GS_PSM_CT24;         // Must be set by loader
-    &tex->ClutPSM = 0;               // Default, can be set by loader
-    &tex->TBW = 0;                   // gsKit internal value
-    &tex->Vram = 0;                  // VRAM allocation handled by texture manager
-    &tex->VramClut = 0;              // VRAM allocation handled by texture manager
-    &tex->Filter = GS_FILTER_LINEAR; // Default
-    // &tex->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
+    tex->Mem = NULL;                // Must be allocated by loader
+    tex->Clut = NULL;               // Default, can be set by loader
+    tex->Width = 0;                 // Must be set by loader
+    tex->Height = 0;                // Must be set by loader
+    tex->PSM = GS_PSM_CT24;         // Must be set by loader
+    tex->ClutPSM = 0;               // Default, can be set by loader
+    tex->TBW = 0;                   // gsKit internal value
+    tex->Vram = 0;                  // VRAM allocation handled by texture manager
+    tex->VramClut = 0;              // VRAM allocation handled by texture manager
+    tex->Filter = GS_FILTER_LINEAR; // Default
+    // tex->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
     //  Do not load the texture to VRAM directly, only load it to EE RAM
-    &tex->Delayed = 1;
+    tex->Delayed = 1;
 }
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
