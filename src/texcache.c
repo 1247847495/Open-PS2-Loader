@@ -53,33 +53,33 @@ typedef struct
     char *value;
 } load_image_request_t;
 
-static void cacheTexFree(GSTEXTURE tex, int freeTxt)
+static void cacheTexFree(GSTEXTURE &tex, int freeTxt)
 {
     if (freeTxt) {
-        if (tex.Mem) {
+        if (&tex->Mem) {
             rmUnloadTexture(&tex);
-            free(tex.Mem);
-            tex.Mem = NULL; // Must be allocated by loader
-            if (tex.Clut) {
-                free(tex.Clut);
-                tex.Clut = NULL; // Default, can be set by loader
+            free(&tex->Mem);
+            &tex->Mem = NULL; // Must be allocated by loader
+            if (&tex->Clut) {
+                free(&tex->Clut);
+                &tex->Clut = NULL; // Default, can be set by loader
             }
         }
     }
-    memset(&tex, 0, sizeof(GSTEXTURE));
-    tex.Mem = NULL;                // Must be allocated by loader
-    tex.Clut = NULL;               // Default, can be set by loader
-    tex.Width = 0;                 // Must be set by loader
-    tex.Height = 0;                // Must be set by loader
-    tex.PSM = GS_PSM_CT24;         // Must be set by loader
-    tex.ClutPSM = 0;               // Default, can be set by loader
-    tex.TBW = 0;                   // gsKit internal value
-    tex.Vram = 0;                  // VRAM allocation handled by texture manager
-    tex.VramClut = 0;              // VRAM allocation handled by texture manager
-    tex.Filter = GS_FILTER_LINEAR; // Default
-    // tex.ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
+    memset(tex, 0, sizeof(GSTEXTURE));
+    &tex->Mem = NULL;                // Must be allocated by loader
+    &tex->Clut = NULL;               // Default, can be set by loader
+    &tex->Width = 0;                 // Must be set by loader
+    &tex->Height = 0;                // Must be set by loader
+    &tex->PSM = GS_PSM_CT24;         // Must be set by loader
+    &tex->ClutPSM = 0;               // Default, can be set by loader
+    &tex->TBW = 0;                   // gsKit internal value
+    &tex->Vram = 0;                  // VRAM allocation handled by texture manager
+    &tex->VramClut = 0;              // VRAM allocation handled by texture manager
+    &tex->Filter = GS_FILTER_LINEAR; // Default
+    // &tex->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
     //  Do not load the texture to VRAM directly, only load it to EE RAM
-    tex.Delayed = 1;
+    &tex->Delayed = 1;
 }
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -510,7 +510,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(texture2_load, 1);
+            cacheTexFree(&texture2_load, 1);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2_load, GS_PSM_CT24);
         }
         else if (!strncmp("ICO", cache->suffix, 3)) {
@@ -522,7 +522,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(texture3_load, 1);
+            cacheTexFree(&texture3_load, 1);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3_load, GS_PSM_CT24);
         }
         else if (!strncmp("BG", cache->suffix, 2)) {
@@ -534,7 +534,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(texture1_load, 1);
+            cacheTexFree(&texture1_load, 1);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1_load, GS_PSM_CT24);
         }
         if (result != -1111) {
@@ -546,17 +546,17 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->lastUsed = guiFrameId;
                 currEntry->texFound = 1;
                 if (!strncmp("COV", cache->suffix, 3)) {
-                    //cacheTexFree(texture2_show, 1);
+                    cacheTexFree(&texture2_show, 1);
                     texture2_show = texture2_load;
-                    cacheTexFree(texture2_load, 0);
+                    cacheTexFree(&texture2_load, 0);
                 } else if (!strncmp("ICO", cache->suffix, 3)) {
-                    //cacheTexFree(texture3_show, 1);
+                    cacheTexFree(&texture3_show, 1);
                     texture3_show = texture3_load;
-                    cacheTexFree(texture3_load, 0);
+                    cacheTexFree(&texture3_load, 0);
                 } else if (!strncmp("BG", cache->suffix, 2)) {
-                    //cacheTexFree(texture1_show, 1);
+                    cacheTexFree(&texture1_show, 1);
                     texture1_show = texture1_load;
-                    cacheTexFree(texture1_load, 0);
+                    cacheTexFree(&texture1_load, 0);
                 }
             }
             currEntry->qr = 0;
