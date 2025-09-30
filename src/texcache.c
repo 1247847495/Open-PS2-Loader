@@ -175,15 +175,15 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
         ioReq->cache->content[0].texFound = 1;
         if (!strncmp("COV", ioReq->cache->suffix, 3)) {
             cacheTexFree(&texture2_show, 1);
-            texture2_show = ioReq->cache->content[0].texture;
+            texture2_show = *ioReq->cache->content[0].texture;
             cacheTexFree(ioReq->cache->content[0].texture, 0);
         } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
             cacheTexFree(&texture3_show, 1);
-            texture3_show = ioReq->cache->content[0].texture;
+            texture3_show = *ioReq->cache->content[0].texture;
             cacheTexFree(ioReq->cache->content[0].texture, 0);
         } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
             cacheTexFree(&texture1_show, 1);
-            texture1_show = ioReq->cache->content[0].texture;
+            texture1_show = *ioReq->cache->content[0].texture;
             cacheTexFree(ioReq->cache->content[0].texture, 0);
         }
     }
@@ -571,11 +571,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
         // 加载图片
         if (!strncmp("COV", cache->suffix, 3)) {
-            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
-            req->cache = cache;
-            req->cacheId = cacheId;
-            req->list = list;
-            req->value = value;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
 
@@ -585,7 +580,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture2_load, 1);
-            req->texture = &texture2_load;
+            currEntry->texture = &texture2_load;
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
@@ -594,15 +589,15 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 texLoading = 1;
             pthread_mutex_unlock(&texLoadingMutex);
-            pthread_t tid;
-            pthread_create(&tid, &attr, cacheLoadImage2, req);
-        }
-        else if (!strncmp("ICO", cache->suffix, 3)) {
             load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
             req->cache = cache;
             req->cacheId = cacheId;
             req->list = list;
             req->value = value;
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
+        }
+        else if (!strncmp("ICO", cache->suffix, 3)) {
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
@@ -611,7 +606,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture3_load, 1);
-            req->texture = &texture3_load;
+            currEntry->= &texture3_load;
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
@@ -620,10 +615,30 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 texLoading = 1;
             pthread_mutex_unlock(&texLoadingMutex);
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
             pthread_t tid;
             pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
         else if (!strncmp("BG", cache->suffix, 2)) {
+            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+            if (*UID == -1)
+                currEntry->UID = *UID = cache->nextUID++;
+            else
+                currEntry->UID = *UID;
+            cacheTexFree(&texture1_load, 1);
+            currEntry->= &texture1_load;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
             load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
             req->cache = cache;
             req->cacheId = cacheId;
@@ -631,22 +646,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req->value = value;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
-
-            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-            if (*UID == -1)
-                currEntry->UID = *UID = cache->nextUID++;
-            else
-                currEntry->UID = *UID;
-            cacheTexFree(&texture1_load, 1);
-            req->texture = &texture1_load;
-
-            //  使用pthread的多线程方法
-            pthread_mutex_lock(&texLoadingMutex);
-            if (texLoading < 1000)
-                texLoading++;
-            else
-                texLoading = 1;
-            pthread_mutex_unlock(&texLoadingMutex);
             pthread_t tid;
             pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
