@@ -49,7 +49,7 @@ typedef struct
 {
     image_cache_t *cache;
     item_list_t *list;
-    int cacheId;
+    int *cacheId;
     char *value;
 } load_image_request_t;
 
@@ -119,6 +119,80 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->lastUsed = 0;
     item->UID = -1;
     item->texFound = -1;
+}
+
+ static void *cacheLoadImage2(void *data)
+{
+    pthread_mutex_lock(&texLoadingMutex);
+    load_image_request_t *ioReq = (load_image_request_t *)data;
+    // Safeguards...
+    if (!ioReq->cache || !ioReq->cache->content) {
+        if (texLoading)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
+        return NULL;
+    }
+
+    item_list_t *handler = ioReq->list;
+    if (!handler) {
+        ioReq->cache->content[0].qr = 0;
+        if (texLoading)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
+        return NULL;
+    }
+
+    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    if (cdFramesCount || forceSkipQr) {
+        ioReq->cache->content[0].qr = 0;
+        if (texLoading)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
+        return NULL;
+    }
+    pthread_mutex_unlock(&texLoadingMutex);
+
+    // 加载图片
+    int result = handler->itemGetImage(handler, "ART", 1, ioReq->value, ioReq->cache->suffix, ioReq->cache->content[0].texture, GS_PSM_CT24);
+
+    pthread_mutex_lock(&texLoadingMutex);
+    if (result < 0) {
+        ioReq->cache->content[0].lastUsed = 0;
+        ioReq->cache->content[0].texFound = 0;
+        *ioReq->cacheId = -2;
+        if (!strncmp("COV", ioReq->cache->suffix, 3)) {
+            cacheTexFree(&texture2_show, 1);
+        } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
+            cacheTexFree(&texture3_show, 1);
+        } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
+            cacheTexFree(&texture1_show, 1);
+        }
+    } else {
+        ioReq->cache->content[0].lastUsed = guiFrameId;
+        ioReq->cache->content[0].texFound = 1;
+        if (!strncmp("COV", ioReq->cache->suffix, 3)) {
+            cacheTexFree(&texture2_show, 1);
+            texture2_show = ioReq->cache->content[0].texture;
+            cacheTexFree(ioReq->cache->content[0].texture, 0);
+        } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
+            cacheTexFree(&texture3_show, 1);
+            texture3_show = ioReq->cache->content[0].texture;
+            cacheTexFree(ioReq->cache->content[0].texture, 0);
+        } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
+            cacheTexFree(&texture1_show, 1);
+            texture1_show = ioReq->cache->content[0].texture;
+            cacheTexFree(ioReq->cache->content[0].texture, 0);
+        }
+    }
+    ioReq->cache->content[0].qr = 0;
+    if (texLoading)
+        texLoading--;
+    pthread_mutex_unlock(&texLoadingMutex);
+    free(ioReq);
+    return NULL;
 }
 
 //// Io handled action...
@@ -477,9 +551,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //        *cacheId = i;
     //    }
     //}
-    *cacheId = 0;
-    cache_entry_t *currEntry = &cache->content[*cacheId];
     if (texNeedUpdate) {
+        *cacheId = 0;
+        cache_entry_t *currEntry = &cache->content[*cacheId];
         //if (!usePthread) {
         //    // 使用官方的多线程方法
         //    ioPutRequest(IO_CACHE_LOAD_ART, req);
@@ -494,9 +568,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    pthread_t tid;
         //    pthread_create(&tid, &attr, cacheLoadImage, req);
         //}
-        int result = -1111;
+
         // 加载图片
         if (!strncmp("COV", cache->suffix, 3)) {
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
 
@@ -506,21 +585,50 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture2_load, 1);
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture2_load, GS_PSM_CT24);
+            req->texture = &texture2_load;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
         else if (!strncmp("ICO", cache->suffix, 3)) {
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
-
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture3_load, 1);
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture3_load, GS_PSM_CT24);
+            req->texture = &texture3_load;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
         else if (!strncmp("BG", cache->suffix, 2)) {
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
 
@@ -529,50 +637,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            // debug  打印debug信息
-            char debugFileDir[64];
-            strcpy(debugFileDir, "smb:debug-currEntry.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "result:%d  %s_%s\r\n Mem NULL?:%d  Delayed:%d\r\n\r\n", result, cache->suffix, value, texture1_load.Mem == NULL, texture1_load.Delayed);
-                fclose(debugFile);
-            }
             cacheTexFree(&texture1_load, 1);
-            result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1_load, GS_PSM_CT24);
+            req->texture = &texture1_load;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
-        if (result != -1111) {
-            if (result < 0) {
-                currEntry->lastUsed = 0;
-                currEntry->texFound = 0;
-                *cacheId = -2;
-                if (!strncmp("COV", cache->suffix, 3)) {
-                    cacheTexFree(&texture2_show, 1);
-                } else if (!strncmp("ICO", cache->suffix, 3)) {
-                    cacheTexFree(&texture3_show, 1);
-                } else if (!strncmp("BG", cache->suffix, 2)) {
-                    cacheTexFree(&texture1_show, 1);
-                }
-            } else {
-                currEntry->lastUsed = guiFrameId;
-                currEntry->texFound = 1;
-                if (!strncmp("COV", cache->suffix, 3)) {
-                    cacheTexFree(&texture2_show, 1);
-                    texture2_show = texture2_load;
-                    cacheTexFree(&texture2_load, 0);
-                } else if (!strncmp("ICO", cache->suffix, 3)) {
-                    cacheTexFree(&texture3_show, 1);
-                    texture3_show = texture3_load;
-                    cacheTexFree(&texture3_load, 0);
-                } else if (!strncmp("BG", cache->suffix, 2)) {
-                    cacheTexFree(&texture1_show, 1);
-                    texture1_show = texture1_load;
-                    cacheTexFree(&texture1_load, 0);
-                }
-            }
-            currEntry->qr = 0;
-            // prevGuiFrameId = guiFrameId;
-            // artQrCount++;
-        }
+        //// debug  打印debug信息
+        // char debugFileDir[64];
+        // strcpy(debugFileDir, "smb:debug-currEntry.txt");
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
+        // if (debugFile != NULL) {
+        //     fprintf(debugFile, "result:%d  %s_%s\r\n", result, cache->suffix, value);
+        //     fclose(debugFile);
+        // }
     }
     return curTex && curTex->Mem ? curTex : NULL;
 }
