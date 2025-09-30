@@ -53,7 +53,7 @@ typedef struct
     char *value;
 } load_image_request_t;
 
-static void cacheTexFree(GSTEXTURE &tex, int freeTxt)
+static void cacheTexFree(GSTEXTURE *tex, int freeTxt)
 {
     if (freeTxt) {
         if (&tex->Mem) {
