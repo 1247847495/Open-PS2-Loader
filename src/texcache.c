@@ -645,8 +645,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req->list = list;
             req->value = value;
             pthread_t tid;
-            //pthread_create(&tid, &attr, cacheLoadImage2, req);
-            cacheLoadImage2(req);
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
         }
         //// debug  打印debug信息
         // char debugFileDir[64];
