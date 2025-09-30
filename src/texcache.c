@@ -616,7 +616,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    pthread_t tid;
         //    pthread_create(&tid, &attr, cacheLoadImage2, req);
         //}
-        else if (!strncmp("BG", cache->suffix, 2)) {
+        //else
+        if (!strncmp("BG", cache->suffix, 2)) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
                 currEntry->UID = *UID = cache->nextUID++;
