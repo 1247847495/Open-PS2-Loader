@@ -606,7 +606,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture3_load, 1);
-            currEntry->= &texture3_load;
+            currEntry->texture = &texture3_load;
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
@@ -630,7 +630,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             else
                 currEntry->UID = *UID;
             cacheTexFree(&texture1_load, 1);
-            currEntry->= &texture1_load;
+            currEntry->texture = &texture1_load;
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
