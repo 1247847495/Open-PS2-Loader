@@ -567,61 +567,59 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //}
 
         // 加载图片
-        //if (!strncmp("COV", cache->suffix, 3)) {
-        //    cacheClearItem(currEntry, 1);
-        //    currEntry->qr = 1;
+        if (!strncmp("COV", cache->suffix, 3)) {
+            cacheClearItem(currEntry, 1);
+            currEntry->qr = 1;
+            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+            if (*UID == -1)
+                currEntry->UID = *UID = cache->nextUID++;
+            else
+                currEntry->UID = *UID;
+            cacheTexFree(&texture2_load, 1);
+            currEntry->texture = &texture2_load;
 
-        //    // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-        //    if (*UID == -1)
-        //        currEntry->UID = *UID = cache->nextUID++;
-        //    else
-        //        currEntry->UID = *UID;
-        //    cacheTexFree(&texture2_load, 1);
-        //    currEntry->texture = &texture2_load;
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
+        }
+        else if (!strncmp("ICO", cache->suffix, 3)) {
+            cacheClearItem(currEntry, 1);
+            currEntry->qr = 1;
+            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+            if (*UID == -1)
+                currEntry->UID = *UID = cache->nextUID++;
+            else
+                currEntry->UID = *UID;
+            cacheTexFree(&texture3_load, 1);
+            currEntry->texture = &texture3_load;
 
-        //    //  使用pthread的多线程方法
-        //    pthread_mutex_lock(&texLoadingMutex);
-        //    if (texLoading < 1000)
-        //        texLoading++;
-        //    else
-        //        texLoading = 1;
-        //    pthread_mutex_unlock(&texLoadingMutex);
-        //    load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
-        //    req->cache = cache;
-        //    req->cacheId = cacheId;
-        //    req->list = list;
-        //    req->value = value;
-        //    pthread_t tid;
-        //    pthread_create(&tid, &attr, cacheLoadImage2, req);
-        //}
-        //else if (!strncmp("ICO", cache->suffix, 3)) {
-        //    cacheClearItem(currEntry, 1);
-        //    currEntry->qr = 1;
-        //    // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-        //    if (*UID == -1)
-        //        currEntry->UID = *UID = cache->nextUID++;
-        //    else
-        //        currEntry->UID = *UID;
-        //    cacheTexFree(&texture3_load, 1);
-        //    currEntry->texture = &texture3_load;
-
-        //    //  使用pthread的多线程方法
-        //    pthread_mutex_lock(&texLoadingMutex);
-        //    if (texLoading < 1000)
-        //        texLoading++;
-        //    else
-        //        texLoading = 1;
-        //    pthread_mutex_unlock(&texLoadingMutex);
-        //    load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
-        //    req->cache = cache;
-        //    req->cacheId = cacheId;
-        //    req->list = list;
-        //    req->value = value;
-        //    pthread_t tid;
-        //    pthread_create(&tid, &attr, cacheLoadImage2, req);
-        //}
-        //else
-        if (!strncmp("BG", cache->suffix, 2)) {
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading < 1000)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+            req->cache = cache;
+            req->cacheId = cacheId;
+            req->list = list;
+            req->value = value;
+            pthread_t tid;
+            pthread_create(&tid, &attr, cacheLoadImage2, req);
+        }
+        else if (!strncmp("BG", cache->suffix, 2)) {
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
