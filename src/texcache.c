@@ -297,6 +297,14 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
+    // 初始化pthread线程属性
+    pthread_attr_init(&attr);
+
+    // 线程分离，如果不需要pthread_join
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    // 设置合适的栈空间，防止爆栈等错误
+    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
     //// 初始化图像结构体，防止double free
     //memset(&texture1_show, 0, sizeof(GSTEXTURE));
     //memset(&texture2_show, 0, sizeof(GSTEXTURE));
@@ -316,22 +324,7 @@ void cacheInit()
 
     //    // 设置合适的栈空间，防止爆栈等错误
     //    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
-    //}
-
-    //// 使用pthread的多线程方法
-    //pthread_t tid;
-    //pthread_attr_t attr;
-    //pthread_attr_init(&attr);
-
-    ////// 线程分离，如果不需要pthread_join
-    ////pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-    //// 设置合适的栈空间，防止爆栈等错误
-    //pthread_attr_setstacksize(&attr, 1 * 1024 * 1024); // 1mb
-
-    //// 创建线程
-    //pthread_create(&tid, &attr, cacheLoadImage, NULL);
-    //pthread_attr_destroy(&attr);
+    //};
 }
 
 void cacheEnd()
