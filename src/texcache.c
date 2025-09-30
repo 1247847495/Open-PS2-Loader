@@ -31,13 +31,13 @@ static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
 static int texNeedUpdate = 1;
 // 只给主线程使用和显示
-GSTEXTURE texture1_show;
-GSTEXTURE texture2_show;
-GSTEXTURE texture3_show;
+GSTEXTURE texture1_show = {0};
+GSTEXTURE texture2_show = {0};
+GSTEXTURE texture3_show = {0};
 // 给加载线程使用
-GSTEXTURE texture1_load;
-GSTEXTURE texture2_load;
-GSTEXTURE texture3_load;
+GSTEXTURE texture1_load = {0};
+GSTEXTURE texture2_load = {0};
+GSTEXTURE texture3_load = {0};
 
 // pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -223,19 +223,14 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    // 初始化图像结构体，防止double free
-    memset(&texture1_show, 0, sizeof(GSTEXTURE));
-    memset(&texture2_show, 0, sizeof(GSTEXTURE));
-    memset(&texture3_show, 0, sizeof(GSTEXTURE));
-    memset(&texture1_load, 0, sizeof(GSTEXTURE));
-    memset(&texture2_load, 0, sizeof(GSTEXTURE));
-    memset(&texture3_load, 0, sizeof(GSTEXTURE));
-    texture1_show.Mem = NULL;
-    texture2_show.Mem = NULL;
-    texture3_show.Mem = NULL;
-    texture1_load.Mem = NULL;
-    texture2_load.Mem = NULL;
-    texture3_load.Mem = NULL;
+    //// 初始化图像结构体，防止double free
+    //memset(&texture1_show, 0, sizeof(GSTEXTURE));
+    //memset(&texture2_show, 0, sizeof(GSTEXTURE));
+    //memset(&texture3_show, 0, sizeof(GSTEXTURE));
+    //memset(&texture1_load, 0, sizeof(GSTEXTURE));
+    //memset(&texture2_load, 0, sizeof(GSTEXTURE));
+    //memset(&texture3_load, 0, sizeof(GSTEXTURE));
+
     //if (!usePthread)
     //    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
     //else {
@@ -534,6 +529,14 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-currEntry.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "result:%d  %s_%s\r\n Mem NULL?:%d  Delayed:%d\r\n\r\n", result, cache->suffix, value, texture1_load.Mem == NULL, texture1_load.Delayed);
+                fclose(debugFile);
+            }
             cacheTexFree(&texture1_load, 1);
             result = list->itemGetImage(list, "ART", 1, value, cache->suffix, &texture1_load, GS_PSM_CT24);
         }
@@ -569,14 +572,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             currEntry->qr = 0;
             // prevGuiFrameId = guiFrameId;
             // artQrCount++;
-        }
-        // debug  打印debug信息
-        char debugFileDir[64];
-        strcpy(debugFileDir, "smb:debug-currEntry.txt");
-        FILE *debugFile = fopen(debugFileDir, "ab+");
-        if (debugFile != NULL) {
-            fprintf(debugFile, "result:%d  %s_%s\r\n", result, cache->suffix,value);
-            fclose(debugFile);
         }
     }
     return curTex && curTex->Mem ? curTex : NULL;
