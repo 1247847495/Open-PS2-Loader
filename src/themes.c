@@ -552,7 +552,9 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
 {
     mutable_image_t *gameImage = (mutable_image_t *)elem->extended;
     if (item) {
-        GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);
+        WaitSema(fileLockId);
+        GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);        
+        SignalSema(fileLockId);
         if (!texture || !texture->Mem) {
             if (gameImage->defaultTexture)
                 texture = &gameImage->defaultTexture->source;
