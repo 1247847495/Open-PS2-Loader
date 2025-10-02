@@ -556,15 +556,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         curTex = &texture3_show;
     else if (!strncmp("BG", cache->suffix, 2))
         curTex = &texture1_show;
-    if (!texNeedUpdate || skipQr) {
-        WaitSema(fileLockId);
-        if (curTex && curTex->Mem) {
-            SignalSema(fileLockId);
-            return curTex;
-        }
-        SignalSema(fileLockId);
-        return NULL;
-    }
+    if (!texNeedUpdate || skipQr)
+        return curTex && curTex->Mem ? curTex : NULL;
 
     //if (skipQr || texLoading >= 3)
     //    return curTex && curTex->Mem ? curTex : NULL;
@@ -685,11 +678,5 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //     fclose(debugFile);
         // }
     }
-    WaitSema(fileLockId);
-    if (curTex && curTex->Mem) {
-        SignalSema(fileLockId);
-        return curTex;
-    }
-    SignalSema(fileLockId);
-    return NULL;
+    return curTex && curTex->Mem ? curTex : NULL;
 }
