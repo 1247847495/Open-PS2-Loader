@@ -127,7 +127,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 
- static void *cacheLoadImage2(void *data)
+static void *cacheLoadImage2(void *data)
 {
      load_image_request_t *ioReq = (load_image_request_t *)data;
      while (1) {
