@@ -678,7 +678,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
          strcpy(debugFileDir, "smb:debug-currEntry.txt");
          FILE *debugFile = fopen(debugFileDir, "ab+");
          if (debugFile != NULL) {
-             fprintf(debugFile, "result:%d  %s_%s\r\n", result, cache->suffix, value);
+             fprintf(debugFile, "%s_%s\r\n", cache->suffix, value);
              fclose(debugFile);
          }
     }
