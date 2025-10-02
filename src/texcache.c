@@ -470,10 +470,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 if (++findBGCount >= MENU_MIN_INACTIVE_FRAMES) {
                     findBGCount = 0;
                     cdFramesCount = 0;
+                    texNeedUpdate = 1; // 恢复读取图片
                 } else
                     skipQr = 1;
-            } else
+            } else {
                 findBGCount = 0;
+                texNeedUpdate = 1; // 恢复读取图片
+            }
         }
 
         // CD期间进入了自动连按状态，矫正一次Qr，结束cdFramesCount
