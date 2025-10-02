@@ -487,14 +487,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (forceSkipQr)
         skipQr = 1;
 
-
-    GSTEXTURE *curTex = NULL;
-    if (!strncmp("COV", cache->suffix, 3))
-        curTex = &texture2_show;
-    else if (!strncmp("ICO", cache->suffix, 3))
-        curTex = &texture3_show;
-    else if (!strncmp("BG", cache->suffix, 2))
-        curTex = &texture1_show;
     // 切换设备页签时，上次图缓存需要清掉
     if (ForceRefreshPrevTexCache) {
         ForceRefreshPrevTexCache++;
@@ -557,6 +549,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
+    GSTEXTURE *curTex = NULL;
+    if (!strncmp("COV", cache->suffix, 3))
+        curTex = &texture2_show;
+    else if (!strncmp("ICO", cache->suffix, 3))
+        curTex = &texture3_show;
+    else if (!strncmp("BG", cache->suffix, 2))
+        curTex = &texture1_show;
     if (!texNeedUpdate || skipQr)
         return curTex && curTex->Mem ? curTex : NULL;
 

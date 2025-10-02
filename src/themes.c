@@ -554,7 +554,6 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
     if (item) {
         WaitSema(fileLockId);
         GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);        
-        SignalSema(fileLockId);
         if (!texture || !texture->Mem) {
             if (gameImage->defaultTexture)
                 texture = &gameImage->defaultTexture->source;
@@ -564,7 +563,7 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
                 return;
             }
         }
-        WaitSema(fileLockId);
+
         if (gameImage->overlayTexture) {
             rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                 texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
