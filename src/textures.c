@@ -308,16 +308,12 @@ void texFree(GSTEXTURE *texture)
 {
     if (texture) {
         if (texture->Mem) {
-            WaitSema(fileLockId);
             free(texture->Mem);
             texture->Mem = NULL;
-            SignalSema(fileLockId);
         }
         if (texture->Clut) {
-            WaitSema(fileLockId);
             free(texture->Clut);
             texture->Clut = NULL;
-            SignalSema(fileLockId);
         }
     }
 }
@@ -350,7 +346,6 @@ static void texReadPixels4(GSTEXTURE *texture, png_bytep *rowPointers, size_t si
     png_clut_t *clut = (png_clut_t *)texture->Clut;
     int i;
 
-    WaitSema(fileLockId);
     memset(&clut[pngTexture->numPalette], 0, (16 - pngTexture->numPalette) * sizeof(clut[0]));
 
     for (i = 0; i < pngTexture->numPalette; i++) {
@@ -365,7 +360,6 @@ static void texReadPixels4(GSTEXTURE *texture, png_bytep *rowPointers, size_t si
 
     for (i = 0; i < size; i++)
         pixel[i] = (pixel[i] << 4) | (pixel[i] >> 4);
-    SignalSema(fileLockId);
 }
 
 static void texReadPixels8(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture)
@@ -374,7 +368,6 @@ static void texReadPixels8(GSTEXTURE *texture, png_bytep *rowPointers, size_t si
     png_clut_t *clut = (png_clut_t *)texture->Clut;
     int i;
 
-    WaitSema(fileLockId);
     memset(&clut[pngTexture->numPalette], 0, (256 - pngTexture->numPalette) * sizeof(clut[0]));
 
     for (i = 0; i < pngTexture->numPalette; i++) {
@@ -394,7 +387,6 @@ static void texReadPixels8(GSTEXTURE *texture, png_bytep *rowPointers, size_t si
 
     for (i = 0; i < texture->Height; i++)
         memcpy(&pixel[i * texture->Width], rowPointers[i], texture->Width);
-    SignalSema(fileLockId);
 }
 
 static void texReadPixels24(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture)
@@ -406,13 +398,11 @@ static void texReadPixels24(GSTEXTURE *texture, png_bytep *rowPointers, size_t s
     struct pixel3 *Pixels = (struct pixel3 *)texture->Mem;
 
     int i, j, k = 0;
-    WaitSema(fileLockId);
     for (i = 0; i < texture->Height; i++) {
         for (j = 0; j < texture->Width; j++) {
             memcpy(&Pixels[k++], &rowPointers[i][4 * j], 3);
         }
     }
-    SignalSema(fileLockId);
 }
 
 static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t size, png_texture_t *pngTexture)
@@ -424,14 +414,12 @@ static void texReadPixels32(GSTEXTURE *texture, png_bytep *rowPointers, size_t s
     struct pixel *Pixels = (struct pixel *)texture->Mem;
 
     int i, j, k = 0;
-    WaitSema(fileLockId);
     for (i = 0; i < texture->Height; i++) {
         for (j = 0; j < texture->Width; j++) {
             memcpy(&Pixels[k], &rowPointers[i][4 * j], 3);
             Pixels[k++].a = rowPointers[i][4 * j + 3] >> 1;
         }
     }
-    SignalSema(fileLockId);
 }
 
 static void texReadData(GSTEXTURE *texture, png_structp pngPtr, png_infop infoPtr,
