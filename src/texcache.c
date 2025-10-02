@@ -45,12 +45,12 @@ pthread_t tid2;
 pthread_t tid3;
 pthread_attr_t attr;
 pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t wakeupMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct
 {
     int qr;
     pthread_cond_t cond;
+    pthread_mutex_t wakeupMutex;
     image_cache_t *cache;
     item_list_t *list;
     int *cacheId;
@@ -137,14 +137,14 @@ static void *cacheLoadImage2(void *data)
          // 等待激活
          ioReq->qr = 0;
 
-         //pthread_mutex_lock(&wakeupMutex);
+         pthread_mutex_lock(&ioReq->wakeupMutex);
          while (!ioReq->qr && !forceSkipQr)
-             pthread_cond_wait(&ioReq->cond, &wakeupMutex);
+             pthread_cond_wait(&ioReq->cond, &ioReq->wakeupMutex);
          if (forceSkipQr) {
-             pthread_mutex_unlock(&wakeupMutex);
+             pthread_mutex_unlock(&ioReq->wakeupMutex);
              return NULL;
          }
-         pthread_mutex_unlock(&wakeupMutex);
+         pthread_mutex_unlock(&ioReq->wakeupMutex);
 
         // Safeguards...
         if (!ioReq->cache || !ioReq->cache->content) {
@@ -326,6 +326,9 @@ void cacheInit()
     req1.cond = PTHREAD_COND_INITIALIZER;
     req2.cond = PTHREAD_COND_INITIALIZER;
     req3.cond = PTHREAD_COND_INITIALIZER;
+    req1.wakeupMutex = PTHREAD_MUTEX_INITIALIZER;
+    req2.wakeupMutex = PTHREAD_MUTEX_INITIALIZER;
+    req3.wakeupMutex = PTHREAD_MUTEX_INITIALIZER;
 
     pthread_create(&tid1, &attr, cacheLoadImage2, &req1);
     pthread_create(&tid2, &attr, cacheLoadImage2, &req2);
@@ -370,12 +373,19 @@ void cacheEnd()
     }
 
     // 设置退出标志，并全部唤醒
-    pthread_mutex_lock(&wakeupMutex);
+    pthread_mutex_lock(&req1.wakeupMutex);
     forceSkipQr = 1;
     pthread_cond_signal(&req1.cond);
+    pthread_mutex_unlock(&req1.wakeupMutex);
+
+    pthread_mutex_lock(&req2.wakeupMutex);
     pthread_cond_signal(&req2.cond);
+    pthread_mutex_unlock(&req2.wakeupMutex);
+
+    pthread_mutex_lock(&req3.wakeupMutex);
     pthread_cond_signal(&req3.cond);
-    pthread_mutex_unlock(&wakeupMutex);
+    pthread_mutex_unlock(&req3.wakeupMutex);
+
 
     // 等待线程全部退出
     pthread_join(tid1, NULL);
@@ -385,7 +395,9 @@ void cacheEnd()
     // 销毁资源
     pthread_attr_destroy(&attr);
     pthread_mutex_destroy(&texLoadingMutex);
-    pthread_mutex_destroy(&wakeupMutex);
+    pthread_mutex_destroy(&req1.wakeupMutex);
+    pthread_mutex_destroy(&req2.wakeupMutex);
+    pthread_mutex_destroy(&req3.wakeupMutex);
     pthread_cond_destroy(&req1.cond);
     pthread_cond_destroy(&req2.cond);
     pthread_cond_destroy(&req3.cond);
@@ -613,10 +625,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req1.cacheId = cacheId;
             req1.list = list;
             req1.value = value;
-            pthread_mutex_lock(&wakeupMutex);
+            pthread_mutex_lock(&req1.wakeupMutex);
             req1.qr = 1;
             pthread_cond_signal(&req1.cond);
-            pthread_mutex_unlock(&wakeupMutex);
+            pthread_mutex_unlock(&req1.wakeupMutex);
         } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -637,10 +649,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req2.cacheId = cacheId;
             req2.list = list;
             req2.value = value;
-            pthread_mutex_lock(&wakeupMutex);
+            pthread_mutex_lock(&req2.wakeupMutex);
             req2.qr = 1;
             pthread_cond_signal(&req2.cond);
-            pthread_mutex_unlock(&wakeupMutex);
+            pthread_mutex_unlock(&req2.wakeupMutex);
         } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -661,10 +673,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req3.cacheId = cacheId;
             req3.list = list;
             req3.value = value;
-            pthread_mutex_lock(&wakeupMutex);
+            pthread_mutex_lock(&req3.wakeupMutex);
             req3.qr = 1;
             pthread_cond_signal(&req3.cond);
-            pthread_mutex_unlock(&wakeupMutex);
+            pthread_mutex_unlock(&req3.wakeupMutex);
         }
 
         //// debug  打印debug信息
