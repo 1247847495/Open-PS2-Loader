@@ -326,11 +326,11 @@ void cacheInit()
     // 初始化pthread线程属性
     pthread_attr_init(&attr);
 
-    // 线程分离，如果不需要pthread_join
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    //// 线程分离，如果不需要pthread_join
+    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     // 设置合适的栈空间，防止爆栈等错误
-    pthread_attr_setstacksize(&attr, 32 * 1024); // kb
+    pthread_attr_setstacksize(&attr, 2048 * 1024); // kb
 
     req1.cond = PTHREAD_COND_INITIALIZER;
     req2.cond = PTHREAD_COND_INITIALIZER;
