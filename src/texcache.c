@@ -350,13 +350,13 @@ void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
     forceSkipQr = 1;
-    pthread_cond_signal(&req1.cond);
-    pthread_join(tid1, NULL); // 等待线程结束
-    pthread_cond_signal(&req2.cond);
-    pthread_join(tid2, NULL); // 等待线程结束
-    pthread_cond_signal(&req3.cond);
-    pthread_join(tid3, NULL); // 等待线程结束
-    pthread_attr_destroy(&attr);
+    //pthread_cond_signal(&req1.cond);
+    //pthread_join(tid1, NULL); // 等待线程结束
+    //pthread_cond_signal(&req2.cond);
+    //pthread_join(tid2, NULL); // 等待线程结束
+    //pthread_cond_signal(&req3.cond);
+    //pthread_join(tid3, NULL); // 等待线程结束
+    //pthread_attr_destroy(&attr);
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
