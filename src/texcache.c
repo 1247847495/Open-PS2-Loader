@@ -185,29 +185,29 @@ static void *cacheLoadImage2(void *data)
             ioReq->cache->content[0].texFound = 0;
             *ioReq->cacheId = -2;
             WaitSema(fileLockId);
-            if (!strncmp("COV", ioReq->cache->suffix, 3)) {
+            if (!strncmp("BG", ioReq->cache->suffix, 2)) {
+                cacheTexFree(&texture1_show, 1);
+            } else if (!strncmp("COV", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture2_show, 1);
             } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture3_show, 1);
-            } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
-                cacheTexFree(&texture1_show, 1);
             }
             SignalSema(fileLockId);
         } else {
             ioReq->cache->content[0].lastUsed = guiFrameId;
             ioReq->cache->content[0].texFound = 1;
             WaitSema(fileLockId);
-            if (!strncmp("COV", ioReq->cache->suffix, 3)) {
+            if (!strncmp("BG", ioReq->cache->suffix, 2)) {
+                cacheTexFree(&texture1_show, 1);
+                texture1_show = *ioReq->cache->content[0].texture;
+                cacheTexFree(ioReq->cache->content[0].texture, 0);
+            } else if (!strncmp("COV", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture2_show, 1);
                 texture2_show = *ioReq->cache->content[0].texture;
                 cacheTexFree(ioReq->cache->content[0].texture, 0);
             } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture3_show, 1);
                 texture3_show = *ioReq->cache->content[0].texture;
-                cacheTexFree(ioReq->cache->content[0].texture, 0);
-            } else if (!strncmp("BG", ioReq->cache->suffix, 2)) {
-                cacheTexFree(&texture1_show, 1);
-                texture1_show = *ioReq->cache->content[0].texture;
                 cacheTexFree(ioReq->cache->content[0].texture, 0);
             }
             SignalSema(fileLockId);
@@ -494,24 +494,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     if (forceSkipQr)
         skipQr = 1;
 
-    // 切换设备页签时，上次图缓存需要清掉
-    if (ForceRefreshPrevTexCache) {
-        ForceRefreshPrevTexCache++;
-
-        // 重置上次的缓存ID
-        PrevCacheID_COV = PrevCacheID_ICO = PrevCacheID_BG = PrevCacheID = -2;
-    } else {
-        // 根据图像类型，赋值上一次的缓存
-        if (!strncmp("COV", cache->suffix, 3))
-            PrevCacheID = PrevCacheID_COV;
-        else if (!strncmp("ICO", cache->suffix, 3))
-            PrevCacheID = PrevCacheID_ICO;
-        else if (!strncmp("BG", cache->suffix, 2))
-            PrevCacheID = PrevCacheID_BG;
-        else
-            PrevCacheID = -2;
-    }
-
     //else if (*cacheId != -1) {
     //    cache_entry_t *entry = &cache->content[*cacheId];
     //    if (entry) {
@@ -546,12 +528,21 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    *cacheId = -1;
     //}
     GSTEXTURE *curTex = NULL;
-    if (!strncmp("COV", cache->suffix, 3))
+    if (!strncmp("BG", cache->suffix, 2))
+        curTex = &texture1_show;
+    else if(!strncmp("COV", cache->suffix, 3))
         curTex = &texture2_show;
     else if (!strncmp("ICO", cache->suffix, 3))
-        curTex = &texture3_show;
-    else if (!strncmp("BG", cache->suffix, 2))
-        curTex = &texture1_show;
+        curTex = &texture3_show; 
+
+    // 切换设备页签时，上次图缓存需要清掉
+    if (ForceRefreshPrevTexCache) {
+        ForceRefreshPrevTexCache++;
+
+        // 重置上次的缓存
+        cacheTexFree(curTex, 1);
+        curTex = NULL;
+    }
 
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
@@ -599,8 +590,32 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //    pthread_create(&tid, &attr, cacheLoadImage, req);
         //}
 
-        // 加载图片
-        if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
+        //  加载图片
+        if (!strncmp("BG", cache->suffix, 2) && !req1.qr) {
+            req1.qr = 1;
+            cacheClearItem(currEntry, 1);
+            currEntry->qr = 1;
+            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+            if (*UID == -1)
+                currEntry->UID = *UID = cache->nextUID++;
+            else
+                currEntry->UID = *UID;
+            cacheTexFree(&texture1_load, 1);
+            currEntry->texture = &texture1_load;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading >= 0)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
+            req1.cache = cache;
+            req1.cacheId = cacheId;
+            req1.list = list;
+            req1.value = value;
+            pthread_cond_signal(&req1.cond);
+        } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
             req2.qr = 1;
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
@@ -648,39 +663,16 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req3.list = list;
             req3.value = value;
             pthread_cond_signal(&req3.cond);
-        } else if (!strncmp("BG", cache->suffix, 2)&& !req1.qr) {
-            req1.qr = 1;
-            cacheClearItem(currEntry, 1);
-            currEntry->qr = 1;
-            // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-            if (*UID == -1)
-                currEntry->UID = *UID = cache->nextUID++;
-            else
-                currEntry->UID = *UID;
-            cacheTexFree(&texture1_load, 1);
-            currEntry->texture = &texture1_load;
-
-            //  使用pthread的多线程方法
-            pthread_mutex_lock(&texLoadingMutex);
-            if (texLoading >= 0)
-                texLoading++;
-            else
-                texLoading = 1;
-            pthread_mutex_unlock(&texLoadingMutex);
-            req1.cache = cache;
-            req1.cacheId = cacheId;
-            req1.list = list;
-            req1.value = value;
-            pthread_cond_signal(&req1.cond);
         }
-        // debug  打印debug信息
-         char debugFileDir[64];
-         strcpy(debugFileDir, "smb:debug-currEntry.txt");
-         FILE *debugFile = fopen(debugFileDir, "ab+");
-         if (debugFile != NULL) {
-             fprintf(debugFile, "%s_%s\r\n", cache->suffix, value);
-             fclose(debugFile);
-         }
+
+        //// debug  打印debug信息
+        // char debugFileDir[64];
+        // strcpy(debugFileDir, "smb:debug-currEntry.txt");
+        // FILE *debugFile = fopen(debugFileDir, "ab+");
+        // if (debugFile != NULL) {
+        //     fprintf(debugFile, "%s_%s\r\n", cache->suffix, value);
+        //     fclose(debugFile);
+        // }
     }
     return curTex && curTex->Mem ? curTex : NULL;
 }
