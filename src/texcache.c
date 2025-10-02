@@ -364,7 +364,7 @@ void cacheInit()
 void cacheEnd()
 {
     // nothing to do... others have to destroy the cache via cacheDestroyCache
-    //forceSkipQr = 1;
+    forceSkipQr = 1;
     pthread_attr_destroy(&attr);
     pthread_cond_signal(&req1.cond);
     pthread_cond_signal(&req2.cond);
