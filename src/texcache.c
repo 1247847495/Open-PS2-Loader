@@ -132,8 +132,10 @@ static void *cacheLoadImage2(void *data)
 {
      load_image_request_t *ioReq = (load_image_request_t *)data;
      while (1) {
-         if (forceSkipQr)
+         if (forceSkipQr) {
+             pthread_mutex_unlock(&wakeupMutex);
              return NULL;
+         }
          // 等待激活
          ioReq->qr = 0;
 
@@ -144,7 +146,7 @@ static void *cacheLoadImage2(void *data)
              pthread_mutex_unlock(&wakeupMutex);
              return NULL;
          }
-         pthread_mutex_unlock(&wakeupMutex);
+         //pthread_mutex_unlock(&wakeupMutex);
 
         // Safeguards...
         if (!ioReq->cache || !ioReq->cache->content) {
