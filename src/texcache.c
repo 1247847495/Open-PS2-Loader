@@ -48,7 +48,6 @@ pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct
 {
-    int qr;
     pthread_cond_t cond;
     image_cache_t *cache;
     item_list_t *list;
@@ -150,27 +149,24 @@ static void *cacheLoadImage2(void *data)
         if (!ioReq->cache || !ioReq->cache->content) {
             if (texLoading > 0)
                 texLoading--;
-            ioReq->qr = 0;
             pthread_mutex_unlock(&texLoadingMutex);
             continue;
         }
 
         item_list_t *handler = ioReq->list;
         if (!handler) {
-            ioReq->cache->content[0].qr = 0;
             if (texLoading > 0)
                 texLoading--;
-            ioReq->qr = 0;
+            ioReq->cache->content[0].qr = 0;
             pthread_mutex_unlock(&texLoadingMutex);
             continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         if (cdFramesCount || forceSkipQr) {
-            ioReq->cache->content[0].qr = 0;
             if (texLoading > 0)
                 texLoading--;
-            ioReq->qr = 0;
+            ioReq->cache->content[0].qr = 0;
             pthread_mutex_unlock(&texLoadingMutex);
             continue;
         }
@@ -212,10 +208,9 @@ static void *cacheLoadImage2(void *data)
             }
             SignalSema(fileLockId);
         }
-        ioReq->cache->content[0].qr = 0;
         if (texLoading > 0)
             texLoading--;
-        ioReq->qr = 0;
+        ioReq->cache->content[0].qr = 0;
         pthread_mutex_unlock(&texLoadingMutex);
      }
     return NULL;
@@ -591,8 +586,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         //}
 
         //  加载图片
-        if (!strncmp("BG", cache->suffix, 2) && !req1.qr) {
-            req1.qr = 1;
+        if (!strncmp("BG", cache->suffix, 2)) {
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
@@ -615,8 +609,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req1.list = list;
             req1.value = value;
             pthread_cond_signal(&req1.cond);
-        } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
-            req2.qr = 1;
+        } else if (!strncmp("COV", cache->suffix, 3)) {
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
@@ -639,8 +632,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req2.list = list;
             req2.value = value;
             pthread_cond_signal(&req2.cond);
-        } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
-            req3.qr = 1;
+        } else if (!strncmp("ICO", cache->suffix, 3)) {
             cacheClearItem(currEntry, 1);
             currEntry->qr = 1;
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
