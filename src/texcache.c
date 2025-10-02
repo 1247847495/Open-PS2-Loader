@@ -557,23 +557,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //        *cacheId = i;
     //    }
     //}
-    *cacheId = 0;
-    cache_entry_t *currEntry = &cache->content[*cacheId];
-    if (texNeedUpdate && !currEntry->qr) {
-        //if (!usePthread) {
-        //    // 使用官方的多线程方法
-        //    ioPutRequest(IO_CACHE_LOAD_ART, req);
-        //} else {
-        //    // 使用pthread的多线程方法
-        //    pthread_mutex_lock(&texLoadingMutex);
-        //    if (texLoading < 1000)
-        //        texLoading++;
-        //    else
-        //        texLoading = 1;
-        //    pthread_mutex_unlock(&texLoadingMutex);
-        //    pthread_t tid;
-        //    pthread_create(&tid, &attr, cacheLoadImage, req);
-        //}
+    if (texNeedUpdate) {
+        cache_entry_t *currEntry = &cache->content[0];
 
         //  加载图片
         if (!strncmp("BG", cache->suffix, 2) && !req1.qr) {
