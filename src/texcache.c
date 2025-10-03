@@ -135,9 +135,9 @@ static void *cacheLoadImage2(void *data)
          // 等待激活
          ioReq->qr = 0;
 
-         //pthread_mutex_lock(&wakeupMutex);
-         while (!ioReq->qr && !forceSkipQr)
-             pthread_cond_wait(&ioReq->cond, &wakeupMutex);
+         ////pthread_mutex_lock(&wakeupMutex);
+         //while (!ioReq->qr && !forceSkipQr)
+         pthread_cond_wait(&ioReq->cond, &wakeupMutex);
          if (forceSkipQr) {
              pthread_mutex_unlock(&wakeupMutex);
              return NULL;
@@ -539,12 +539,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
-    // 移动光标后，需要重新加载图片（检查当前显示图片的缓存槽的uid是否和光标所指的游戏uid一致）
-    if (*cacheId != -1) {
-        cache_entry_t *entry = &cache->content[*cacheId];
-        if (entry->UID != *UID)
-            *cacheId = -1;
-    }
 
     GSTEXTURE *curTex = NULL;
     if (!strncmp("BG", cache->suffix, 2))
@@ -568,6 +562,11 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cacheTexFree(curTex, 1);
         curTex = NULL;
         return NULL;
+    } else if (*cacheId != -1) {
+        // 移动光标后，需要重新加载图片（检查当前显示图片的缓存槽的uid是否和光标所指的游戏uid一致）
+        cache_entry_t *entry = &cache->content[*cacheId];
+        if (entry->UID != *UID)
+            *cacheId = -1;
     }
 
     if (skipQr)
