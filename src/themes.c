@@ -552,7 +552,7 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
 {
     mutable_image_t *gameImage = (mutable_image_t *)elem->extended;
     if (item) {
-        //WaitSema(fileLockId);
+        WaitSema(fileLockId);
         GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);
         int result = !texture || !texture->Mem;
         if (!result) {
@@ -563,7 +563,7 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
             } else
                 rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
         }
-        //SignalSema(fileLockId);
+        SignalSema(fileLockId);
 
         if (result) {
             if (gameImage->defaultTexture) {
