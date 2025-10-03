@@ -60,17 +60,13 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 
     if (freeTxt) {
         if (item->texture.Mem) {
-            WaitSema(fileLockId);
             rmUnloadTexture(&item->texture);
             free(item->texture.Mem);
             item->texture.Mem = NULL; // Must be allocated by loader
-            SignalSema(fileLockId);
         }
         if (item->texture.Clut) {
-            WaitSema(fileLockId);
             free(item->texture.Clut);
             item->texture.Clut = NULL; // Default, can be set by loader
-            SignalSema(fileLockId);
         }
     }
 
@@ -166,10 +162,23 @@ void flushBatchRequests(void)
     if (ForceRefreshPrevTexCache > 1)
         ForceRefreshPrevTexCache = 0;
 
-    // texLoading状态异常时，将texLoading置为0(补救措施)
-    if (texLoading) {
-        if (++texLoadingTimeOut >= 600 && !padGetRepeating()) // 没有按住按键，且加载超过10秒时，重置texLoading
+    // 线程异常时，将线程取消后重新创建(补救措施,大概率没用作用)
+    if (texLoading && !getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1)) {
+        if (++texLoadingTimeOut >= 600) { // 没有按住按键，且加载超过10秒时，重置texLoading
+            SignalSema(req1.wakeupId);
+            SignalSema(req2.wakeupId);
+            SignalSema(req3.wakeupId);
+            pthread_cancel(tid1);
+            pthread_cancel(tid2);
+            pthread_cancel(tid3);
+            pthread_join(tid1, NULL);
+            pthread_join(tid2, NULL);
+            pthread_join(tid3, NULL);
+            pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+            pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+            pthread_create(&tid3, &attr, cacheLoadImage, &req3);
             texLoading = 0;
+        }
     } else
         texLoadingTimeOut = 0;
 
@@ -220,7 +229,7 @@ void cacheInit()
         // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
         // 设置合适的栈空间，防止爆栈等错误
-        pthread_attr_setstacksize(&attr, 2048 * 1024); // kb
+        pthread_attr_setstacksize(&attr, 1024 * 1024); // kb
 
         pthread_create(&tid1, &attr, cacheLoadImage, &req1);
         pthread_create(&tid2, &attr, cacheLoadImage, &req2);
