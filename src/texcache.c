@@ -223,9 +223,6 @@ void flushBatchRequests(void)
             pthread_cancel(tid1);
             pthread_cancel(tid2);
             pthread_cancel(tid3);
-            pthread_join(tid1, NULL);
-            pthread_join(tid2, NULL);
-            pthread_join(tid3, NULL);
             pthread_create(&tid1, &attr, cacheLoadImage, &req1);
             pthread_create(&tid2, &attr, cacheLoadImage, &req2);
             pthread_create(&tid3, &attr, cacheLoadImage, &req3);
