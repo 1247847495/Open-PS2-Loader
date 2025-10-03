@@ -35,18 +35,19 @@ GSTEXTURE texture1_show = {0};
 GSTEXTURE texture2_show = {0};
 GSTEXTURE texture3_show = {0};
 
-//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_t tid1;
 pthread_t tid2;
 pthread_t tid3;
 pthread_attr_t attr;
 pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t wakeupMutex = PTHREAD_MUTEX_INITIALIZER;
+
+// 尝试添加线程wait信号量
+static ee_sema_t wakeupIdSema;
 
 typedef struct
 {
     int qr;
-    pthread_cond_t cond;
+    s32 wakeupId;
     image_cache_t *cache;
     item_list_t *list;
     int *cacheId;
@@ -128,21 +129,15 @@ static void *cacheLoadImage2(void *data)
 {
      load_image_request_t *ioReq = (load_image_request_t *)data;
      while (1) {
-         if (forceSkipQr) {
-             pthread_mutex_unlock(&wakeupMutex);
+         if (forceSkipQr)
              return NULL;
-         }
-         // 等待激活
-         ioReq->qr = 0;
 
-         ////pthread_mutex_lock(&wakeupMutex);
-         //while (!ioReq->qr && !forceSkipQr)
-         pthread_cond_wait(&ioReq->cond, &wakeupMutex);
-         if (forceSkipQr) {
-             pthread_mutex_unlock(&wakeupMutex);
+         // 重置状态
+         ioReq->qr = 0;
+         WaitSema(ioReq->wakeupId);
+         if (forceSkipQr)
              return NULL;
-         }
-         pthread_mutex_unlock(&wakeupMutex);
+
         // Safeguards...
         if (!ioReq->cache || !ioReq->cache->content) {
             pthread_mutex_lock(&texLoadingMutex);
@@ -320,9 +315,13 @@ void cacheInit()
     // 设置合适的栈空间，防止爆栈等错误
     pthread_attr_setstacksize(&attr, 2048 * 1024); // kb
 
-    req1.cond = PTHREAD_COND_INITIALIZER;
-    req2.cond = PTHREAD_COND_INITIALIZER;
-    req3.cond = PTHREAD_COND_INITIALIZER;
+    wakeupIdSema.init_count = 0;
+    wakeupIdSema.max_count = 1;
+    wakeupIdSema.option = 0;
+
+    req1.wakeupId = CreateSema(&wakeupIdSema);
+    req2.wakeupId = CreateSema(&wakeupIdSema);
+    req3.wakeupId = CreateSema(&wakeupIdSema);
 
     pthread_create(&tid1, &attr, cacheLoadImage2, &req1);
     pthread_create(&tid2, &attr, cacheLoadImage2, &req2);
@@ -364,12 +363,10 @@ void cacheEnd()
     }
 
     // 设置退出标志，并全部唤醒
-    //pthread_mutex_lock(&wakeupMutex);
     forceSkipQr = 1;
-    pthread_cond_signal(&req1.cond);
-    pthread_cond_signal(&req2.cond);
-    pthread_cond_signal(&req3.cond);
-    //pthread_mutex_unlock(&wakeupMutex);
+    SignalSema(req1.wakeupId);
+    SignalSema(req2.wakeupId);
+    SignalSema(req3.wakeupId);
 
     // 等待线程全部退出
     pthread_join(tid1, NULL);
@@ -379,10 +376,9 @@ void cacheEnd()
     // 销毁资源
     pthread_attr_destroy(&attr);
     pthread_mutex_destroy(&texLoadingMutex);
-    pthread_mutex_destroy(&wakeupMutex);
-    pthread_cond_destroy(&req1.cond);
-    pthread_cond_destroy(&req2.cond);
-    pthread_cond_destroy(&req3.cond);
+    DeleteSema(req1.wakeupId);
+    DeleteSema(req2.wakeupId);
+    DeleteSema(req3.wakeupId);
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
@@ -613,10 +609,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req1.cacheId = cacheId;
             req1.list = list;
             req1.value = value;
-            //pthread_mutex_lock(&wakeupMutex);
             req1.qr = 1;
-            pthread_cond_signal(&req1.cond);
-            //pthread_mutex_unlock(&wakeupMutex);
+            SignalSema(req1.wakeupId);
         } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -636,10 +630,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req2.cacheId = cacheId;
             req2.list = list;
             req2.value = value;
-            //pthread_mutex_lock(&wakeupMutex);
             req2.qr = 1;
-            pthread_cond_signal(&req2.cond);
-            //pthread_mutex_unlock(&wakeupMutex);
+            SignalSema(req2.wakeupId);
         } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -659,10 +651,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req3.cacheId = cacheId;
             req3.list = list;
             req3.value = value;
-            //pthread_mutex_lock(&wakeupMutex);
             req3.qr = 1;
-            pthread_cond_signal(&req3.cond);
-            //pthread_mutex_unlock(&wakeupMutex);
+            SignalSema(req3.wakeupId);
         }
 
         //// debug  打印debug信息
