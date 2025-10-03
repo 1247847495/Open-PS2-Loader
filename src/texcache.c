@@ -46,7 +46,7 @@ typedef struct
     s32 wakeupId;
     image_cache_t *cache;
     item_list_t *list;
-    int *cacheId;
+    int cacheId;
     char *value;
 } load_image_request_t;
 load_image_request_t req1 = {0};
@@ -118,7 +118,7 @@ static void *cacheLoadImage(void *data)
 
         item_list_t *handler = ioReq->list;
         if (!handler) {
-            ioReq->cache->content[*ioReq->cacheId].qr = 0;
+            ioReq->cache->content[ioReq->cacheId].qr = 0;
             pthread_mutex_lock(&texLoadingMutex);
             if (texLoading > 0)
                 texLoading--;
@@ -128,33 +128,30 @@ static void *cacheLoadImage(void *data)
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
         if (cdFramesCount || forceSkipQr) {
-            ioReq->cache->content[*ioReq->cacheId].qr = 0;
+            ioReq->cache->content[ioReq->cacheId].qr = 0;
             pthread_mutex_lock(&texLoadingMutex);
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
             return NULL;
         }
-        pthread_mutex_unlock(&texLoadingMutex);
 
         // 加载图片
-        int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[*ioReq->cacheId].texture, GS_PSM_CT24);
+        int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24);
 
-        WaitSema(fileLockId);
         if (result < 0) {
-            ioReq->cache->content[*ioReq->cacheId].lastUsed = 0;
-            ioReq->cache->content[*ioReq->cacheId].texFound = 0;
+            ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
+            ioReq->cache->content[ioReq->cacheId].texFound = 0;
             //*ioReq->cacheId = -2;
         } else {
-            ioReq->cache->content[*ioReq->cacheId].lastUsed = guiFrameId;
-            ioReq->cache->content[*ioReq->cacheId].texFound = 1;
+            ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
+            ioReq->cache->content[ioReq->cacheId].texFound = 1;
         }
         pthread_mutex_lock(&texLoadingMutex);
         if (texLoading > 0)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
-        ioReq->cache->content[*ioReq->cacheId].qr = 0;
-        SignalSema(fileLockId);
+        ioReq->cache->content[ioReq->cacheId].qr = 0;
     }
     return NULL;
 }
@@ -495,7 +492,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 oldestEntry->UID = *UID;
             load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
             req->cache = cache;
-            req->cacheId = cacheId;
+            req->cacheId = *cacheId;
             req->list = list;
             req->value = value;
             ioPutRequest(IO_CACHE_LOAD_ART, req);
@@ -518,7 +515,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     texLoading = 1;
                 pthread_mutex_unlock(&texLoadingMutex);
                 req1.cache = cache;
-                req1.cacheId = cacheId;
+                req1.cacheId = *cacheId;
                 req1.list = list;
                 req1.value = value;
                 req1.qr = 1;
@@ -540,7 +537,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     texLoading = 1;
                 pthread_mutex_unlock(&texLoadingMutex);
                 req2.cache = cache;
-                req2.cacheId = cacheId;
+                req2.cacheId = *cacheId;
                 req2.list = list;
                 req2.value = value;
                 req2.qr = 1;
@@ -562,7 +559,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     texLoading = 1;
                 pthread_mutex_unlock(&texLoadingMutex);
                 req3.cache = cache;
-                req3.cacheId = cacheId;
+                req3.cacheId = *cacheId;
                 req3.list = list;
                 req3.value = value;
                 req3.qr = 1;
