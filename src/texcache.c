@@ -42,7 +42,9 @@ pthread_attr_t attr;
 pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 
 // 尝试添加线程wait信号量
-static ee_sema_t wakeupIdSema;
+static ee_sema_t wakeupIdSema1;
+static ee_sema_t wakeupIdSema2;
+static ee_sema_t wakeupIdSema3;
 
 typedef struct
 {
@@ -315,13 +317,19 @@ void cacheInit()
     // 设置合适的栈空间，防止爆栈等错误
     pthread_attr_setstacksize(&attr, 2048 * 1024); // kb
 
-    wakeupIdSema.init_count = 0;
-    wakeupIdSema.max_count = 1;
-    wakeupIdSema.option = 0;
+    wakeupIdSema1.init_count = 0;
+    wakeupIdSema1.max_count = 1;
+    wakeupIdSema1.option = 0;
+    wakeupIdSema2.init_count = 0;
+    wakeupIdSema2.max_count = 1;
+    wakeupIdSema2.option = 0;
+    wakeupIdSema3.init_count = 0;
+    wakeupIdSema3.max_count = 1;
+    wakeupIdSema3.option = 0;
 
-    req1.wakeupId = CreateSema(&wakeupIdSema);
-    req2.wakeupId = CreateSema(&wakeupIdSema);
-    req3.wakeupId = CreateSema(&wakeupIdSema);
+    req1.wakeupId = CreateSema(&wakeupIdSema1);
+    req2.wakeupId = CreateSema(&wakeupIdSema2);
+    req3.wakeupId = CreateSema(&wakeupIdSema3);
 
     pthread_create(&tid1, &attr, cacheLoadImage2, &req1);
     pthread_create(&tid2, &attr, cacheLoadImage2, &req2);
