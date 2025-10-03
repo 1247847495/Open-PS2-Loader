@@ -118,6 +118,14 @@ void cacheDestroyCache(image_cache_t *cache)
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
 {
+    // debug  打印debug信息
+    char debugFileDir[64];
+    strcpy(debugFileDir, "smb:debug-TexCache_Master.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "cacheId:%d   UID:%d  %s\r\n", *cacheId, *UID, *value);
+        fclose(debugFile);
+    }
     if (*cacheId == -2) {
         return NULL;
     } else if (*cacheId != -1) {
