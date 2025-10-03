@@ -262,9 +262,9 @@ void cacheInit()
         req2.wakeupId = CreateSema(&wakeupIdSema);
         req3.wakeupId = CreateSema(&wakeupIdSema);
 
-        pthread_create(&tid1, &attr, cacheLoadImage2, &req1);
-        pthread_create(&tid2, &attr, cacheLoadImage2, &req2);
-        pthread_create(&tid3, &attr, cacheLoadImage2, &req3);
+        pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+        pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+        pthread_create(&tid3, &attr, cacheLoadImage, &req3);
     }
 
     //// 使用pthread的多线程方法
@@ -487,7 +487,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         *cacheId = -1;
     }
 
-    if (skipQr || texLoading >= 3)
+    if (skipQr)
         return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
