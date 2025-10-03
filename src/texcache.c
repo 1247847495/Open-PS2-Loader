@@ -169,7 +169,7 @@ static void *cacheLoadImage2(void *data)
         int result = handler->itemGetImage(handler, "ART", 1, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[0].texture, GS_PSM_CT24);
 
         if (result < 0) {
-            //WaitSema(fileLockId);
+            WaitSema(fileLockId);
             *ioReq->cacheId = -2;
             if (!strncmp("BG", ioReq->cache->suffix, 2)) {
                 cacheTexFree(&texture1_show, 1);
@@ -178,9 +178,9 @@ static void *cacheLoadImage2(void *data)
             } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture3_show, 1);
             }
-            //SignalSema(fileLockId);
+            SignalSema(fileLockId);
         } else {
-            //WaitSema(fileLockId);
+            WaitSema(fileLockId);
             if (!strncmp("BG", ioReq->cache->suffix, 2)) {
                 cacheTexFree(&texture1_show, 1);
                 texture1_show = ioReq->cache->content[0].texture;
@@ -194,7 +194,7 @@ static void *cacheLoadImage2(void *data)
                 texture3_show = ioReq->cache->content[0].texture;
                 cacheTexFree(&ioReq->cache->content[0].texture, 0);
             }
-            //SignalSema(fileLockId);
+            SignalSema(fileLockId);
         }
         pthread_mutex_lock(&texLoadingMutex);
         if (texLoading > 0)
