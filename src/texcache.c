@@ -34,10 +34,6 @@ static int texNeedUpdate = 1;
 GSTEXTURE texture1_show = {0};
 GSTEXTURE texture2_show = {0};
 GSTEXTURE texture3_show = {0};
-// 给加载线程使用
-GSTEXTURE texture1_load = {0};
-GSTEXTURE texture2_load = {0};
-GSTEXTURE texture3_load = {0};
 
 //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_t tid1;
@@ -176,7 +172,7 @@ static void *cacheLoadImage2(void *data)
         }
 
         // 加载图片
-        int result = handler->itemGetImage(handler, "ART", 1, ioReq->value, ioReq->cache->suffix, ioReq->cache->content[0].texture, GS_PSM_CT24);
+        int result = handler->itemGetImage(handler, "ART", 1, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[0].texture, GS_PSM_CT24);
 
         if (result < 0) {
             WaitSema(fileLockId);
@@ -193,16 +189,16 @@ static void *cacheLoadImage2(void *data)
             WaitSema(fileLockId);
             if (!strncmp("BG", ioReq->cache->suffix, 2)) {
                 cacheTexFree(&texture1_show, 1);
-                texture1_show = *ioReq->cache->content[0].texture;
-                cacheTexFree(ioReq->cache->content[0].texture, 0);
+                texture1_show = ioReq->cache->content[0].texture;
+                cacheTexFree(&ioReq->cache->content[0].texture, 0);
             } else if (!strncmp("COV", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture2_show, 1);
-                texture2_show = *ioReq->cache->content[0].texture;
-                cacheTexFree(ioReq->cache->content[0].texture, 0);
+                texture2_show = ioReq->cache->content[0].texture;
+                cacheTexFree(&ioReq->cache->content[0].texture, 0);
             } else if (!strncmp("ICO", ioReq->cache->suffix, 3)) {
                 cacheTexFree(&texture3_show, 1);
-                texture3_show = *ioReq->cache->content[0].texture;
-                cacheTexFree(ioReq->cache->content[0].texture, 0);
+                texture3_show = ioReq->cache->content[0].texture;
+                cacheTexFree(&ioReq->cache->content[0].texture, 0);
             }
             SignalSema(fileLockId);
         }
@@ -336,9 +332,6 @@ void cacheInit()
     //memset(&texture1_show, 0, sizeof(GSTEXTURE));
     //memset(&texture2_show, 0, sizeof(GSTEXTURE));
     //memset(&texture3_show, 0, sizeof(GSTEXTURE));
-    //memset(&texture1_load, 0, sizeof(GSTEXTURE));
-    //memset(&texture2_load, 0, sizeof(GSTEXTURE));
-    //memset(&texture3_load, 0, sizeof(GSTEXTURE));
 
     //if (!usePthread)
     //    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
@@ -601,8 +594,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(&texture1_load, 1);
-            currEntry->texture = &texture1_load;
+            cacheTexFree(&currEntry->texture, 0);
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
@@ -625,8 +617,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(&texture2_load, 1);
-            currEntry->texture = &texture2_load;
+            cacheTexFree(&currEntry->texture, 0);
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
@@ -649,8 +640,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 currEntry->UID = *UID = cache->nextUID++;
             else
                 currEntry->UID = *UID;
-            cacheTexFree(&texture3_load, 1);
-            currEntry->texture = &texture3_load;
+            cacheTexFree(&currEntry->texture, 0);
 
             //  使用pthread的多线程方法
             pthread_mutex_lock(&texLoadingMutex);
