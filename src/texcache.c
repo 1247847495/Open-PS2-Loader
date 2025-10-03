@@ -168,14 +168,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         req->list = list;
         req->value = (char *)req + sizeof(load_image_request_t);
         strcpy(req->value, value);
-        req->cacheUID = cache->nextUID;
 
         cacheClearItem(oldestEntry, 1);
         oldestEntry->qr = req;
         if (*UID == -1)
-            oldestEntry->UID = *UID = cache->nextUID++;
+            oldestEntry->UID = *UID = req->cacheUID = cache->nextUID++;
         else
-            oldestEntry->UID = *UID;
+            oldestEntry->UID = req->cacheUID = *UID;
 
         ioPutRequest(IO_CACHE_LOAD_ART, req);
     }
