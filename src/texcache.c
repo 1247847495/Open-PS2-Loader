@@ -142,8 +142,9 @@ static void *cacheLoadImage2(void *data)
              pthread_mutex_unlock(&wakeupMutex);
              return NULL;
          }
-         //pthread_mutex_unlock(&wakeupMutex);
-
+         pthread_mutex_unlock(&wakeupMutex);
+         pthread_mutex_unlock(&wakeupMutex);
+         pthread_mutex_unlock(&wakeupMutex);
         // Safeguards...
         if (!ioReq->cache || !ioReq->cache->content) {
             pthread_mutex_lock(&texLoadingMutex);
