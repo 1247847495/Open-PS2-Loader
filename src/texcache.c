@@ -143,6 +143,7 @@ static void *cacheLoadImage(void *data)
         WaitSema(fileLockId);
         if (result < 0) {
             ioReq->cache->content[*ioReq->cacheId].lastUsed = 0;
+            ioReq->cache->content[*ioReq->cacheId].texFound = 0;
             *ioReq->cacheId = -2;
         } else {
             ioReq->cache->content[*ioReq->cacheId].lastUsed = guiFrameId;
@@ -408,12 +409,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         PrevCacheID_COV = PrevCacheID_ICO = PrevCacheID_BG = PrevCacheID = -2;
     } else {
         // 根据图像类型，赋值上一次的缓存
-        if (!strncmp("COV", cache->suffix, 3))
+        if (!strncmp("BG", cache->suffix, 2))
+            PrevCacheID = PrevCacheID_BG;
+        else if (!strncmp("COV", cache->suffix, 3))
             PrevCacheID = PrevCacheID_COV;
         else if (!strncmp("ICO", cache->suffix, 3))
             PrevCacheID = PrevCacheID_ICO;
-        else if (!strncmp("BG", cache->suffix, 2))
-            PrevCacheID = PrevCacheID_BG;
         else
             PrevCacheID = -2;
     }
@@ -421,12 +422,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     // -2代表无图像，-1代表正在查找图像，0-9代表缓存编号
     if (*cacheId == -2) {
         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-        if (!strncmp("COV", cache->suffix, 3))
+        if (!strncmp("BG", cache->suffix, 2))
+            PrevCacheID_BG = *cacheId;
+        else if (!strncmp("COV", cache->suffix, 3))
             PrevCacheID_COV = *cacheId;
         else if (!strncmp("ICO", cache->suffix, 3))
             PrevCacheID_ICO = *cacheId;
-        else if (!strncmp("BG", cache->suffix, 2))
-            PrevCacheID_BG = *cacheId;
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
@@ -438,12 +439,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     if (entry->texture.Mem) {
                         //entry->lastUsed = guiFrameId;
                         // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                        if (!strncmp("COV", cache->suffix, 3))
+                        if (!strncmp("BG", cache->suffix, 2))
+                            PrevCacheID_BG = *cacheId;
+                        else if (!strncmp("COV", cache->suffix, 3))
                             PrevCacheID_COV = *cacheId;
                         else if (!strncmp("ICO", cache->suffix, 3))
                             PrevCacheID_ICO = *cacheId;
-                        else if (!strncmp("BG", cache->suffix, 2))
-                            PrevCacheID_BG = *cacheId;
                         return &entry->texture;
                     }
                 }
