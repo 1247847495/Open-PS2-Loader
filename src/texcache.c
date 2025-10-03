@@ -88,7 +88,62 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->UID = -1;
     item->texFound = -1;
 }
+// 加载其他图片时用的线程函数
+static void *cacheLoadImage1(void *data)
+{
+    load_image_request_t *ioReq = (load_image_request_t *)data;
+    // Safeguards...
+    if (!ioReq->cache || !ioReq->cache->content) {
+        pthread_mutex_lock(&texLoadingMutex);
+        if (texLoading > 0)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        free(ioReq);
+        return NULL;
+    }
 
+    item_list_t *handler = ioReq->list;
+    if (!handler) {
+        pthread_mutex_lock(&texLoadingMutex);
+        if (texLoading > 0)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        ioReq->cache->content[ioReq->cacheId].qr = 0;
+        free(ioReq);
+        return NULL;
+    }
+
+    // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
+    if (cdFramesCount || forceSkipQr) {
+        pthread_mutex_lock(&texLoadingMutex);
+        if (texLoading > 0)
+            texLoading--;
+        pthread_mutex_unlock(&texLoadingMutex);
+        ioReq->cache->content[ioReq->cacheId].qr = 0;
+        free(ioReq);
+        return NULL;
+    }
+
+    // 加载图片
+    int result = handler->itemGetImage(handler, ioReq->cache->prefix, ioReq->cache->isPrefixRelative, ioReq->value, ioReq->cache->suffix, &ioReq->cache->content[ioReq->cacheId].texture, GS_PSM_CT24);
+
+    if (result < 0) {
+        ioReq->cache->content[ioReq->cacheId].lastUsed = 0;
+        ioReq->cache->content[ioReq->cacheId].texFound = 0;
+        //*ioReq->cacheId = -2;
+    } else {
+        ioReq->cache->content[ioReq->cacheId].lastUsed = guiFrameId;
+        ioReq->cache->content[ioReq->cacheId].texFound = 1;
+    }
+    pthread_mutex_lock(&texLoadingMutex);
+    if (texLoading > 0)
+        texLoading--;
+    pthread_mutex_unlock(&texLoadingMutex);
+    ioReq->cache->content[ioReq->cacheId].qr = 0;
+    ioReq->qr = 0;
+    free(ioReq);
+    return NULL;
+}
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
@@ -573,6 +628,40 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 req3.value = value;
                 req3.qr = 1;
                 SignalSema(req3.wakeupId);
+            } else {
+                cacheClearItem(oldestEntry, 1);
+                oldestEntry->qr = 1;
+                // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+                if (*UID == -1)
+                    oldestEntry->UID = *UID = cache->nextUID++;
+                else
+                    oldestEntry->UID = *UID;
+
+                //  使用pthread的多线程方法
+                pthread_mutex_lock(&texLoadingMutex);
+                if (texLoading >= 0)
+                    texLoading++;
+                else
+                    texLoading = 1;
+                pthread_mutex_unlock(&texLoadingMutex);
+                load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
+                req->cache = cache;
+                req->cacheId = *cacheId;
+                req->list = list;
+                req->value = value;
+                req->qr = 1;
+                pthread_t _tid;
+                pthread_attr_t _attr;
+                // 初始化pthread线程属性
+                pthread_attr_init(&_attr);
+
+                // 线程分离，如果不需要pthread_join
+                pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_DETACHED);
+
+                // 设置合适的栈空间，防止爆栈等错误
+                pthread_attr_setstacksize(&_attr, 64 * 1024); // kb
+                pthread_create(&_tid, &_attr, cacheLoadImage1, req);
+                pthread_attr_destroy(&_attr);
             }
         }
 
