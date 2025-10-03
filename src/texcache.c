@@ -30,11 +30,7 @@ static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
 
-// 只给主线程使用和显示
-GSTEXTURE texture1_show = {0};
-GSTEXTURE texture2_show = {0};
-GSTEXTURE texture3_show = {0};
-
+// 申请线程
 pthread_t tid1;
 pthread_t tid2;
 pthread_t tid3;
@@ -56,35 +52,6 @@ typedef struct
 load_image_request_t req1 = {0};
 load_image_request_t req2 = {0};
 load_image_request_t req3 = {0};
-
-static void cacheTexFree(GSTEXTURE *tex, int freeTxt)
-{
-    if (freeTxt) {
-        if (tex->Mem) {
-            rmUnloadTexture(tex);
-            free(tex->Mem);
-            tex->Mem = NULL; // Must be allocated by loader
-            if (tex->Clut) {
-                free(tex->Clut);
-                tex->Clut = NULL; // Default, can be set by loader
-            }
-        }
-    }
-    memset(tex, 0, sizeof(GSTEXTURE));
-    tex->Mem = NULL;                // Must be allocated by loader
-    tex->Clut = NULL;               // Default, can be set by loader
-    tex->Width = 0;                 // Must be set by loader
-    tex->Height = 0;                // Must be set by loader
-    tex->PSM = GS_PSM_CT24;         // Must be set by loader
-    tex->ClutPSM = 0;               // Default, can be set by loader
-    tex->TBW = 0;                   // gsKit internal value
-    tex->Vram = 0;                  // VRAM allocation handled by texture manager
-    tex->VramClut = 0;              // VRAM allocation handled by texture manager
-    tex->Filter = GS_FILTER_LINEAR; // Default
-    // tex->ClutStorageMode = GS_CLUT_STORAGE_CSM1; // Default
-    //  Do not load the texture to VRAM directly, only load it to EE RAM
-    tex->Delayed = 1;
-}
 
 static void cacheClearItem(cache_entry_t *item, int freeTxt)
 {
@@ -146,7 +113,6 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            free(ioReq);
             return NULL;
         }
 
@@ -157,7 +123,6 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            free(ioReq);
             return NULL;
         }
 
@@ -168,7 +133,6 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            free(ioReq);
             return NULL;
         }
         pthread_mutex_unlock(&texLoadingMutex);
@@ -190,7 +154,6 @@ static void *cacheLoadImage(void *data)
         pthread_mutex_unlock(&texLoadingMutex);
         ioReq->cache->content[*ioReq->cacheId].qr = 0;
         SignalSema(fileLockId);
-        free(ioReq);
     }
     return NULL;
 }
@@ -242,6 +205,13 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
+    wakeupIdSema.init_count = 0;
+    wakeupIdSema.max_count = 1;
+    wakeupIdSema.option = 0;
+
+    req1.wakeupId = CreateSema(&wakeupIdSema);
+    req2.wakeupId = CreateSema(&wakeupIdSema);
+    req3.wakeupId = CreateSema(&wakeupIdSema);
     if (!usePthread)
         ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
     else {
@@ -253,14 +223,6 @@ void cacheInit()
 
         // 设置合适的栈空间，防止爆栈等错误
         pthread_attr_setstacksize(&attr, 2048 * 1024); // kb
-
-        wakeupIdSema.init_count = 0;
-        wakeupIdSema.max_count = 1;
-        wakeupIdSema.option = 0;
-
-        req1.wakeupId = CreateSema(&wakeupIdSema);
-        req2.wakeupId = CreateSema(&wakeupIdSema);
-        req3.wakeupId = CreateSema(&wakeupIdSema);
 
         pthread_create(&tid1, &attr, cacheLoadImage, &req1);
         pthread_create(&tid2, &attr, cacheLoadImage, &req2);
@@ -285,38 +247,41 @@ void cacheInit()
 
 void cacheEnd()
 {
-    // nothing to do... others have to destroy the cache via cacheDestroyCache
-    // 等待所有线程wait
-    int waitTime = 0;
-    while (1) {
-        pthread_mutex_lock(&texLoadingMutex);
-        int loading = texLoading;
-        pthread_mutex_unlock(&texLoadingMutex);
-        if (loading <= 0)
-            break;
-        waitTime++;
-        usleep(1000);
-        if (waitTime >= 4000) // 设置4秒超时时间，不让程序卡死
-            break;
-    }
-
-    // 设置退出标志，并全部唤醒
     forceSkipQr = 1;
-    SignalSema(req1.wakeupId);
-    SignalSema(req2.wakeupId);
-    SignalSema(req3.wakeupId);
+    if (usePthread) {
+        // 等待所有线程wait
+        int waitTime = 0;
+        while (1) {
+            pthread_mutex_lock(&texLoadingMutex);
+            int loading = texLoading;
+            pthread_mutex_unlock(&texLoadingMutex);
+            if (loading <= 0)
+                break;
+            waitTime++;
+            usleep(1000);
+            if (waitTime >= 4000) // 设置4秒超时时间，不让程序卡死
+                break;
+        }
 
-    // 等待线程全部退出
-    pthread_join(tid1, NULL);
-    pthread_join(tid2, NULL);
-    pthread_join(tid3, NULL);
+        // 设置退出标志，并全部唤醒
+        SignalSema(req1.wakeupId);
+        SignalSema(req2.wakeupId);
+        SignalSema(req3.wakeupId);
 
-    // 销毁资源
-    pthread_attr_destroy(&attr);
-    pthread_mutex_destroy(&texLoadingMutex);
+        // 等待线程全部退出
+        pthread_join(tid1, NULL);
+        pthread_join(tid2, NULL);
+        pthread_join(tid3, NULL);
+
+        // 销毁资源
+        pthread_attr_destroy(&attr);
+        pthread_mutex_destroy(&texLoadingMutex);
+    }
     DeleteSema(req1.wakeupId);
     DeleteSema(req2.wakeupId);
     DeleteSema(req3.wakeupId);
+    // nothing to do... others have to destroy the cache via cacheDestroyCache
+
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
@@ -533,7 +498,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     oldestEntry->UID = *UID = cache->nextUID++;
                 else
                     oldestEntry->UID = *UID;
-                cacheTexFree(&oldestEntry->texture, 1);
 
                 //  使用pthread的多线程方法
                 pthread_mutex_lock(&texLoadingMutex);
@@ -556,7 +520,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     oldestEntry->UID = *UID = cache->nextUID++;
                 else
                     oldestEntry->UID = *UID;
-                cacheTexFree(&oldestEntry->texture, 1);
 
                 //  使用pthread的多线程方法
                 pthread_mutex_lock(&texLoadingMutex);
@@ -579,7 +542,6 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                     oldestEntry->UID = *UID = cache->nextUID++;
                 else
                     oldestEntry->UID = *UID;
-                cacheTexFree(&oldestEntry->texture, 1);
 
                 //  使用pthread的多线程方法
                 pthread_mutex_lock(&texLoadingMutex);
