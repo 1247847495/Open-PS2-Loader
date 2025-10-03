@@ -180,7 +180,7 @@ static void _menuRequestConfig()
         }
         //item_list_t *list = selected_item->item->userdata;
         //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
-        if (itemConfigId == -1 || (guiInactiveFrames >= 1 && infoScreen)) { // 在info界面才会在移动光标时读取配置文件
+        if (itemConfigId == -1 || (guiInactiveFrames >= MENU_MIN_INACTIVE_FRAMES && infoScreen)) { // 在info界面才会在移动光标时读取配置文件
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
         }
@@ -1073,6 +1073,8 @@ void menuRenderInfo(void)
         gTheme->itemsList = gTheme->gamesItemsList;
     }
     infoScreen = 1;
+    // selected_item can't be NULL here as we only allow to switch to "Main" rendering when there is at least one device activated
+    _menuRequestConfig();
 }
 
 void menuHandleInputInfo()
