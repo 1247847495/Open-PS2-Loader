@@ -89,7 +89,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
     item->texFound = -1;
 }
 // 加载其他图片时用的线程函数
-static void *cacheLoadImage1(void *data)
+static void cacheLoadImage1(void *data)
 {
     load_image_request_t *ioReq = (load_image_request_t *)data;
     // Safeguards...
@@ -99,7 +99,7 @@ static void *cacheLoadImage1(void *data)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
         free(ioReq);
-        return NULL;
+        return;
     }
 
     item_list_t *handler = ioReq->list;
@@ -110,7 +110,7 @@ static void *cacheLoadImage1(void *data)
         pthread_mutex_unlock(&texLoadingMutex);
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
-        return NULL;
+        return;
     }
 
     // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
@@ -121,7 +121,7 @@ static void *cacheLoadImage1(void *data)
         pthread_mutex_unlock(&texLoadingMutex);
         ioReq->cache->content[ioReq->cacheId].qr = 0;
         free(ioReq);
-        return NULL;
+        return;
     }
 
     // 加载图片
@@ -142,7 +142,7 @@ static void *cacheLoadImage1(void *data)
     ioReq->cache->content[ioReq->cacheId].qr = 0;
     ioReq->qr = 0;
     free(ioReq);
-    return NULL;
+    return;
 }
 // Io handled action...
 static void *cacheLoadImage(void *data)
@@ -283,6 +283,7 @@ void cacheInit()
         pthread_create(&tid1, &attr, cacheLoadImage, &req1);
         pthread_create(&tid2, &attr, cacheLoadImage, &req2);
         pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage1);
     }
 
     //// 使用pthread的多线程方法
@@ -644,18 +645,23 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 req->list = list;
                 req->value = value;
                 req->qr = 1;
-                pthread_t _tid;
-                pthread_attr_t _attr;
-                // 初始化pthread线程属性
-                pthread_attr_init(&_attr);
 
-                // 线程分离，如果不需要pthread_join
-                pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_DETACHED);
+                // 官方方法加载其他图片
+                ioPutRequest(IO_CACHE_LOAD_ART, req);
 
-                // 设置合适的栈空间，防止爆栈等错误
-                pthread_attr_setstacksize(&_attr, 32 * 1024); // kb
-                pthread_create(&_tid, &_attr, cacheLoadImage1, req);
-                pthread_attr_destroy(&_attr);
+                //// pthread方法加载其他图片
+                //pthread_t _tid;
+                //pthread_attr_t _attr;
+                //// 初始化pthread线程属性
+                //pthread_attr_init(&_attr);
+
+                //// 线程分离，如果不需要pthread_join
+                //pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_DETACHED);
+
+                //// 设置合适的栈空间，防止爆栈等错误
+                //pthread_attr_setstacksize(&_attr, 32 * 1024); // kb
+                //pthread_create(&_tid, &_attr, cacheLoadImage1, req);
+                //pthread_attr_destroy(&_attr);
             }
         }
 
