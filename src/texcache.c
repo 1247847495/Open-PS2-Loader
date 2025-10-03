@@ -29,9 +29,9 @@ static void cacheLoadImage(void *data)
     if (!handler)
         return;
 
-    // the cache entry was already reused!
-    if (req->cacheUID != req->entry->UID)
-        return;
+    //// the cache entry was already reused!
+    //if (req->cacheUID != req->entry->UID)
+    //    return;
 
     // seems okay. we can proceed
     GSTEXTURE *texture = &req->entry->texture;
@@ -172,9 +172,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         cacheClearItem(oldestEntry, 1);
         oldestEntry->qr = req;
         if (*UID == -1)
-            oldestEntry->UID = *UID = req->cacheUID = cache->nextUID++;
+            oldestEntry->UID = *UID = cache->nextUID++;
         else
-            oldestEntry->UID = req->cacheUID = *UID;
+            oldestEntry->UID = *UID;
 
         ioPutRequest(IO_CACHE_LOAD_ART, req);
     }
