@@ -83,6 +83,8 @@ static s32 menuSemaId;
 static s32 menuListSemaId = -1;
 static ee_sema_t menuSema;
 
+static int infoScreen = 0;
+
 static void menuRenameGame(submenu_list_t **submenu)
 {
     if (!selected_item->item->current) {
@@ -178,7 +180,7 @@ static void _menuRequestConfig()
         }
         //item_list_t *list = selected_item->item->userdata;
         //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
-        if (itemConfigId == -1) {
+        if (itemConfigId == -1 || (guiInactiveFrames >= 1 && infoScreen)) { // 在info界面才会在移动光标时读取配置文件
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
         }
@@ -1070,13 +1072,16 @@ void menuRenderInfo(void)
         menuRenderElements(gTheme->infoElems.first);
         gTheme->itemsList = gTheme->gamesItemsList;
     }
+    infoScreen = 1;
 }
 
 void menuHandleInputInfo()
 {
     if (getKeyOn(KEY_CROSS)) {
-        if (gSelectButton == KEY_CIRCLE)
+        if (gSelectButton == KEY_CIRCLE) {
+            infoScreen = 0;
             guiSwitchScreen(GUI_SCREEN_MAIN);
+        }
         else
             selected_item->item->execCross(selected_item->item);
     } else if (getKey(KEY_UP)) {
@@ -1084,8 +1089,10 @@ void menuHandleInputInfo()
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
     } else if (getKeyOn(KEY_CIRCLE)) {
-        if (gSelectButton == KEY_CROSS)
+        if (gSelectButton == KEY_CROSS) {
+            infoScreen = 0;
             guiSwitchScreen(GUI_SCREEN_MAIN);
+        }
         else
             selected_item->item->execCircle(selected_item->item);
     } else if (getKey(KEY_L1)) {
