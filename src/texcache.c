@@ -29,7 +29,7 @@ static char *curStartUp = NULL;
 static int findBGCount = 0; // 寻找背景图的次数
 static int usePthread = 1;  // 使用pthread多线程方法加载图片
 static int texLoadingTimeOut = 0;  // 用于判断加载计数异常时，将texLoading置为0
-static int texNeedUpdate = 1;
+//static int texNeedUpdate = 1;
 // 只给主线程使用和显示
 GSTEXTURE texture1_show = {0};
 GSTEXTURE texture2_show = {0};
@@ -281,7 +281,7 @@ void flushBatchRequests(void)
     } else
         texLoadingTimeOut = 0;
 
-    texNeedUpdate = 0;
+    //texNeedUpdate = 0;
     //// 有堆积的图片待加载
     //if (batchRequestCount > 0 && !texLoading) {
     //    //// debug  打印debug信息
@@ -445,7 +445,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 skipQr = 1; // 按住时，还有图片请求，就跳过本次Qr
         }
         curStartUp = value;
-        texNeedUpdate = 1;
+        //texNeedUpdate = 1;
     }
 
     if (cdFramesCount) {
@@ -486,12 +486,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 if (++findBGCount >= MENU_MIN_INACTIVE_FRAMES) {
                     findBGCount = 0;
                     cdFramesCount = 0;
-                    texNeedUpdate = 1; // 恢复读取图片
+                    //texNeedUpdate = 1; // 恢复读取图片
                 } else
                     skipQr = 1;
             } else {
                 findBGCount = 0;
-                texNeedUpdate = 1; // 恢复读取图片
+                //texNeedUpdate = 1; // 恢复读取图片
             }
         }
 
@@ -539,6 +539,13 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //    }
     //    *cacheId = -1;
     //}
+    // 移动光标后，需要重新加载图片（检查当前显示图片的缓存槽的uid是否和光标所指的游戏uid一致）
+    if (*cacheId != -1) {
+        cache_entry_t *entry = &cache->content[*cacheId];
+        if (entry->UID != *UID)
+            *cacheId = -1;
+    }
+
     GSTEXTURE *curTex = NULL;
     if (!strncmp("BG", cache->suffix, 2))
         curTex = &texture1_show;
@@ -563,7 +570,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return NULL;
     }
 
-    if (!texNeedUpdate || skipQr)
+    if (skipQr)
         return curTex && curTex->Mem ? curTex : NULL;
 
     //if (skipQr || texLoading >= 3)
@@ -584,8 +591,9 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     //        *cacheId = i;
     //    }
     //}
-    if (texNeedUpdate) {
-        cache_entry_t *currEntry = &cache->content[0];
+    if (*cacheId == -1) {
+        *cacheId = 0;
+        cache_entry_t *currEntry = &cache->content[*cacheId];
 
         //  加载图片
         if (!strncmp("BG", cache->suffix, 2) && !req1.qr) {
