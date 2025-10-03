@@ -144,7 +144,7 @@ static void *cacheLoadImage(void *data)
         if (result < 0) {
             ioReq->cache->content[*ioReq->cacheId].lastUsed = 0;
             ioReq->cache->content[*ioReq->cacheId].texFound = 0;
-            *ioReq->cacheId = -2;
+            //*ioReq->cacheId = -2;
         } else {
             ioReq->cache->content[*ioReq->cacheId].lastUsed = guiFrameId;
             ioReq->cache->content[*ioReq->cacheId].texFound = 1;
@@ -435,6 +435,16 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             if (entry->UID == *UID) {
                 if (entry->qr) {
                     return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+                } else if (entry->texFound == 0) {
+                    *cacheId = -2;
+                    // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
+                    if (!strncmp("COV", cache->suffix, 3))
+                        PrevCacheID_COV = *cacheId;
+                    else if (!strncmp("ICO", cache->suffix, 3))
+                        PrevCacheID_ICO = *cacheId;
+                    else if (!strncmp("BG", cache->suffix, 2))
+                        PrevCacheID_BG = *cacheId;
+                    return NULL;
                 } else if (entry->texFound == 1) {
                     if (entry->texture.Mem) {
                         //entry->lastUsed = guiFrameId;
