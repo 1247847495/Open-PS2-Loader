@@ -134,10 +134,7 @@ static void *cacheLoadImage2(void *data)
 
          // 重置状态
          ioReq->qr = 0;
-         //WaitSema(ioReq->wakeupId);
-         while (!ioReq->qr)
-             usleep(1000);
-
+         WaitSema(ioReq->wakeupId);
          if (forceSkipQr)
              return NULL;
 
@@ -613,7 +610,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req1.list = list;
             req1.value = value;
             req1.qr = 1;
-            //SignalSema(req1.wakeupId);
+            SignalSema(req1.wakeupId);
         } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -634,7 +631,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req2.list = list;
             req2.value = value;
             req2.qr = 1;
-            //SignalSema(req2.wakeupId);
+            SignalSema(req2.wakeupId);
         } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
@@ -655,7 +652,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             req3.list = list;
             req3.value = value;
             req3.qr = 1;
-            //SignalSema(req3.wakeupId);
+            SignalSema(req3.wakeupId);
         }
 
         //// debug  打印debug信息
