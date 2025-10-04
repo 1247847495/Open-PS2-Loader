@@ -84,6 +84,7 @@ static s32 menuListSemaId = -1;
 static ee_sema_t menuSema;
 
 static int infoScreen = 0;
+int loadConfigCount = 0;
 
 static void menuRenameGame(submenu_list_t **submenu)
 {
@@ -183,6 +184,7 @@ static void _menuRequestConfig()
         if (itemConfigId == -1 || (guiInactiveFrames >= MENU_MIN_INACTIVE_FRAMES && infoScreen)) { // 在info界面才会在移动光标时读取配置文件
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
+            loadConfigCount++;
         }
     } else if (itemConfig)
         actionStatus = 0;
