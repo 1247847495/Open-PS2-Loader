@@ -182,9 +182,17 @@ static void _menuRequestConfig()
         //item_list_t *list = selected_item->item->userdata;
         //if (itemConfigId == -1 || guiInactiveFrames >= list->delay) { // guiInactiveFrames >= list->delay 这句可能会导致读图冲突死机
         if (itemConfigId == -1 || (guiInactiveFrames >= MENU_MIN_INACTIVE_FRAMES && infoScreen)) { // 在info界面才会在移动光标时读取配置文件
+            loadConfigCount++;
+            // debug  打印debug信息
+            char debugFileDir[64];
+            strcpy(debugFileDir, "smb:debug-loadConfigCount.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "配置文件加载了 %d 次\r\n\r\n", loadConfigCount);
+                fclose(debugFile);
+            }
             itemConfigId = selected_item->item->current->item.id;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &_menuLoadConfig);
-            loadConfigCount++;
         }
     } else if (itemConfig)
         actionStatus = 0;
