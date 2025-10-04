@@ -111,5 +111,5 @@ void texFree(GSTEXTURE *texture);
 void texInit(void);
 void texFinish(void);
 
-extern s32 fileLockId;
+//extern s32 fileLockId;
 #endif
