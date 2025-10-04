@@ -206,10 +206,6 @@ static void *cacheLoadImage(void *data)
     }
     return NULL;
 }
-static void cacheLoadImage_Official(void *data)
-{
-    cacheLoadImage(data);
-}
 
 void flushBatchRequests(void)
 {
@@ -220,13 +216,17 @@ void flushBatchRequests(void)
     // 线程异常时，将线程取消后重新创建(补救措施,大概率没用作用)
     if (texLoading && !getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1)) {
         if (++texLoadingTimeOut >= 600) { // 没有按住按键，且加载超过10秒时，重置texLoading
-            pthread_cancel(tid1);
-            pthread_cancel(tid2);
-            pthread_cancel(tid3);
-            pthread_create(&tid1, &attr, cacheLoadImage, &req1);
-            pthread_create(&tid2, &attr, cacheLoadImage, &req2);
-            pthread_create(&tid3, &attr, cacheLoadImage, &req3);
-            texLoading = 0;
+            if (usePthread) {
+                pthread_cancel(tid1);
+                pthread_cancel(tid2);
+                pthread_cancel(tid3);
+                pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+                pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+                pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+                texLoading = 0;
+            } else {
+                ;
+            }
         }
     } else
         texLoadingTimeOut = 0;
@@ -261,16 +261,16 @@ void flushBatchRequests(void)
 
 void cacheInit()
 {
-    wakeupIdSema.init_count = 0;
-    wakeupIdSema.max_count = 1;
-    wakeupIdSema.option = 0;
+    ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage1);
+    if (usePthread) {
+        wakeupIdSema.init_count = 0;
+        wakeupIdSema.max_count = 1;
+        wakeupIdSema.option = 0;
 
-    req1.wakeupId = CreateSema(&wakeupIdSema);
-    req2.wakeupId = CreateSema(&wakeupIdSema);
-    req3.wakeupId = CreateSema(&wakeupIdSema);
-    if (!usePthread)
-        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage_Official);
-    else {
+        req1.wakeupId = CreateSema(&wakeupIdSema);
+        req2.wakeupId = CreateSema(&wakeupIdSema);
+        req3.wakeupId = CreateSema(&wakeupIdSema);
+
         // 初始化pthread线程属性
         pthread_attr_init(&attr);
 
@@ -283,7 +283,6 @@ void cacheInit()
         pthread_create(&tid1, &attr, cacheLoadImage, &req1);
         pthread_create(&tid2, &attr, cacheLoadImage, &req2);
         pthread_create(&tid3, &attr, cacheLoadImage, &req3);
-        ioRegisterHandler(IO_CACHE_LOAD_ART, &cacheLoadImage1);
     }
 
     //// 使用pthread的多线程方法
@@ -320,25 +319,26 @@ void cacheEnd()
                 break;
         }
 
-        // 设置退出标志，并全部唤醒
-        SignalSema(req1.wakeupId);
-        SignalSema(req2.wakeupId);
-        SignalSema(req3.wakeupId);
+        if (waitTime < 4000) {
+            // 设置退出标志，并全部唤醒
+            SignalSema(req1.wakeupId);
+            SignalSema(req2.wakeupId);
+            SignalSema(req3.wakeupId);
 
-        // 等待线程全部退出
-        pthread_join(tid1, NULL);
-        pthread_join(tid2, NULL);
-        pthread_join(tid3, NULL);
+            // 等待线程全部退出
+            pthread_join(tid1, NULL);
+            pthread_join(tid2, NULL);
+            pthread_join(tid3, NULL);
+        }
 
         // 销毁资源
         pthread_attr_destroy(&attr);
         pthread_mutex_destroy(&texLoadingMutex);
+        DeleteSema(req1.wakeupId);
+        DeleteSema(req2.wakeupId);
+        DeleteSema(req3.wakeupId);
     }
-    DeleteSema(req1.wakeupId);
-    DeleteSema(req2.wakeupId);
-    DeleteSema(req3.wakeupId);
     // nothing to do... others have to destroy the cache via cacheDestroyCache
-
 }
 
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
@@ -543,17 +543,27 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             // 使用官方的多线程方法
             cacheClearItem(oldestEntry, 1);
             oldestEntry->qr = 1;
-
             // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
             if (*UID == -1)
                 oldestEntry->UID = *UID = cache->nextUID++;
             else
                 oldestEntry->UID = *UID;
+
+            //  使用pthread的多线程方法
+            pthread_mutex_lock(&texLoadingMutex);
+            if (texLoading >= 0)
+                texLoading++;
+            else
+                texLoading = 1;
+            pthread_mutex_unlock(&texLoadingMutex);
             load_image_request_t *req = calloc(1, sizeof(load_image_request_t));
             req->cache = cache;
             req->cacheId = *cacheId;
             req->list = list;
             req->value = value;
+            req->qr = 1;
+
+            // 官方方法加载其他图片
             ioPutRequest(IO_CACHE_LOAD_ART, req);
         } else {
             //  加载图片
