@@ -217,9 +217,9 @@ void flushBatchRequests(void)
     if (texLoading && !getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1)) {
         if (++texLoadingTimeOut >= 600) { // 没有按住按键，且加载超过10秒时，重置texLoading
             if (usePthread) {
-                pthread_cancel(tid1);
-                pthread_cancel(tid2);
-                pthread_cancel(tid3);
+                //pthread_cancel(tid1);
+                //pthread_cancel(tid2);
+                //pthread_cancel(tid3);
                 pthread_create(&tid1, &attr, cacheLoadImage, &req1);
                 pthread_create(&tid2, &attr, cacheLoadImage, &req2);
                 pthread_create(&tid3, &attr, cacheLoadImage, &req3);
@@ -278,7 +278,7 @@ void cacheInit()
         // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
         // 设置合适的栈空间，防止爆栈等错误
-        pthread_attr_setstacksize(&attr, 512 * 1024); // kb
+        pthread_attr_setstacksize(&attr, 1024 * 1024); // kb
 
         pthread_create(&tid1, &attr, cacheLoadImage, &req1);
         pthread_create(&tid2, &attr, cacheLoadImage, &req2);
