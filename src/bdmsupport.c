@@ -921,8 +921,17 @@ int bdmUpdateDeviceData(item_list_t *itemList)
             else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3) {
                 pDeviceData->bdmDeviceType = BDM_TYPE_ATA;
                 itemList->flags = MODE_FLAG_COMPAT_DMA;
-            } else
+            } else {
+                // debug
+                char debugFileDir[64];
+                strcpy(debugFileDir, "mass0:debug-appImage.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "UNKNOWN bdmDriver:%s\r\n", pDeviceData->bdmDriver);
+                    fclose(debugFile);
+                }
                 pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
+            }
 
             // 根据BDM类型开启相应的分桶开关
             char art2Path[128];
@@ -983,19 +992,16 @@ int bdmUpdateDeviceData(item_list_t *itemList)
             fileXioDclose(dir);
             return result;
         }
-    } else if (dir < 0) {
-        itemList->enabled = 0;
-        if (visible == 1) {
-            // Device has been removed, make the menu item invisible. We can't really cleanup resources (like the game list) just yet
-            // as we don't know if the data is being used asynchronously.
-            if (itemList->owner != NULL) {
-                LOG("bdmUpdateDeviceData: setting device %d invisible\n", itemList->mode);
-                ((opl_io_module_t *)itemList->owner)->menuItem.visible = 0;
-            }
-
-            LOG("Mass device: %d (%d) disconnected\n", itemList->mode, pDeviceData->massDeviceIndex);
-            return -1;
+    } else if (dir < 0 && visible == 1) {
+        // Device has been removed, make the menu item invisible. We can't really cleanup resources (like the game list) just yet
+        // as we don't know if the data is being used asynchronously.
+        if (itemList->owner != NULL) {
+            LOG("bdmUpdateDeviceData: setting device %d invisible\n", itemList->mode);
+            ((opl_io_module_t *)itemList->owner)->menuItem.visible = 0;
         }
+
+        LOG("Mass device: %d (%d) disconnected\n", itemList->mode, pDeviceData->massDeviceIndex);
+        return -1;
     }
     return 0;
 }
