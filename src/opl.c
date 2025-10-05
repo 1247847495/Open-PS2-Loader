@@ -312,28 +312,7 @@ static void itemExecSelect(struct menu_item *curMenu)
                 if (support->mode == BDM_MODE) {
                     // Initialize support for all bdm modules.
                     bdmManualTrigger = 1;
-                    for (int i = 0; i <= BDM_MODE4; i++) {
-
-                        opl_io_module_t *mod = &list_support[i];
-                        itemInitSupport(mod->support);
-
-                        // 手动模式根据设备开关，设定隐藏初始值（可能有负面影响）
-                        mod->menuItem.visible = 0;
-                        bdm_device_data_t *pDeviceData = mod->support->priv;
-                        if (pDeviceData != NULL) {
-                            if (pDeviceData->bdmDeviceType == BDM_TYPE_USB)
-                                mod->menuItem.visible = gEnableUSB;
-                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ILINK)
-                                mod->menuItem.visible = gEnableILK;
-                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_SDC)
-                                mod->menuItem.visible = gEnableMX4SIO;
-                            else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
-                                mod->menuItem.visible = gEnableBdmHDD;
-                        }
-                    }
-                    theardInitDone = 1;
-                    // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
-                    reFindBDM();
+                    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
                 } else {
                     // Normal initialization.
                     itemInitSupport(support);
