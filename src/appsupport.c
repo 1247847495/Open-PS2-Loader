@@ -470,10 +470,11 @@ static config_set_t *appGetConfig(item_list_t *itemList, int id)
 
 static int appGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
+    return oplGetAppImage(NULL, folder, isRelative, value, suffix, resultTex, psm);
     char device[8], *startup;
 
     startup = appGetBoot(device, sizeof(device), value);
-    return oplGetAppImage(device, folder, isRelative, startup, suffix, resultTex, psm);
+
     if (!strcmp(folder, "ART"))
         return oplGetAppImage(device, folder, isRelative, startup, suffix, resultTex, psm);
     else
