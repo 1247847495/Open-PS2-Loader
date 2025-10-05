@@ -590,33 +590,22 @@ int oplGetAppImage(const char *device, char *folder, int isRelative, char *value
         }
     }
 
-    //// We search on ever devices from fatest to slowest.
-    //for (remaining = MODE_COUNT, priority = 0; remaining > 0 && priority < 4; priority++) {
-    //    for (i = 0; i < MODE_COUNT; i++) {
-    //        listSupport = list_support[i].support;
+    // We search on ever devices from fatest to slowest.
+    for (remaining = MODE_COUNT, priority = 0; remaining > 0 && priority < 4; priority++) {
+        for (i = 0; i < MODE_COUNT; i++) {
+            listSupport = list_support[i].support;
 
-    //        if (i == elfbootmode)
-    //            continue;
+            if (i == elfbootmode)
+                continue;
 
-    //        if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->appsPriority == priority)) {
-    //            if (listSupport->itemGetImage(listSupport, folder, isRelative, value, suffix, resultTex, psm) >= 0)
-    //                return 0;
-    //            remaining--;
-    //        }
-    //    }
-    //}
-    // 如果第一次没找到图，则所有设备从HDD开始循环一次（不要重复循环，会极大的拖慢速度）
-    for (i = HDD_MODE; i >= 0; i--) {
-        listSupport = list_support[i].support;
-
-        if (i == elfbootmode)
-            continue;
-
-        if ((listSupport != NULL) && (listSupport->enabled)) {
-            if (listSupport->itemGetImage(listSupport, folder, isRelative, value, suffix, resultTex, psm) >= 0)
-                return 0;
+            if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->appsPriority == priority)) {
+                if (listSupport->itemGetImage(listSupport, folder, isRelative, value, suffix, resultTex, psm) >= 0)
+                    return 0;
+                remaining--;
+            }
         }
     }
+
     return -1;
 }
 
