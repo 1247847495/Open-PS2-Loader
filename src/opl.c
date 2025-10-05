@@ -590,18 +590,20 @@ int oplGetAppImage(const char *device, char *folder, int isRelative, char *value
         }
     }
 
-    // We search on ever devices from fatest to slowest.
-    for (remaining = MODE_COUNT, priority = 0; remaining > 0 && priority < 4; priority++) {
-        for (i = 0; i < MODE_COUNT; i++) {
-            listSupport = list_support[i].support;
+    if (elfbootmode == -1) {
+        // We search on ever devices from fatest to slowest.
+        for (remaining = MODE_COUNT, priority = 0; remaining > 0 && priority < 4; priority++) {
+            for (i = 0; i < MODE_COUNT; i++) {
+                listSupport = list_support[i].support;
 
-            if (i == elfbootmode)
-                continue;
+                if (i == elfbootmode)
+                    continue;
 
-            if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->appsPriority == priority)) {
-                if (listSupport->itemGetImage(listSupport, folder, isRelative, value, suffix, resultTex, psm) >= 0)
-                    return 0;
-                remaining--;
+                if ((listSupport != NULL) && (listSupport->enabled) && (listSupport->appsPriority == priority)) {
+                    if (listSupport->itemGetImage(listSupport, folder, isRelative, value, suffix, resultTex, psm) >= 0)
+                        return 0;
+                    remaining--;
+                }
             }
         }
     }
