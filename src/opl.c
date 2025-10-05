@@ -291,6 +291,7 @@ static void backLoadSupports_Manual(void)
                 mod->menuItem.visible = gEnableBdmHDD;
         }
     }
+    theardInitDone = 1;
     // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
     reFindBDM();
 }
