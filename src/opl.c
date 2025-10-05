@@ -1354,7 +1354,6 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
         } else {
             changed_backLoad = changed;
             langChanged_backLoad = langChanged;
-            theardInitDone = 0;
             ioPutRequest(IO_CUSTOM_SIMPLEACTION, &loadSupportsBackground);
         }
     } else {

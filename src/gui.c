@@ -1811,7 +1811,7 @@ void guiMainLoop(void)
                         }
                     }
                     mainScreenInitDone = 1;
-
+                    theardInitDone = 0;
                     // BDM自动模式时，启动变量直接改为1
                     if ((gBDMStartMode == START_MODE_AUTO) && !BdmStarted)
                         BdmStarted = 1;
