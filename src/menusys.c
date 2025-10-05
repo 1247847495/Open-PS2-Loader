@@ -1007,7 +1007,7 @@ static void menuRenderElements(theme_element_t *elem)
 void menuRenderMain(void)
 {
     item_list_t *list = selected_item->item->userdata;
-
+    infoScreen = 0;
     if (list->mode == APP_MODE) {
         menuRenderElements(gTheme->appsMainElems.first);
         gTheme->itemsList = gTheme->appsItemsList;
@@ -1064,7 +1064,7 @@ void menuHandleInputMain()
 void menuRenderInfo(void)
 {
     item_list_t *list = selected_item->item->userdata;
-
+    infoScreen = 1;
     if (list->mode == APP_MODE) {
         menuRenderElements(gTheme->appsInfoElems.first);
         gTheme->itemsList = gTheme->appsItemsList;
@@ -1072,7 +1072,6 @@ void menuRenderInfo(void)
         menuRenderElements(gTheme->infoElems.first);
         gTheme->itemsList = gTheme->gamesItemsList;
     }
-    infoScreen = 1;
     // selected_item can't be NULL here as we only allow to switch to "Main" rendering when there is at least one device activated
     _menuRequestConfig();
 }
@@ -1080,10 +1079,8 @@ void menuRenderInfo(void)
 void menuHandleInputInfo()
 {
     if (getKeyOn(KEY_CROSS)) {
-        if (gSelectButton == KEY_CIRCLE) {
+        if (gSelectButton == KEY_CIRCLE)
             guiSwitchScreen(GUI_SCREEN_MAIN);
-            infoScreen = 0;
-        }
         else
             selected_item->item->execCross(selected_item->item);
     } else if (getKey(KEY_UP)) {
@@ -1091,10 +1088,8 @@ void menuHandleInputInfo()
     } else if (getKey(KEY_DOWN)) {
         menuNextV();
     } else if (getKeyOn(KEY_CIRCLE)) {
-        if (gSelectButton == KEY_CROSS) {
+        if (gSelectButton == KEY_CROSS)
             guiSwitchScreen(GUI_SCREEN_MAIN);
-            infoScreen = 0;
-        }
         else
             selected_item->item->execCircle(selected_item->item);
     } else if (getKey(KEY_L1)) {
