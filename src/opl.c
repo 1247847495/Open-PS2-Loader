@@ -292,8 +292,6 @@ static void backLoadSupports_Manual(void)
         }
     }
     theardInitDone = 1;
-    // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
-    reFindBDM();
 }
 static void itemExecSelect(struct menu_item *curMenu)
 {  
@@ -313,6 +311,8 @@ static void itemExecSelect(struct menu_item *curMenu)
                     // Initialize support for all bdm modules.
                     bdmManualTrigger = 1;
                     ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
+                    // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
+                    reFindBDM();
                 } else {
                     // Normal initialization.
                     itemInitSupport(support);
