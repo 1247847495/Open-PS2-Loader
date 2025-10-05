@@ -1760,62 +1760,62 @@ void guiMainLoop(void)
             }
         }
 
-        // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
-        if (endIntroDelayFrame > 0) {
-            // 所有设备准备就绪，才可以结束延迟
-            if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
-                //// debug  打印debug信息
-                //char debugFileDir[64];
-                //strcpy(debugFileDir, "smb:debug-BDMReady.txt");
-                //// sprintf(debugFileDir, "%sdebug.txt", prefix);
-                //FILE *debugFile = fopen(debugFileDir, "ab+");
-                //if (debugFile != NULL) {
-                //    fprintf(debugFile, "找到设备，耗时：%d帧\r\nUsbFound:%d  GptFound:%d\r\n\r\n", delayFrameCount, usbFound, GptFound);
-                //    delayFrameCount = 0;
-                //    fclose(debugFile);
-                //}
-                endIntroDelayFrame = 0;
-            } else {
-                if (theardInitDone)
-                    endIntroDelayFrame--; // 多线程初始化结束后，才开始计时
+        // 多线程初始化结束后，才开始处理设备
+        if (theardInitDone) {
+            // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
+            if (endIntroDelayFrame > 0) {
+                // 所有设备准备就绪，才可以结束延迟
+                if ((gEnableUSB <= usbFound) && (gEnableILK <= ILKFound) && (gEnableMX4SIO <= MX4SIOFound) && (gEnableBdmHDD <= GptFound)) {
+                    //// debug  打印debug信息
+                    // char debugFileDir[64];
+                    // strcpy(debugFileDir, "smb:debug-BDMReady.txt");
+                    //// sprintf(debugFileDir, "%sdebug.txt", prefix);
+                    // FILE *debugFile = fopen(debugFileDir, "ab+");
+                    // if (debugFile != NULL) {
+                    //     fprintf(debugFile, "找到设备，耗时：%d帧\r\nUsbFound:%d  GptFound:%d\r\n\r\n", delayFrameCount, usbFound, GptFound);
+                    //     delayFrameCount = 0;
+                    //     fclose(debugFile);
+                    // }
+                    endIntroDelayFrame = 0;
+                } else {
+                    // BDM设备超时，弹出提示框
+                    if ((greetingAlpha <= 0x00) && (endIntroDelayFrame <= 0) && ((gBDMStartMode == START_MODE_AUTO) || BdmStarted || bdmManualTrigger))
+                        bdmTimeOut = 1;
 
-                // BDM设备超时，弹出提示框
-                if ((greetingAlpha <= 0x00) && (endIntroDelayFrame <= 0) && ((gBDMStartMode == START_MODE_AUTO) || BdmStarted || bdmManualTrigger))
-                    bdmTimeOut = 1;
+                    //// debug  打印debug信息
+                    // delayFrameCount++;
+                    // if (endIntroDelayFrame <= 0) {
 
-                //// debug  打印debug信息
-                //delayFrameCount++;
-                //if (endIntroDelayFrame <= 0) {
-
-                //    
-                //    char debugFileDir[64];
-                //    strcpy(debugFileDir, "smb:debug-BDMReady.txt");
-                //    // sprintf(debugFileDir, "%sdebug.txt", prefix);
-                //    FILE *debugFile = fopen(debugFileDir, "ab+");
-                //    if (debugFile != NULL) {
-                //        fprintf(debugFile, "设备寻找超时，耗时：%d帧\r\nUsbisOn:%d  GptisOn:%d\r\n\r\n", delayFrameCount, gEnableUSB, gEnableBdmHDD);
-                //        delayFrameCount = 0;
-                //        fclose(debugFile);
-                //    }
-                //}
-            }              
-        } else {
-            // 一切就绪后，改变mainScreenInitDone变量
-            if (!mainScreenInitDone) {
-                if (gBDMStartMode || gHDDStartMode || gETHStartMode) {
-                    // 第一次启动，或手动启动BDM时，从全黑开始过度
-                    if (greetingAlpha > 0x00 || bdmManualTrigger) {
-                        // 手动启动BDM时，重置一次art预加载时间
-                        if (bdmManualTrigger)
-                            BdmStarted = 1;
-                        refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
-                    }
+                    //
+                    //    char debugFileDir[64];
+                    //    strcpy(debugFileDir, "smb:debug-BDMReady.txt");
+                    //    // sprintf(debugFileDir, "%sdebug.txt", prefix);
+                    //    FILE *debugFile = fopen(debugFileDir, "ab+");
+                    //    if (debugFile != NULL) {
+                    //        fprintf(debugFile, "设备寻找超时，耗时：%d帧\r\nUsbisOn:%d  GptisOn:%d\r\n\r\n", delayFrameCount, gEnableUSB, gEnableBdmHDD);
+                    //        delayFrameCount = 0;
+                    //        fclose(debugFile);
+                    //    }
+                    //}
                 }
-                mainScreenInitDone = 1;
+            } else {
+                // 一切就绪后，改变mainScreenInitDone变量
+                if (!mainScreenInitDone) {
+                    if (gBDMStartMode || gHDDStartMode || gETHStartMode) {
+                        // 第一次启动，或手动启动BDM时，从全黑开始过度
+                        if (greetingAlpha > 0x00 || bdmManualTrigger) {
+                            // 手动启动BDM时，重置一次art预加载时间
+                            if (bdmManualTrigger)
+                                BdmStarted = 1;
+                            refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
+                        }
+                    }
+                    mainScreenInitDone = 1;
 
-                // BDM自动模式时，启动变量直接改为1
-                if ((gBDMStartMode == START_MODE_AUTO) && !BdmStarted)
-                    BdmStarted = 1;
+                    // BDM自动模式时，启动变量直接改为1
+                    if ((gBDMStartMode == START_MODE_AUTO) && !BdmStarted)
+                        BdmStarted = 1;
+                }
             }
         }
         guiStartFrame();
