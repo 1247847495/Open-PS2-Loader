@@ -150,6 +150,7 @@ void bdmInit(item_list_t *itemList)
     pDeviceData->bdmGameCount = 0;
     pDeviceData->bdmGames = NULL;
     pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
+    pDeviceData->massDeviceIndex = -1;
     configGetInt(configGetByType(CONFIG_OPL), "usb_frames_delay", &itemList->delay);
     itemList->enabled = 1;
 }
@@ -920,8 +921,17 @@ int bdmUpdateDeviceData(item_list_t *itemList)
             else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3) {
                 pDeviceData->bdmDeviceType = BDM_TYPE_ATA;
                 itemList->flags = MODE_FLAG_COMPAT_DMA;
-            } else
+            } else {
+                // debug
+                char debugFileDir[64];
+                strcpy(debugFileDir, "mass0:debug-appImage.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "UNKNOWN bdmDriver:%s\r\n", pDeviceData->bdmDriver);
+                    fclose(debugFile);
+                }
                 pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
+            }
 
             // 根据BDM类型开启相应的分桶开关
             char art2Path[128];
