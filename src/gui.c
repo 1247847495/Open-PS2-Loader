@@ -1761,7 +1761,7 @@ void guiMainLoop(void)
         }
 
         // 多线程初始化结束后，才开始处理设备
-        if (theardInitDone) {
+{
             // 延迟显示游戏列表主界面，防止闪烁，delay期间让游戏列表有充分时间生成
             if (endIntroDelayFrame > 0) {
                 // 所有设备准备就绪，才可以结束延迟
