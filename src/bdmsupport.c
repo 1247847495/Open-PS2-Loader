@@ -643,8 +643,17 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
             else
                 snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
-        } /*else
-            snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);*/
+        } else {
+            // debug
+            char debugFileDir[64];
+            strcpy(debugFileDir, "mass0:debug-appImage.txt");
+            FILE *debugFile = fopen(debugFileDir, "ab+");
+            if (debugFile != NULL) {
+                fprintf(debugFile, "bdmDeviceType:%d  bdmPrefix:%s\r\n", pDeviceData->bdmDeviceType, pDeviceData->bdmPrefix);
+                fclose(debugFile);
+            }
+            snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
+        }
     } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
 
