@@ -649,7 +649,7 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
             strcpy(debugFileDir, "mass0:debug-appImage.txt");
             FILE *debugFile = fopen(debugFileDir, "ab+");
             if (debugFile != NULL) {
-                fprintf(debugFile, "bdmDeviceType:%d  bdmPrefix:%s\r\n", pDeviceData->bdmDeviceType, pDeviceData->bdmPrefix);
+                fprintf(debugFile, "bdmDeviceType:%d  bdmPrefix:%s  massDeviceIndex:%d\r\n", pDeviceData->bdmDeviceType, pDeviceData->bdmPrefix, pDeviceData->massDeviceIndex);
                 fclose(debugFile);
             }
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
