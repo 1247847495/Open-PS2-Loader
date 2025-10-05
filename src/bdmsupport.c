@@ -152,7 +152,7 @@ void bdmInit(item_list_t *itemList)
     pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
     pDeviceData->massDeviceIndex = -1;
     configGetInt(configGetByType(CONFIG_OPL), "usb_frames_delay", &itemList->delay);
-    itemList->enabled = 0;
+    itemList->enabled = 1;
 }
 
 static int bdmNeedsUpdate(item_list_t *itemList)
@@ -912,24 +912,26 @@ int bdmUpdateDeviceData(item_list_t *itemList)
             itemList->flags = 0;
 
             // Determine the bdm device type based on the underlying device driver.
-            if (!strcmp(pDeviceData->bdmDriver, "usb")) {
-                itemList->enabled = 1;
+            if (!strcmp(pDeviceData->bdmDriver, "usb"))
                 pDeviceData->bdmDeviceType = BDM_TYPE_USB;
-            }
-            else if (!strcmp(pDeviceData->bdmDriver, "sd") && strlen(pDeviceData->bdmDriver) == 2) {
-                itemList->enabled = 1;
+            else if (!strcmp(pDeviceData->bdmDriver, "sd") && strlen(pDeviceData->bdmDriver) == 2)
                 pDeviceData->bdmDeviceType = BDM_TYPE_ILINK;
-            }
-            else if (!strcmp(pDeviceData->bdmDriver, "sdc") && strlen(pDeviceData->bdmDriver) == 3) {
-                itemList->enabled = 1;
+            else if (!strcmp(pDeviceData->bdmDriver, "sdc") && strlen(pDeviceData->bdmDriver) == 3)
                 pDeviceData->bdmDeviceType = BDM_TYPE_SDC;
-            }
             else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3) {
-                itemList->enabled = 1;
                 pDeviceData->bdmDeviceType = BDM_TYPE_ATA;
                 itemList->flags = MODE_FLAG_COMPAT_DMA;
-            } else
+            } else {
+                // debug
+                char debugFileDir[64];
+                strcpy(debugFileDir, "mass0:debug-appImage.txt");
+                FILE *debugFile = fopen(debugFileDir, "ab+");
+                if (debugFile != NULL) {
+                    fprintf(debugFile, "UNKNOWN bdmDriver:%s\r\n", pDeviceData->bdmDriver);
+                    fclose(debugFile);
+                }
                 pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
+            }
 
             // 根据BDM类型开启相应的分桶开关
             char art2Path[128];
