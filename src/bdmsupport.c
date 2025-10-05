@@ -857,14 +857,14 @@ void bdmResolveLBA_UDMA(bdm_device_data_t *pDeviceData)
     else if(gDmaMode >= 0 && gDmaMode <= 2)
         hddSetTransferMode(0x20, gDmaMode);
 
-    //// debug
-    // char debugFileDir[64];
-    // strcpy(debugFileDir, "mass0:debug-UDMA.txt");
-    // FILE *debugFile = fopen(debugFileDir, "ab+");
-    // if (debugFile != NULL) {
-    //     fprintf(debugFile, "BDMHDD启动时：传输模式校准为UDMA %d\r\n", gDmaMode - 3);
-    //     fclose(debugFile);
-    // }
+    // debug
+    char debugFileDir[64];
+    strcpy(debugFileDir, "mass0:debug-UDMA.txt");
+    FILE *debugFile = fopen(debugFileDir, "ab+");
+    if (debugFile != NULL) {
+        fprintf(debugFile, "BDMHDD startUp：gDmaMode %d\r\n", gDmaMode);
+        fclose(debugFile);
+    }
 }
 
 //static int bdmHddCheckDone = 0;
