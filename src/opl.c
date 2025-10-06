@@ -295,6 +295,13 @@ static void backLoadSupports_Manual(void)
     // 手动启动BDM后，需要让gui有时间重新获取一次数据，并刷新主界面;
     reFindBDM();
 }
+static void itemExecSelect_background(void *userdata)
+{
+    item_list_t *support = userdata;
+    // Normal initialization.
+    itemInitSupport(support);
+    return;
+}
 static void itemExecSelect(struct menu_item *curMenu)
 {  
     if (mainScreenInitDone && !bdmManualTrigger)
@@ -313,10 +320,8 @@ static void itemExecSelect(struct menu_item *curMenu)
                     // Initialize support for all bdm modules.
                     bdmManualTrigger = 1;
                     ioPutRequest(IO_CUSTOM_SIMPLEACTION, &backLoadSupports_Manual);
-                } else {
-                    // Normal initialization.
-                    itemInitSupport(support);
-                }
+                } else
+                    ioPutRequest(IO_itemExecSelect, curMenu->userdata);
             }
         } else
             guiMsgBox("NULL Support object. Please report", 0, NULL);
@@ -1982,6 +1987,7 @@ static void init(void)
 
     // handler for deffered menu updates
     ioRegisterHandler(IO_MENU_UPDATE_DEFFERED, &menuDeferredUpdate);
+    ioRegisterHandler(IO_itemExecSelect, &itemExecSelect_background);
     cacheInit();
 
     gSelectButton = (InitConsoleRegionData() == CONSOLE_REGION_JAPAN) ? KEY_CIRCLE : KEY_CROSS;

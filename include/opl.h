@@ -52,6 +52,7 @@
 #define IO_MENU_UPDATE_DEFFERED   2
 #define IO_CACHE_LOAD_ART         3 // io call to handle the loading of covers
 #define IO_COMPAT_UPDATE_DEFFERED 4
+#define IO_itemExecSelect         5
 
 // Codes have been planned to fit the design of the GUI functions within gui.c.
 #define OPL_COMPAT_UPDATE_STAT_WIP        0
