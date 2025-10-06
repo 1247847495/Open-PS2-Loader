@@ -712,6 +712,7 @@ void guiShowUIConfig(void)
     // clang-format on
     int previousVMode;
     int previousTheme;
+    int previousTxtRename = gTxtRename;
 
     const char *coverArtMode[] = {"性能模式(仅支持PNG)", "兼容模式(JPG & PNG)", NULL};
 
@@ -765,7 +766,10 @@ reselect_video_mode:
         if (previousTheme != themeID && isBgmPlaying())
             bgmStop();
 
-        applyConfig(themeID, langID, 1);
+        if (ret == UIID_BTN_OK && previousTxtRename != gTxtRename)
+            applyConfig(themeID, langID, 0);
+        else
+            applyConfig(themeID, langID, 1);
 
         // 解决按确定键无音效问题，同时修复换主题后音效没更新的问题
         if (previousTheme != themeID)
