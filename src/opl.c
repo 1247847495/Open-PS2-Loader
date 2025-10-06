@@ -573,11 +573,11 @@ int oplPath2Mode(const char *path)
 
 int oplGetAppImage(const char *device, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
-    int i, remaining, elfbootmode;
-    char priority;
+    //int i, remaining, elfbootmode;
+    //char priority;
     item_list_t *listSupport;
 
-    elfbootmode = -1;
+    int elfbootmode = -1;
     if (device != NULL) {
         elfbootmode = oplPath2Mode(device);
         if (elfbootmode >= 0) {
@@ -606,7 +606,7 @@ int oplGetAppImage(const char *device, char *folder, int isRelative, char *value
     //    }
     //}
     // 如果第一次没找到图，则所有设备从HDD开始循环一次（不要重复循环，会极大的拖慢速度）
-    for (i = HDD_MODE; i >= 0; i--) {
+    for (int i = HDD_MODE; i >= 0; i--) {
         listSupport = list_support[i].support;
 
         if (i == elfbootmode)
@@ -1325,7 +1325,7 @@ static void loadSupportsBackground(void)
     }
     // BDM设备还需要刷新一下列表
     if (!mainScreenInitDone) {
-        for (i = BDM_MODE; i <= BDM_MODE4; i++) {
+        for (int i = BDM_MODE; i <= BDM_MODE4; i++) {
             bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
             if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
                 menuDeferredUpdate(&list_support[i].support->mode);
