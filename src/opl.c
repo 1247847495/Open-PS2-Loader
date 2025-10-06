@@ -1311,7 +1311,7 @@ int changed_backLoad = 0;
 int langChanged_backLoad = 0;
 static void loadSupportsBackground(void)
 {
-    initAllSupport(0);
+    initAllSupport(1);
 
     for (int i = 0; i < MODE_COUNT; i++) {
         if (list_support[i].support == NULL)
@@ -1323,6 +1323,14 @@ static void loadSupportsBackground(void)
         deferredAudioInit();
         deferredInit();
     }
+    //// BDM设备还需要刷新一下列表
+    //if (!mainScreenInitDone) {
+    //    for (i = BDM_MODE; i <= BDM_MODE4; i++) {
+    //        bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
+    //        if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
+    //            menuDeferredUpdate(&list_support[i].support->mode);
+    //    }
+    //}
     theardInitDone = 1;
 }
 void applyConfig(int themeID, int langID, int skipDeviceRefresh)
