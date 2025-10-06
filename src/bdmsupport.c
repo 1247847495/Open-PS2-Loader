@@ -644,17 +644,8 @@ static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char
                 snprintf(path, sizeof(path), "%sART2/APPS/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
             else
                 snprintf(path, sizeof(path), "%sART2/GAMES/%s/%s_%s", pDeviceData->bdmPrefix, value, value, suffix);
-        } else {
-            // debug
-            char debugFileDir[64];
-            strcpy(debugFileDir, "mass0:debug-appImage.txt");
-            FILE *debugFile = fopen(debugFileDir, "ab+");
-            if (debugFile != NULL) {
-                fprintf(debugFile, "bdmDeviceType:%d  bdmPrefix:%s  massDeviceIndex:%d\r\n", pDeviceData->bdmDeviceType, pDeviceData->bdmPrefix, pDeviceData->massDeviceIndex);
-                fclose(debugFile);
-            }
+        } else
             snprintf(path, sizeof(path), "%s%s/%s_%s", pDeviceData->bdmPrefix, folder, value, suffix);
-        }
     } else
         snprintf(path, sizeof(path), "%s%s_%s", folder, value, suffix);
 
@@ -921,17 +912,8 @@ int bdmUpdateDeviceData(item_list_t *itemList)
             else if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3) {
                 pDeviceData->bdmDeviceType = BDM_TYPE_ATA;
                 itemList->flags = MODE_FLAG_COMPAT_DMA;
-            } else {
-                // debug
-                char debugFileDir[64];
-                strcpy(debugFileDir, "mass0:debug-appImage.txt");
-                FILE *debugFile = fopen(debugFileDir, "ab+");
-                if (debugFile != NULL) {
-                    fprintf(debugFile, "UNKNOWN bdmDriver:%s\r\n", pDeviceData->bdmDriver);
-                    fclose(debugFile);
-                }
+            } else
                 pDeviceData->bdmDeviceType = BDM_TYPE_UNKNOWN;
-            }
 
             // 根据BDM类型开启相应的分桶开关
             char art2Path[128];
