@@ -620,12 +620,12 @@ static config_set_t *bdmGetConfig(item_list_t *itemList, int id)
 
 static int bdmGetImage(item_list_t *itemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
-    bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
-
-    if (!value || pDeviceData->bdmDeviceType == BDM_TYPE_UNKNOWN)
+    if (!value)
         return ERR_BAD_FILE;
 
     char path[256];
+    bdm_device_data_t *pDeviceData = (bdm_device_data_t *)itemList->priv;
+
     if (isRelative) {
         // 根据BDM类型开启相应的分桶开关
         int artUseBuckets = 0;
