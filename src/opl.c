@@ -854,7 +854,7 @@ static void menuUpdateHook()
         for (i = BDM_MODE; i <= BDM_MODE4; i++) {
             bdm_device_data_t *pDeviceData = (bdm_device_data_t *)list_support[i].support->priv;
             if ((list_support[i].support && list_support[i].support->enabled) && (pDeviceData->bdmPrefix[0] == '\0' || (pDeviceData->bdmDeviceType == BDM_TYPE_USB && gEnableUSB && pDeviceData->bdmGameCount == -1)))
-                menuDeferredUpdate(&list_support[i].support->mode); // 这个重试使用单线程，防止过多线程产生冲突。
+                ioPutRequest(IO_MENU_UPDATE_DEFFERED, &list_support[i].support->mode);
         }
     }
     // Schedule updates of all list handlers that are to run every frame, regardless of whether auto refresh is active or not.
