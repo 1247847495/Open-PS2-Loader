@@ -534,6 +534,7 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
 
     cache_entry_t *currEntry, *oldestEntry = NULL;
     int i;
+    int cacheId_temp = -1;
     u64 rtime = guiFrameId;
 
     // 寻找可替换的槽
@@ -543,11 +544,12 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         if (!currEntry->qr && (currEntry->lastUsed < rtime) && (PrevCacheID != i)) {
             oldestEntry = currEntry;
             rtime = currEntry->lastUsed;
-            *cacheId = i;
+            cacheId_temp = i;
         }
     }
 
     if (oldestEntry) {
+        *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
         if (!usePthread) {
             // 使用官方的多线程方法
             cacheClearItem(oldestEntry, 1);
