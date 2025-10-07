@@ -325,25 +325,25 @@ void cacheEnd()
             if (waitTime >= 4000) // 设置4秒超时时间，不让程序卡死
                 break;
         }
-
         if (waitTime < 4000) {
             // 设置退出标志，并全部唤醒
-            SignalSema(req1.wakeupId);
-            SignalSema(req2.wakeupId);
-            SignalSema(req3.wakeupId);
+            if (pthread_created_BG)
+                SignalSema(req1.wakeupId);
+            if (pthread_created_COV)
+                SignalSema(req2.wakeupId);
+            if (pthread_created_ICO)
+                SignalSema(req3.wakeupId);
 
-            // 等待线程全部退出
+            // 销毁pthread所有资源
             if (pthread_created_BG)
                 pthread_join(tid1, NULL);
             if (pthread_created_COV)
                 pthread_join(tid2, NULL);
             if (pthread_created_ICO)
                 pthread_join(tid3, NULL);
+            pthread_attr_destroy(&attr);
+            pthread_mutex_destroy(&texLoadingMutex);
         }
-
-        // 销毁资源
-        pthread_attr_destroy(&attr);
-        pthread_mutex_destroy(&texLoadingMutex);
         DeleteSema(req1.wakeupId);
         DeleteSema(req2.wakeupId);
         DeleteSema(req3.wakeupId);
