@@ -37,6 +37,11 @@ pthread_t tid3;
 pthread_attr_t attr;
 pthread_mutex_t texLoadingMutex = PTHREAD_MUTEX_INITIALIZER;
 
+// 线程是否已创建
+int pthread_created_BG = 0;
+int pthread_created_COV = 0;
+int pthread_created_ICO = 0;
+
 // 尝试添加线程wait信号量
 static ee_sema_t wakeupIdSema;
 
@@ -147,13 +152,17 @@ static void cacheLoadImage1(void *data)
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
+    int firstLoad = 1;
     load_image_request_t *ioReq = (load_image_request_t *)data;
     while (1) {
         if (forceSkipQr)
             return NULL;
 
         // 重置状态
-        ioReq->qr = 0;
+        if (firstLoad) {
+            firstLoad = 0;
+        } else
+            ioReq->qr = 0;
         WaitSema(ioReq->wakeupId);
         if (forceSkipQr)
             return NULL;
@@ -164,7 +173,7 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            return NULL;
+            continue;
         }
 
         item_list_t *handler = ioReq->list;
@@ -174,7 +183,7 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            return NULL;
+            continue;
         }
 
         // 光标指向的游戏ID和后台加载的art图片不符时，或者已经处于CD(按住和快速点击)时，停止加载图片，避免卡顿
@@ -184,7 +193,7 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
-            return NULL;
+            continue;
         }
 
         // 加载图片
@@ -279,10 +288,6 @@ void cacheInit()
 
         // 设置合适的栈空间，防止爆栈等错误
         pthread_attr_setstacksize(&attr, 1024 * 1024); // kb
-
-        pthread_create(&tid1, &attr, cacheLoadImage, &req1);
-        pthread_create(&tid2, &attr, cacheLoadImage, &req2);
-        pthread_create(&tid3, &attr, cacheLoadImage, &req3);
     }
 
     //// 使用pthread的多线程方法
@@ -326,9 +331,12 @@ void cacheEnd()
             SignalSema(req3.wakeupId);
 
             // 等待线程全部退出
-            pthread_join(tid1, NULL);
-            pthread_join(tid2, NULL);
-            pthread_join(tid3, NULL);
+            if (pthread_created_BG)
+                pthread_join(tid1, NULL);
+            if (pthread_created_COV)
+                pthread_join(tid2, NULL);
+            if (pthread_created_ICO)
+                pthread_join(tid3, NULL);
         }
 
         // 销毁资源
@@ -588,6 +596,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 req1.list = list;
                 req1.value = value;
                 req1.qr = 1;
+                if (!pthread_created_BG) {
+                    pthread_created_BG = 1;
+                    pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+                }
                 SignalSema(req1.wakeupId);
             } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
                 cacheClearItem(oldestEntry, 1);
@@ -610,6 +622,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 req2.list = list;
                 req2.value = value;
                 req2.qr = 1;
+                if (!pthread_created_COV) {
+                    pthread_created_COV = 1;
+                    pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+                }
                 SignalSema(req2.wakeupId);
             } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
                 cacheClearItem(oldestEntry, 1);
@@ -632,6 +648,10 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
                 req3.list = list;
                 req3.value = value;
                 req3.qr = 1;
+                if (!pthread_created_ICO) {
+                    pthread_created_ICO = 1;
+                    pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+                }
                 SignalSema(req3.wakeupId);
             } else {
                 cacheClearItem(oldestEntry, 1);
