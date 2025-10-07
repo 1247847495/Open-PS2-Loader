@@ -152,17 +152,11 @@ static void cacheLoadImage1(void *data)
 // Io handled action...
 static void *cacheLoadImage(void *data)
 {
-    int firstLoad = 1;
     load_image_request_t *ioReq = (load_image_request_t *)data;
     while (1) {
         if (forceSkipQr)
             return NULL;
 
-        // 重置状态
-        if (firstLoad) {
-            firstLoad = 0;
-        } else
-            ioReq->qr = 0;
         WaitSema(ioReq->wakeupId);
         if (forceSkipQr)
             return NULL;
@@ -173,6 +167,8 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
+            // 重置状态
+            ioReq->qr = 0;
             continue;
         }
 
@@ -183,6 +179,8 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
+            // 重置状态
+            ioReq->qr = 0;
             continue;
         }
 
@@ -193,6 +191,8 @@ static void *cacheLoadImage(void *data)
             if (texLoading > 0)
                 texLoading--;
             pthread_mutex_unlock(&texLoadingMutex);
+            // 重置状态
+            ioReq->qr = 0;
             continue;
         }
 
@@ -212,6 +212,8 @@ static void *cacheLoadImage(void *data)
             texLoading--;
         pthread_mutex_unlock(&texLoadingMutex);
         ioReq->cache->content[ioReq->cacheId].qr = 0;
+        // 重置状态
+        ioReq->qr = 0;
     }
     return NULL;
 }
