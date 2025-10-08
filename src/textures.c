@@ -106,8 +106,8 @@ extern void *apps_case_png;
 static int maxSize = 720 * 512 * 4;
 
 // 尝试添加open文件时的临界区
-//s32 fileLockId;
-//static ee_sema_t fileLockSema;
+static s32 fileLockId;
+static ee_sema_t fileLockSema;
 
 //// 用来计算搜索图片的消耗时间
 //static u64 beforeTime = 0;
@@ -139,15 +139,15 @@ typedef struct
 
 void texInit(void)
 {
-    //fileLockSema.init_count = 1;
-    //fileLockSema.max_count = 1;
-    //fileLockSema.option = 0;
-    //fileLockId = CreateSema(&fileLockSema);
+    fileLockSema.init_count = 1;
+    fileLockSema.max_count = 1;
+    fileLockSema.option = 0;
+    fileLockId = CreateSema(&fileLockSema);
 }
 
 void texFinish(void)
 {
-    //DeleteSema(fileLockId);
+    DeleteSema(fileLockId);
 }
 
 static texture_t internalDefault[TEXTURES_COUNT] = {
@@ -475,10 +475,10 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
     void *PngFileBufferPtr = NULL;
     void *pFileBuffer = NULL;
     if (filePath) {
-        //WaitSema(fileLockId);
+        WaitSema(fileLockId);
         int fd = open(filePath, O_RDONLY);
         if (fd < 0) {
-            //SignalSema(fileLockId);
+            SignalSema(fileLockId);
             return ERR_BAD_FILE;
         }
 
@@ -488,7 +488,7 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
         pFileBuffer = malloc(fileSize);
         if (pFileBuffer == NULL) {
             close(fd);
-            //SignalSema(fileLockId);
+            SignalSema(fileLockId);
             return ERR_BAD_FILE; // There's no out of memory error...
         }
 
@@ -496,14 +496,12 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             LOG("texLoadAll: failed to read file %s\n", filePath);
             free(pFileBuffer);
             close(fd);
-            //SignalSema(fileLockId);
+            SignalSema(fileLockId);
             return ERR_BAD_FILE;
         }
-
-        close(fd);
-        //SignalSema(fileLockId);
-
         PngFileBufferPtr = pFileBuffer;
+        close(fd);
+        SignalSema(fileLockId);
     } else {
         if (texId == -1 || !internalDefault[texId].texture)
             return ERR_BAD_FILE;
