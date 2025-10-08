@@ -236,6 +236,9 @@ void flushBatchRequests(void)
                 if (pthread_created_ICO)
                     pthread_cancel(tid3);
 
+                // 线程分离，如果不需要pthread_join
+                 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
                 if (pthread_created_BG)
                     pthread_create(&tid1, &attr, cacheLoadImage, &req1);
                 if (pthread_created_COV)
@@ -334,15 +337,15 @@ void cacheEnd()
             if (waitTime >= 4000) // 设置4秒超时时间，不让程序卡死
                 break;
         }
-        if (waitTime < 4000) {
-            // 设置退出标志，并全部唤醒
-            if (pthread_created_BG)
-                SignalSema(req1.wakeupId);
-            if (pthread_created_COV)
-                SignalSema(req2.wakeupId);
-            if (pthread_created_ICO)
-                SignalSema(req3.wakeupId);
+        // 设置退出标志，并全部唤醒
+        if (pthread_created_BG)
+            SignalSema(req1.wakeupId);
+        if (pthread_created_COV)
+            SignalSema(req2.wakeupId);
+        if (pthread_created_ICO)
+            SignalSema(req3.wakeupId);
 
+        if (waitTime < 4000) {
             // 销毁pthread所有资源
             if (pthread_created_BG)
                 pthread_join(tid1, NULL);
