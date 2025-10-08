@@ -481,14 +481,14 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             SignalSema(fileLockId);
             return ERR_BAD_FILE;
         }
-
+        SignalSema(fileLockId);
         int fileSize = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
 
         pFileBuffer = malloc(fileSize);
         if (pFileBuffer == NULL) {
             close(fd);
-            SignalSema(fileLockId);
+            //SignalSema(fileLockId);
             return ERR_BAD_FILE; // There's no out of memory error...
         }
 
@@ -496,12 +496,11 @@ static int texLoadAll(GSTEXTURE *texture, const char *filePath, int texId)
             LOG("texLoadAll: failed to read file %s\n", filePath);
             free(pFileBuffer);
             close(fd);
-            SignalSema(fileLockId);
+            //SignalSema(fileLockId);
             return ERR_BAD_FILE;
         }
         PngFileBufferPtr = pFileBuffer;
         close(fd);
-        SignalSema(fileLockId);
     } else {
         if (texId == -1 || !internalDefault[texId].texture)
             return ERR_BAD_FILE;
