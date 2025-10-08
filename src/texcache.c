@@ -9,7 +9,8 @@
 #include <pthread.h>
 
 int ForceRefreshPrevTexCache = 0;
-volatile int forceSkipQr = 0;
+int forceSkipQr = 0;
+int texLoading = 0;
 
 static int PrevCacheID = -2;
 static int PrevCacheID_COV = -2;
@@ -21,8 +22,8 @@ static int PrevCacheID_BG = -2;
 static int buttonPressedOnce = 0;  // 快速连按时，每次按键只重置CD帧数一次
 static int cdFrames = 30;         // 一轮Art图Qr后的CD时间(帧数)
 static int skipQr = 0;             // 判断是否可以跳过请求Qr队列
-static volatile int cdFramesCount = 0; // 手动重复按键
-volatile int texLoading = 0;
+static int cdFramesCount = 0; // 手动重复按键
+
 //int buttonFrames = 0; // 按住按键的帧数，用来跳过cdFrames
 //static u64 prevGuiFrameId = 0; // 和guiFrameId进行比对，判断是否完成了一轮Qr
 static char *curStartUp = NULL;
@@ -228,12 +229,20 @@ void flushBatchRequests(void)
     if (texLoading && !getKeyPressed(KEY_UP) && !getKeyPressed(KEY_DOWN) && !getKeyPressed(KEY_L1) && !getKeyPressed(KEY_R1)) {
         if (++texLoadingTimeOut >= 600) { // 没有按住按键，且加载超过10秒时，重置texLoading
             if (usePthread) {
-                //pthread_cancel(tid1);
-                //pthread_cancel(tid2);
-                //pthread_cancel(tid3);
-                pthread_create(&tid1, &attr, cacheLoadImage, &req1);
-                pthread_create(&tid2, &attr, cacheLoadImage, &req2);
-                pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+                if (pthread_created_BG)
+                    pthread_cancel(tid1);
+                if (pthread_created_COV)
+                    pthread_cancel(tid2);
+                if (pthread_created_ICO)
+                    pthread_cancel(tid3);
+
+                if (pthread_created_BG)
+                    pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+                if (pthread_created_COV)
+                    pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+                if (pthread_created_ICO)
+                    pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+
                 texLoading = 0;
             } else {
                 ;
@@ -497,32 +506,30 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
         return NULL;
     } else if (*cacheId != -1) {
         cache_entry_t *entry = &cache->content[*cacheId];
-        if (entry) {
-            if (entry->UID == *UID) {
-                if (entry->qr) {
-                    return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
-                } else if (entry->texFound == 0) {
-                    *cacheId = -2;
-                    // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                    if (!strncmp("COV", cache->suffix, 3))
+        if (entry->UID == *UID) {
+            if (entry->qr) {
+                return PrevCacheID < 0 ? NULL : &cache->content[PrevCacheID].texture;
+            } else if (entry->texFound == 0) {
+                *cacheId = -2;
+                // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
+                if (!strncmp("COV", cache->suffix, 3))
+                    PrevCacheID_COV = *cacheId;
+                else if (!strncmp("ICO", cache->suffix, 3))
+                    PrevCacheID_ICO = *cacheId;
+                else if (!strncmp("BG", cache->suffix, 2))
+                    PrevCacheID_BG = *cacheId;
+                return NULL;
+            } else if (entry->texFound == 1) {
+                if (entry->texture.Mem) {
+                    // entry->lastUsed = guiFrameId;
+                    //  根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
+                    if (!strncmp("BG", cache->suffix, 2))
+                        PrevCacheID_BG = *cacheId;
+                    else if (!strncmp("COV", cache->suffix, 3))
                         PrevCacheID_COV = *cacheId;
                     else if (!strncmp("ICO", cache->suffix, 3))
                         PrevCacheID_ICO = *cacheId;
-                    else if (!strncmp("BG", cache->suffix, 2))
-                        PrevCacheID_BG = *cacheId;
-                    return NULL;
-                } else if (entry->texFound == 1) {
-                    if (entry->texture.Mem) {
-                        //entry->lastUsed = guiFrameId;
-                        // 根据图像类型，将缓存分类保存，替代NULL时的默认图(防止闪烁)
-                        if (!strncmp("BG", cache->suffix, 2))
-                            PrevCacheID_BG = *cacheId;
-                        else if (!strncmp("COV", cache->suffix, 3))
-                            PrevCacheID_COV = *cacheId;
-                        else if (!strncmp("ICO", cache->suffix, 3))
-                            PrevCacheID_ICO = *cacheId;
-                        return &entry->texture;
-                    }
+                    return &entry->texture;
                 }
             }
         }
@@ -549,8 +556,8 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
     }
 
     if (oldestEntry) {
-        *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
         if (!usePthread) {
+            *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
             // 使用官方的多线程方法
             cacheClearItem(oldestEntry, 1);
             oldestEntry->qr = 1;
@@ -578,85 +585,95 @@ GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId
             ioPutRequest(IO_CACHE_LOAD_ART, req);
         } else {
             //  加载图片
-            if (!strncmp("BG", cache->suffix, 2) && !req1.qr) {
-                cacheClearItem(oldestEntry, 1);
-                oldestEntry->qr = 1;
-                // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-                if (*UID == -1)
-                    oldestEntry->UID = *UID = cache->nextUID++;
-                else
-                    oldestEntry->UID = *UID;
+            if (!strncmp("BG", cache->suffix, 2)) {
+                if (!req1.qr) {
+                    *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
+                    cacheClearItem(oldestEntry, 1);
+                    oldestEntry->qr = 1;
+                    // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+                    if (*UID == -1)
+                        oldestEntry->UID = *UID = cache->nextUID++;
+                    else
+                        oldestEntry->UID = *UID;
 
-                //  使用pthread的多线程方法
-                pthread_mutex_lock(&texLoadingMutex);
-                if (texLoading >= 0)
-                    texLoading++;
-                else
-                    texLoading = 1;
-                pthread_mutex_unlock(&texLoadingMutex);
-                req1.cache = cache;
-                req1.cacheId = *cacheId;
-                req1.list = list;
-                req1.value = value;
-                req1.qr = 1;
-                if (!pthread_created_BG) {
-                    pthread_created_BG = 1;
-                    pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+                    //  使用pthread的多线程方法
+                    pthread_mutex_lock(&texLoadingMutex);
+                    if (texLoading >= 0)
+                        texLoading++;
+                    else
+                        texLoading = 1;
+                    pthread_mutex_unlock(&texLoadingMutex);
+                    req1.cache = cache;
+                    req1.cacheId = *cacheId;
+                    req1.list = list;
+                    req1.value = value;
+                    req1.qr = 1;
+                    if (!pthread_created_BG) {
+                        pthread_created_BG = 1;
+                        pthread_create(&tid1, &attr, cacheLoadImage, &req1);
+                    }
+                    SignalSema(req1.wakeupId);
                 }
-                SignalSema(req1.wakeupId);
-            } else if (!strncmp("COV", cache->suffix, 3) && !req2.qr) {
-                cacheClearItem(oldestEntry, 1);
-                oldestEntry->qr = 1;
-                // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-                if (*UID == -1)
-                    oldestEntry->UID = *UID = cache->nextUID++;
-                else
-                    oldestEntry->UID = *UID;
+            } else if (!strncmp("COV", cache->suffix, 3)) {
+                if (!req2.qr) {
+                    *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
+                    cacheClearItem(oldestEntry, 1);
+                    oldestEntry->qr = 1;
+                    // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+                    if (*UID == -1)
+                        oldestEntry->UID = *UID = cache->nextUID++;
+                    else
+                        oldestEntry->UID = *UID;
 
-                //  使用pthread的多线程方法
-                pthread_mutex_lock(&texLoadingMutex);
-                if (texLoading >= 0)
-                    texLoading++;
-                else
-                    texLoading = 1;
-                pthread_mutex_unlock(&texLoadingMutex);
-                req2.cache = cache;
-                req2.cacheId = *cacheId;
-                req2.list = list;
-                req2.value = value;
-                req2.qr = 1;
-                if (!pthread_created_COV) {
-                    pthread_created_COV = 1;
-                    pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+                    //  使用pthread的多线程方法
+                    pthread_mutex_lock(&texLoadingMutex);
+                    if (texLoading >= 0)
+                        texLoading++;
+                    else
+                        texLoading = 1;
+                    pthread_mutex_unlock(&texLoadingMutex);
+                    req2.cache = cache;
+                    req2.cacheId = *cacheId;
+                    req2.list = list;
+                    req2.value = value;
+                    req2.qr = 1;
+                    if (!pthread_created_COV) {
+                        pthread_created_COV = 1;
+                        pthread_create(&tid2, &attr, cacheLoadImage, &req2);
+                    }
+                    SignalSema(req2.wakeupId);
                 }
-                SignalSema(req2.wakeupId);
-            } else if (!strncmp("ICO", cache->suffix, 3) && !req3.qr) {
-                cacheClearItem(oldestEntry, 1);
-                oldestEntry->qr = 1;
-                // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
-                if (*UID == -1)
-                    oldestEntry->UID = *UID = cache->nextUID++;
-                else
-                    oldestEntry->UID = *UID;
+            } else if (!strncmp("ICO", cache->suffix, 3)) {
+                if (!req3.qr) {
+                    *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
+                    cacheClearItem(oldestEntry, 1);
+                    oldestEntry->qr = 1;
+                    // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
+                    if (*UID == -1)
+                        oldestEntry->UID = *UID = cache->nextUID++;
+                    else
+                        oldestEntry->UID = *UID;
 
-                //  使用pthread的多线程方法
-                pthread_mutex_lock(&texLoadingMutex);
-                if (texLoading >= 0)
-                    texLoading++;
-                else
-                    texLoading = 1;
-                pthread_mutex_unlock(&texLoadingMutex);
-                req3.cache = cache;
-                req3.cacheId = *cacheId;
-                req3.list = list;
-                req3.value = value;
-                req3.qr = 1;
-                if (!pthread_created_ICO) {
-                    pthread_created_ICO = 1;
-                    pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+                    //  使用pthread的多线程方法
+                    pthread_mutex_lock(&texLoadingMutex);
+                    if (texLoading >= 0)
+                        texLoading++;
+                    else
+                        texLoading = 1;
+                    pthread_mutex_unlock(&texLoadingMutex);
+                    req3.cache = cache;
+                    req3.cacheId = *cacheId;
+                    req3.list = list;
+                    req3.value = value;
+                    req3.qr = 1;
+                    if (!pthread_created_ICO) {
+                        pthread_created_ICO = 1;
+                        pthread_create(&tid3, &attr, cacheLoadImage, &req3);
+                    }
+                    SignalSema(req3.wakeupId);
                 }
-                SignalSema(req3.wakeupId);
             } else {
+                *cacheId = cacheId_temp; // 指针赋值放在for循环外面，只赋值一次，防止竞态
                 cacheClearItem(oldestEntry, 1);
                 oldestEntry->qr = 1;
                 // UID没有分配时，才重新分配UID，也许可以解决一些BUG？
