@@ -945,8 +945,6 @@ int bdmUpdateDeviceData(item_list_t *itemList)
                     ((opl_io_module_t *)itemList->owner)->menuItem.visible = gEnableMX4SIO;
                 else if (pDeviceData->bdmDeviceType == BDM_TYPE_ATA)
                     ((opl_io_module_t *)itemList->owner)->menuItem.visible = gEnableBdmHDD;
-                else if (pDeviceData->bdmDeviceType == BDM_TYPE_UNKNOWN)
-                    ((opl_io_module_t *)itemList->owner)->menuItem.visible = 1; // 未知设备默认显示出来
                 else
                     ((opl_io_module_t *)itemList->owner)->menuItem.visible = 0; // 默认隐藏
             }
