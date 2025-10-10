@@ -446,13 +446,8 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
     void *irx = NULL;
     int irx_size = 0;
-    if (!strcmp(pDeviceData->bdmDriver, "ata") && strlen(pDeviceData->bdmDriver) == 3) {
-        irx = &bdm_ata_cdvdman_irx;
-        irx_size = size_bdm_ata_cdvdman_irx;
-    } else {
-        irx = &bdm_cdvdman_irx;
-        irx_size = size_bdm_cdvdman_irx;
-    }
+    irx = &bdm_cdvdman_irx;
+    irx_size = size_bdm_cdvdman_irx;
 
     compatmask = sbPrepare(game, configSet, irx_size, irx, &index);
     settings = (struct cdvdman_settings_bdm *)((u8 *)irx + index);
@@ -606,8 +601,9 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         settings->common.fakemodule_flags |= 0;
         sysLaunchLoaderElf(filename, "BDM_M4S_MODE", irx_size, irx, size_mcemu_irx, bdm_mcemu_irx, EnablePS2Logo, compatmask);
     } else if (!strcmp(bdmCurrentDriver, "ata") && strlen(bdmCurrentDriver) == 3) {
-        settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_USBD;
-        sysLaunchLoaderElf(filename, "BDM_USB_MODE", irx_size, irx, size_mcemu_irx, bdm_mcemu_irx, EnablePS2Logo, compatmask);
+        settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_DEV9;
+        settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_ATAD;
+        sysLaunchLoaderElf(filename, "BDM_ATA_MODE", irx_size, irx, size_mcemu_irx, bdm_mcemu_irx, EnablePS2Logo, compatmask);
     }
 }
 
