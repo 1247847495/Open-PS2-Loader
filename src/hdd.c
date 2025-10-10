@@ -142,29 +142,6 @@ struct GameDataEntry
     char id[APA_IDMAX + 1];
 };
 
-// utf8转换函数
-int gb2312_to_utf8(const char *inbuf, int inlen, char *outbuf, int outlen)
-{
-    iconv_t cd = iconv_open("UTF-8", "GB2312");
-    if (cd == (iconv_t)-1)
-        return -1;
-
-    char *pin = (char *)inbuf;
-    char *pout = outbuf;
-    int ilen = inlen;
-    int olen = outlen;
-
-    memset(outbuf, 0, outlen);
-    int ret = iconv(cd, &pin, &ilen, &pout, &olen);
-    if (ret == -1) {
-        iconv_close(cd);
-        return -1;
-    }
-
-    iconv_close(cd);
-    // 返回实际写入长度（不含结尾0）
-    return outlen - olen;
-}
 static int hddGetHDLGameInfo(struct GameDataEntry *game, hdl_game_info_t *ginfo, FILE *file)
 {
     int ret;
@@ -176,15 +153,8 @@ static int hddGetHDLGameInfo(struct GameDataEntry *game, hdl_game_info_t *ginfo,
 
         strncpy(ginfo->partition_name, game->id, APA_IDMAX);
         ginfo->partition_name[APA_IDMAX] = '\0';
-
-        // 将gb2312转换为utf8编码
-        int utf8_len = gb2312_to_utf8(hdl_header->gamename, strlen(hdl_header->gamename), ginfo->name, HDL_GAME_NAME_MAX + 1);
-        if (utf8_len >= 0)
-            ginfo->name[HDL_GAME_NAME_MAX] = '\0'; // 冗余确保结尾
-        else {
-            strncpy(ginfo->name, hdl_header->gamename, HDL_GAME_NAME_MAX);
-            ginfo->name[HDL_GAME_NAME_MAX] = '\0';
-        }
+        strncpy(ginfo->name, hdl_header->gamename, HDL_GAME_NAME_MAX);
+        ginfo->name[HDL_GAME_NAME_MAX] = '\0';
 
         if (gTxtRename && file) {
             ginfo->indexName[0] = '\0';
