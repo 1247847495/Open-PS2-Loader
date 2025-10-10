@@ -3,6 +3,7 @@
 #include "include/ioman.h"
 #include "include/hddsupport.h"
 #include "include/gui.h"
+#include <iconv.h>
 
 #define NEWLIB_PORT_AWARE
 #include <fileXio_rpc.h>
