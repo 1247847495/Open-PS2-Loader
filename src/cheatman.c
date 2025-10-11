@@ -349,6 +349,14 @@ static inline char *read_text_file(const char *filename, int maxsize)
     }
 
     buf[filesize] = '\0';
+    // 检查并去除 UTF-8 BOM (0xEF, 0xBB, 0xBF)
+    if (filesize >= 3 &&
+        (unsigned char)buf[0] == 0xEF &&
+        (unsigned char)buf[1] == 0xBB &&
+        (unsigned char)buf[2] == 0xBF) {
+        // 将后面的内容前移
+        memmove(buf, buf + 3, filesize - 2); // 包含结尾0
+    }
     close(fd);
 
     return buf;

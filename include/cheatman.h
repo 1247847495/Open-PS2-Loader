@@ -39,7 +39,7 @@
 #define MAX_HOOKS      5
 #define MAX_CODES      250
 #define MAX_CHEATLIST  (MAX_HOOKS * 2 + MAX_CODES * 2)
-#define CHEAT_NAME_MAX 128
+#define CHEAT_NAME_MAX 255
 
 /* Some character defines */
 #define NUL         0x00
