@@ -253,6 +253,12 @@ static int parse_buf(const char *buf)
     if (buf == NULL)
         return -1;
 
+    // Skip UTF-8 BOM if present (0xEF,0xBB,0xBF)
+    if ((unsigned char)buf[0] == 0xEF &&
+        (unsigned char)buf[1] == 0xBB &&
+        (unsigned char)buf[2] == 0xBF) {
+        buf += 3;
+    }
     while (*buf) {
         /* Scanner */
         int len = chr_idx(buf, LF);
@@ -349,14 +355,6 @@ static inline char *read_text_file(const char *filename, int maxsize)
     }
 
     buf[filesize] = '\0';
-    // 检查并去除 UTF-8 BOM (0xEF, 0xBB, 0xBF)
-    if (filesize >= 3 &&
-        (unsigned char)buf[0] == 0xEF &&
-        (unsigned char)buf[1] == 0xBB &&
-        (unsigned char)buf[2] == 0xBF) {
-        // 将后面的内容前移
-        memmove(buf, buf + 3, filesize - 2); // 包含结尾0
-    }
     close(fd);
 
     return buf;
