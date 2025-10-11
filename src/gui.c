@@ -1590,8 +1590,9 @@ static void guiShow()
 }
 void guiIntroFrame(void)
 {
+    guiStartFrame();
     guiRenderGreeting(0x80);
-    guiShow(); // 可以防止同时开启多个BDM设备时，欢迎界面会闪烁的问题
+    guiEndFrame();
 }
 void guiIntroLoop(void)
 {
