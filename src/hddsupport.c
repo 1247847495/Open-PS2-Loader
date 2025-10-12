@@ -588,8 +588,8 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     // gHDDSpindown [0..20] -> spindown [0..240] -> seconds [0..1200]
     hddSetIdleTimeout(gHDDSpindown * 12);
 
-    size_irx = size_hdd_cdvdman_irx;
-    irx = &hdd_cdvdman_irx;
+    size_irx = size_hdd_hdpro_cdvdman_irx;
+    irx = &hdd_hdpro_cdvdman_irx;
 
     sbPrepare(NULL, configSet, size_irx, irx, &i);
 
