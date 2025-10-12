@@ -135,6 +135,7 @@ static void ResetIopSpecial(const char *args, unsigned int arglen)
             LoadOPLModule(OPL_MODULE_ID_SMBINIT, 0, 0, NULL);
             break;
         case HDD_MODE:
+            LoadOPLModule(OPL_MODULE_ID_USBD, 0, 11, "thpri=2,3");
             LoadOPLModule(OPL_MODULE_ID_USBMASSBD, 0, 0, NULL);
             break;
         case BDM_ILK_MODE:
@@ -145,6 +146,7 @@ static void ResetIopSpecial(const char *args, unsigned int arglen)
             LoadOPLModule(OPL_MODULE_ID_MX4SIOBD, 0, 0, NULL);
             break;
         case BDM_HDD_MODE:
+            LoadOPLModule(OPL_MODULE_ID_USBD, 0, 11, "thpri=2,3");
             LoadOPLModule(OPL_MODULE_ID_USBMASSBD, 0, 0, NULL);
             break;
     };
