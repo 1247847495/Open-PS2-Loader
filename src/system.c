@@ -475,7 +475,7 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
     else if (!strcmp(mode_str, "BDM_M4S_MODE"))
         modules |= CORE_IRX_MX4SIO;
     else if (!strcmp(mode_str, "BDM_ATA_MODE"))
-        modules |= CORE_IRX_HDD;
+        modules |= CORE_IRX_USB;
     else if (!strcmp(mode_str, "ETH_MODE"))
         modules |= CORE_IRX_ETH | CORE_IRX_SMB;
     else
@@ -533,10 +533,7 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
         irxptr_tab[modcount].info = size_smbinit_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_SMBINIT);
         irxptr_tab[modcount++].ptr = (void *)&smbinit_irx;
     }
-    if (modules & CORE_IRX_HDD) {
-        irxptr_tab[modcount].info = size_usbmass_bd_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_USBMASSBD);
-        irxptr_tab[modcount++].ptr = (void *)&usbmass_bd_irx;
-    }
+
     if (modules & CORE_IRX_VMC) {
         irxptr_tab[modcount].info = size_mcemu_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_MCEMU);
         irxptr_tab[modcount++].ptr = (void *)mcemu_irx;
