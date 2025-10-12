@@ -311,11 +311,11 @@ static int cdvdman_read_sectors(u32 lsn, unsigned int sectors, void *buf)
         }
 
         cdvdman_stat.err = DeviceReadSectorsPtr(lsn, ptr, SectorsToRead);
-        if (cdvdman_stat.err != SCECdErNO) {
-            if (cdvdman_settings.common.flags & IOPCORE_COMPAT_ACCU_READS)
-                CancelAlarm(&cdvdemu_read_end_cb, NULL);
-            break;
-        }
+        //if (cdvdman_stat.err != SCECdErNO) {
+        //    if (cdvdman_settings.common.flags & IOPCORE_COMPAT_ACCU_READS)
+        //        CancelAlarm(&cdvdemu_read_end_cb, NULL);
+        //    break;
+        //}
 
         /* PS2LOGO Decryptor algorithm; based on misfire's code (https://github.com/mlafeldt/ps2logo)
            The PS2 logo is stored within the first 12 sectors, scrambled.

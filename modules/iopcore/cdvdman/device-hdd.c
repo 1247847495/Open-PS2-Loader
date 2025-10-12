@@ -121,9 +121,10 @@ int DeviceReadSectors(u32 lsn, void *buffer, unsigned int sectors)
             nsectors = sectors;
 
         u32 lba = cdvdman_partspecs[CurrentPart].data_start + ((lsn - cdvdman_partspecs[CurrentPart].part_offset) << 2);
-        if (sceAtaDmaTransfer(0, (void *)((u8 *)buffer + offset), lba, nsectors << 2, ATA_DIR_READ) != 0) {
-            return SCECdErREAD;
-        }
+        //if (sceAtaDmaTransfer(0, (void *)((u8 *)buffer + offset), lba, nsectors << 2, ATA_DIR_READ) != 0) {
+        //    return SCECdErREAD;
+        //}
+        sceAtaDmaTransfer(0, (void *)((u8 *)buffer + offset), lba, nsectors << 2, ATA_DIR_READ); // 出错了也继续推进
         offset += nsectors * 2048;
         sectors -= nsectors;
         lsn += nsectors;
