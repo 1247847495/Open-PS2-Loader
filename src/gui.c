@@ -67,7 +67,7 @@ static int defaultDelayFrame = 360;
 static int ShortDelayTime = 100;
 static int endIntroDelayFrame = 0;
 static int bdmTimeOut = 0;
-static int artLoadDelayTime = 600;
+static int artLoadDelayTime = 200;
 
 #ifdef __DEBUG
 
@@ -1655,11 +1655,8 @@ void guiIntroLoop(void)
 void reFindBDM()
 {
     if (bdmManualTrigger) {
-        if (!artLoadDelayTime) {
-            artLoadDelayTime = 600;
-            if (!gEnableUSB)
-                artLoadDelayTime *= 1.4f;
-        }
+        if (!artLoadDelayTime)
+            artLoadDelayTime = 200;
     }
     //int curLongDelayFrame = defaultDelayFrame;
     //int curShortDelayFrame = ShortDelayTime;
@@ -1726,14 +1723,6 @@ void guiMainLoop(void)
     //// debug
     //int delayFrameCount = 0;
 
-    // 自动模式时，需要预加载art图片
-    if ((gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO) || (gDefaultDevice == HDD_MODE && gHDDStartMode == START_MODE_AUTO) || (gDefaultDevice == ETH_MODE && gETHStartMode == START_MODE_AUTO) || (gDefaultDevice == APP_MODE && gAPPStartMode == START_MODE_AUTO)) {
-        // Usb关闭时，默认选单为BDM，则artLoadDelayTime需要延长
-        if (!gEnableUSB && (gDefaultDevice == BDM_MODE && gBDMStartMode == START_MODE_AUTO))
-            artLoadDelayTime *= 1.4f;
-    } else
-        artLoadDelayTime = 0; // 手动模式时，不需要art预加载
-
     while (!gTerminate) {
         // 各种弹窗提示
         if (greetingAlpha <= 0x00) {
@@ -1778,6 +1767,7 @@ void guiMainLoop(void)
                     // }
                     endIntroDelayFrame = 0;
                 } else {
+                    menuUpdateBDMSupport(); // 继续尝试检索bdm设备
                     endIntroDelayFrame--;
                     // BDM设备超时，弹出提示框
                     if ((greetingAlpha <= 0x00) && (endIntroDelayFrame <= 0) && ((gBDMStartMode == START_MODE_AUTO) || BdmStarted || bdmManualTrigger))
