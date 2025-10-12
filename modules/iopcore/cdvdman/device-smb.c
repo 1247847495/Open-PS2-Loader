@@ -138,7 +138,10 @@ int DeviceReadSectors(u32 lsn, void *buffer, unsigned int sectors)
             } else
                 esc_flag = 1;
 
-            smb_ReadCD(offslsn, sectors_to_read, &p[r], i);
+            if (smb_ReadCD(offslsn, sectors_to_read, &p[r], i) <= 0) {
+                rv = SCECdErREAD;
+                break;
+            }
 
             r += sectors_to_read * 2048;
             offslsn += sectors_to_read;

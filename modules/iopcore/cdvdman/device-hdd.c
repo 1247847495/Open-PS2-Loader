@@ -113,14 +113,17 @@ int DeviceReadSectors(u32 lsn, void *buffer, unsigned int sectors)
     u32 offset = 0;
     while (sectors) {
         if (!((lsn >= cdvdman_partspecs[CurrentPart].part_offset) && (lsn < (cdvdman_partspecs[CurrentPart].part_offset + (cdvdman_partspecs[CurrentPart].part_size / 2048)))))
-            cdvdman_get_part_specs(lsn);
+            if (cdvdman_get_part_specs(lsn) != 0)
+                return SCECdErTRMOPN;
 
         u32 nsectors = (cdvdman_partspecs[CurrentPart].part_offset + (cdvdman_partspecs[CurrentPart].part_size / 2048)) - lsn;
         if (sectors < nsectors)
             nsectors = sectors;
 
         u32 lba = cdvdman_partspecs[CurrentPart].data_start + ((lsn - cdvdman_partspecs[CurrentPart].part_offset) << 2);
-        sceAtaDmaTransfer(0, (void *)((u8 *)buffer + offset), lba, nsectors << 2, ATA_DIR_READ);
+        if (sceAtaDmaTransfer(0, (void *)((u8 *)buffer + offset), lba, nsectors << 2, ATA_DIR_READ) != 0) {
+            return SCECdErREAD;
+        }
         offset += nsectors * 2048;
         sectors -= nsectors;
         lsn += nsectors;
