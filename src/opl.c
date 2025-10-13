@@ -2039,14 +2039,16 @@ static void deferredInit(void)
 {
 
     // inform GUI main init part is over
-    struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
-    guiDeferUpdate(id);
+    //struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
+    //guiDeferUpdate(id);
 
+    // 尝试优化初始化流程，预防卡住主进程
     if (list_support[gDefaultDevice].support) {
-        id = guiOpCreate(GUI_OP_SELECT_MENU);
+        struct gui_update_t *id = guiOpCreate(GUI_OP_SELECT_MENU);
         id->menu.menu = &list_support[gDefaultDevice].menuItem;
         guiDeferUpdate(id);
-    }
+    } else
+        gInitComplete = 1; // 如果默认设备初始化失败，不要卡住主进程
 }
 
 static void deferredAudioInit(void)
