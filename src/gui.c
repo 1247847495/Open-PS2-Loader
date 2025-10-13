@@ -1084,7 +1084,7 @@ static void guiHandleOp(struct gui_update_t *item)
         case GUI_OP_SELECT_MENU:
             menuSetSelectedItem(item->menu.menu);
             screenHandler = &screenHandlers[GUI_SCREEN_MAIN];
-            gInitComplete = 1;
+            //gInitComplete = 1;
             break;
 
         case GUI_OP_CLEAR_SUBMENU:
