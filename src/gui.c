@@ -1638,9 +1638,9 @@ void guiIntroLoop(void)
         if (!screenHandlerTarget && screenHandler)
             screenHandler->handleInput();
 
-        // 也许可以解决无限转圈
-        if (theardInitDone && !gInitComplete)
-            gInitComplete = 1;
+        //// 也许可以解决无限转圈
+        //if (theardInitDone && !gInitComplete)
+        //    gInitComplete = 1;
     }
 }
 
