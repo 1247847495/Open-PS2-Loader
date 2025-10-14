@@ -2046,9 +2046,7 @@ static void deferredInit(void)
     int defaultDeviceIndex = gDefaultDevice;
     if (defaultDeviceIndex == BDM_MODE) {
         if (!gEnableUSB)
-            defaultDeviceIndex += (gEnableILK + gEnableMX4SIO + gEnableBdmHDD);
-        //if (!gEnableUSB)
-        //    defaultDeviceIndex += 1;
+            defaultDeviceIndex += (gEnableILK || gEnableMX4SIO || gEnableBdmHDD);
     }
     // 尝试优化初始化流程，预防卡住主进程
     if (list_support[defaultDeviceIndex].support) {
