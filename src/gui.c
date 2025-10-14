@@ -1790,7 +1790,7 @@ void guiMainLoop(void)
                             // 手动启动BDM时，重置一次art预加载时间
                             if (bdmManualTrigger)
                                 BdmStarted = 1;
-                            refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
+                            //refreshMenuPosition(); // 先切换screen，再刷新BDM菜单的停留位置才有效
                         }
                     }
                     mainScreenInitDone = 1;
