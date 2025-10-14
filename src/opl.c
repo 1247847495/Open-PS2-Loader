@@ -2045,14 +2045,10 @@ static void deferredInit(void)
     // 尝试让BDM页面，停留在已开启的第一个页面上。
     int defaultDeviceIndex = gDefaultDevice;
     if (defaultDeviceIndex == BDM_MODE) {
-        if (gEnableUSB)
-            defaultDeviceIndex = BDM_MODE;
-        else if (gEnableILK)
-            defaultDeviceIndex = BDM_MODE1;
-        else if (gEnableMX4SIO)
-            defaultDeviceIndex = BDM_MODE2;
-        else if (gEnableBdmHDD)
-            defaultDeviceIndex = BDM_MODE3;
+        if (!gEnableUSB)
+            defaultDeviceIndex += (gEnableILK + gEnableMX4SIO + gEnableBdmHDD);
+        //if (!gEnableUSB)
+        //    defaultDeviceIndex += 1;
     }
     // 尝试优化初始化流程，预防卡住主进程
     if (list_support[defaultDeviceIndex].support) {
