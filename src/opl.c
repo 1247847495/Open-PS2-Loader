@@ -1357,10 +1357,10 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
     guiSetFrameHook(&menuUpdateHook);
 
     int changed = rmSetMode(0);
-    int bugIsMuted = 0;
+    int bgmIsMuted = 0;
     if (changed) {
         bgmMute();
-        bugIsMuted = 1;
+        bgmIsMuted = 1;
         // reinit the graphics...
         thmReloadScreenExtents();
         guiReloadScreenExtents();
@@ -1400,7 +1400,7 @@ void applyConfig(int themeID, int langID, int skipDeviceRefresh)
             }
         }
     }
-    if (bugIsMuted)
+    if (bgmIsMuted)
         bgmUnMute();
 
 
