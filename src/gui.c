@@ -1844,7 +1844,7 @@ void guiMainLoop(void)
 
         // if not transiting, handle input
         // done here so we can use renderman if needed
-        if (!screenHandlerTarget && screenHandler)
+        if (!screenHandlerTarget && screenHandler && mainScreenInitDone)
             screenHandler->handleInput();
 
         if (gFrameHook)
