@@ -399,7 +399,7 @@ static int hddUpdateGameList(item_list_t *itemList)
     hdl_games_list_t hddGamesNew;
     int ret;
 
-    if (((ret = hddLoadGameListCache(&hddGames)) != 0) || (hddForceUpdate)) {
+    if (hddForceUpdate || ((ret = hddLoadGameListCache(&hddGames)) != 0)) {
         hddGamesNew.count = 0;
         hddGamesNew.games = NULL;
         ret = hddGetHDLGamelist(&hddGamesNew);
