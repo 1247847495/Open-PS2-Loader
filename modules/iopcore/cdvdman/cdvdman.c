@@ -366,54 +366,56 @@ static int cdvdman_read(u32 lsn, u32 sectors, u16 sector_size, void *buf)
         offset = 12; // head - sub - data(2048) -- edc-ecc
 
     buf = (void *)PHYSADDR(buf);
+    //if ((u32)(buf) & 3 || (sector_size != 2048)) {
+    //    // For transfers to unaligned buffers, a double-copy is required to avoid stalling the device's DMA channel.
+    //    WaitSema(cdvdman_searchfilesema);
 
-        // For transfers to unaligned buffers, a double-copy is required to avoid stalling the device's DMA channel.
-        WaitSema(cdvdman_searchfilesema);
+    //    u32 nsectors, nbytes;
+    //    u32 rpos = lsn;
 
-        u32 nsectors, nbytes;
-        u32 rpos = lsn;
+    //    while (sectors > 0) {
+    //        nsectors = sectors;
+    //        if (nsectors > CDVDMAN_BUF_SECTORS)
+    //            nsectors = CDVDMAN_BUF_SECTORS;
 
-        while (sectors > 0) {
-            nsectors = sectors;
-            if (nsectors > CDVDMAN_BUF_SECTORS)
-                nsectors = CDVDMAN_BUF_SECTORS;
+    //        // For other sizes we can only read one sector at a time.
+    //        // There are only very few games (CDDA games, EA Tiburon) that will be affected
+    //        if (sector_size != 2048)
+    //            nsectors = 1;
 
-            // For other sizes we can only read one sector at a time.
-            // There are only very few games (CDDA games, EA Tiburon) that will be affected
-            if (sector_size != 2048)
-                nsectors = 1;
+    //        cdvdman_read_sectors(rpos, nsectors, cdvdman_buf);
 
-            cdvdman_read_sectors(rpos, nsectors, cdvdman_buf);
+    //        rpos += nsectors;
+    //        sectors -= nsectors;
+    //        nbytes = nsectors * sector_size;
 
-            rpos += nsectors;
-            sectors -= nsectors;
-            nbytes = nsectors * sector_size;
+    //        // Copy the data for buffer.
+    //        // For any sector other than 2048 one sector at a time is copied.
+    //        memcpy((void *)((u32)buf + offset), cdvdman_buf, nbytes);
 
-            // Copy the data for buffer.
-            // For any sector other than 2048 one sector at a time is copied.
-            memcpy((void *)((u32)buf + offset), cdvdman_buf, nbytes);
+    //        // For these custom sizes we need to manually fix the header.
+    //        // For 2340 we have 12bytes. 4 are position.
+    //        if (sector_size == 2340) {
+    //            u8 *header = (u8 *)buf;
+    //            // position.
+    //            sceCdlLOCCD p;
+    //            sceCdIntToPos(rpos - 1, &p); // to get current pos.
+    //            header[0] = p.minute;
+    //            header[1] = p.second;
+    //            header[2] = p.sector;
+    //            header[3] = 0; // p.track for cdda only non-zero
 
-            // For these custom sizes we need to manually fix the header.
-            // For 2340 we have 12bytes. 4 are position.
-            if (sector_size == 2340) {
-                u8 *header = (u8 *)buf;
-                // position.
-                sceCdlLOCCD p;
-                sceCdIntToPos(rpos - 1, &p); // to get current pos.
-                header[0] = p.minute;
-                header[1] = p.second;
-                header[2] = p.sector;
-                header[3] = 0; // p.track for cdda only non-zero
-
-                // Subheader and copy of subheader.
-                header[4] = header[8] = 0;
-                header[5] = header[9] = 0;
-                header[6] = header[10] = 0x8;
-                header[7] = header[11] = 0;
-            }
-            buf = (void *)((u8 *)buf + nbytes);
-        }
-        SignalSema(cdvdman_searchfilesema);
+    //            // Subheader and copy of subheader.
+    //            header[4] = header[8] = 0;
+    //            header[5] = header[9] = 0;
+    //            header[6] = header[10] = 0x8;
+    //            header[7] = header[11] = 0;
+    //        }
+    //        buf = (void *)((u8 *)buf + nbytes);
+    //    }
+    //    SignalSema(cdvdman_searchfilesema);
+    //} else
+        cdvdman_read_sectors(lsn, sectors, buf);
 
     ReadPos = 0; /* Reset the buffer offset indicator. */
 
