@@ -73,8 +73,8 @@ void PrepareGSM(char *cmdline, struct GsmConfig_t *config)
     // clang-format off
     static const predef_vmode_struct predef_vmode[29] = {
         //                                                            DH    DW   MAGV MAGH  DY   DX              VS  VDP  VBPE  VBP VFPE  VFP
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2559, 0,   3,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FRAME, makeDISPLAY(223,  2559, 0,   3,   26,  700), makeSYNCV(6,  480,  6,    26,  6,   2)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1439, 0,   1,   35,  232), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1439, 0,   0,   35,  232), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_PAL,         GS_FIELD, makeDISPLAY(511,  2559, 0,   3,   70,  720), makeSYNCV(5,  576,  5,    33,  5,   1)},
         {GS_INTERLACED,    GS_MODE_PAL,         GS_FRAME, makeDISPLAY(255,  2559, 0,   3,   37,  720), makeSYNCV(5,  576,  5,    33,  5,   4)},
         {GS_INTERLACED,    GS_MODE_PAL,         GS_FIELD, makeDISPLAY(447,  2559, 0,   3,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
