@@ -381,8 +381,8 @@ void guiGameShowGSConfig(void)
     const char *settingsSource[] = {_l(_STR_GLOBAL_SETTINGS), _l(_STR_PERGAME_SETTINGS), NULL};
     // clang-format off
     const char *gsmvmodeNames[] = {
-        "NTSC",
-        "NTSC Non Interlaced",
+        "480i常规模式(CRT适用)",
+        "480i收缩模式(现代电视可横向拉伸到4比3)",
         "PAL",
         "PAL Non Interlaced",
         "PAL @60Hz",
