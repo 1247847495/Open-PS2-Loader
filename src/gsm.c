@@ -73,9 +73,9 @@ void PrepareGSM(char *cmdline, struct GsmConfig_t *config)
     // clang-format off
     static const predef_vmode_struct predef_vmode[29] = {
         //                                                            DH    DW   MAGV MAGH  DY   DX              VS  VDP  VBPE  VBP VFPE  VFP
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   0,   45,  950), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   0,   50,  1000), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2000, 0,   0,   55,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   0,   54,  949), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   0,   53,  948), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   0,   52,  947), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2100, 0,   0,   60,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2200, 0,   0,   65,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2300, 0,   0,   70,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
