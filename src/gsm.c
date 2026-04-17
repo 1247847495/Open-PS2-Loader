@@ -73,12 +73,12 @@ void PrepareGSM(char *cmdline, struct GsmConfig_t *config)
     // clang-format off
     static const predef_vmode_struct predef_vmode[29] = {
         //                                                            DH    DW   MAGV MAGH  DY   DX              VS  VDP  VBPE  VBP VFPE  VFP
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  3100, 0,   1,   -5,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  2100, 0,   1,   -5,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(575,  3100, 0,   4,   -5,  450), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  1919, 0,   2,   -5,  450), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   3,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   2,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   3,   0,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   3,   46,  0), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  2047, 0,   3,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  2559, 0,   3,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   4,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
+        {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(479,  1919, 0,   0,   46,  700), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(255,  2559, 0,   1,   12,  736), makeSYNCV(6,  483,  3072, 30,  0,   6)},
         {GS_NONINTERLACED, GS_MODE_DTV_576P,    GS_FRAME, makeDISPLAY(255,  2559, 0,   1,   23,  756), makeSYNCV(5,  576,  0,    39,  0,   5)},
         {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(479,  1439, 0,   1,   35,  232), makeSYNCV(6,  483,  3072, 30,  0,   6)},
