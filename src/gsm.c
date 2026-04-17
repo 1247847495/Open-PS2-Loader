@@ -81,7 +81,7 @@ void PrepareGSM(char *cmdline, struct GsmConfig_t *config)
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2300, 0,   0,   70,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2400, 0,   0,   75,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
         {GS_INTERLACED,    GS_MODE_NTSC,        GS_FIELD, makeDISPLAY(447,  2500, 0,   0,   80,  900), makeSYNCV(6,  480,  6,    26,  6,   1)},
-        {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(479,  1439, 0,   1,   35,  232), makeSYNCV(6,  483,  3072, 30,  0,   6)},
+        {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(479,  1279, 0,   1,   35,  232), makeSYNCV(6,  483,  3072, 30,  0,   6)},
         {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(479,  1099, 0,   0,   35,  500), makeSYNCV(6,  483,  3072, 30,  0,   6)},
         {GS_NONINTERLACED, GS_MODE_DTV_480P,    GS_FRAME, makeDISPLAY(479,  1099, 1,   1,   35,  500), makeSYNCV(6,  483,  3072, 30,  0,   6)},
         {GS_INTERLACED,    GS_MODE_DTV_1080I,   GS_FIELD, makeDISPLAY(1079, 1919, 1,   2,   48,  238), makeSYNCV(10, 1080, 2,    28,  0,   5)},
