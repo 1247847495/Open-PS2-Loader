@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
 
-      - name: Install PS2DEV toolchain
+      - name: Install PS2 toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
@@ -25,9 +25,9 @@ jobs:
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install Custom PS2SDK
+      - name: Install OFFICIAL PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
 
-      - name: Install PS2DEV toolchain
+      - name: Install PS2 toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
@@ -84,9 +84,9 @@ jobs:
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install Custom PS2SDK
+      - name: Install OFFICIAL PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
@@ -131,7 +131,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
 
-      - name: Install PS2DEV toolchain
+      - name: Install PS2 toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
@@ -139,9 +139,9 @@ jobs:
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install Custom PS2SDK
+      - name: Install OFFICIAL PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
@@ -176,7 +176,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
 
-      - name: Install PS2DEV toolchain
+      - name: Install PS2 toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
@@ -184,9 +184,9 @@ jobs:
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install Custom PS2SDK
+      - name: Install OFFICIAL PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
