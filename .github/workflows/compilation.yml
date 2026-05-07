@@ -15,23 +15,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
 
-      - name: Install PS2 toolchain
+      - name: Install PS2DEV toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
-          ./build-toolchain.sh
+          ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install OFFICIAL PS2SDK
+      - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
           echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
+
+      - name: Install YOUR ps2sdk-ports
+        run: |
+          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
+          cd ~/ps2sdk-ports
+          make
+          make install
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -74,23 +81,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
 
-      - name: Install PS2 toolchain
+      - name: Install PS2DEV toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
-          ./build-toolchain.sh
+          ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install OFFICIAL PS2SDK
+      - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
           echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
+
+      - name: Install YOUR ps2sdk-ports
+        run: |
+          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
+          cd ~/ps2sdk-ports
+          make
+          make install
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -116,7 +130,7 @@ jobs:
     needs: build-variants
     steps:
       - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+        uses: upload-artifact/merge@v4
         with:
           name: OPNPS2LD-VARIANTS
           pattern: OPNPS2LD-VARIANTS*
@@ -129,23 +143,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
 
-      - name: Install PS2 toolchain
+      - name: Install PS2DEV toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
-          ./build-toolchain.sh
+          ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install OFFICIAL PS2SDK
+      - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
           echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
+
+      - name: Install YOUR ps2sdk-ports
+        run: |
+          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
+          cd ~/ps2sdk-ports
+          make
+          make install
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -174,23 +195,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
 
-      - name: Install PS2 toolchain
+      - name: Install PS2DEV toolchain
         run: |
           git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
           cd ~/ps2dev
-          ./build-toolchain.sh
+          ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
           echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
-      - name: Install OFFICIAL PS2SDK
+      - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/ps2dev/ps2sdk.git ~/ps2sdk
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
           cd ~/ps2sdk
           make
           make install
           echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
+
+      - name: Install YOUR ps2sdk-ports
+        run: |
+          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
+          cd ~/ps2sdk-ports
+          make
+          make install
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -215,7 +243,7 @@ jobs:
     needs: build-debug
     steps:
       - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+        uses: upload-artifact/merge@v4
         with:
           name: OPNPS2LD-DEBUG
           pattern: opl-*
