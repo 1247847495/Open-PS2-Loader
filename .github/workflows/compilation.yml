@@ -15,11 +15,11 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
+      - name: Install tar & core dependencies
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+
       - name: git checkout
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
@@ -95,11 +95,11 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
+      - name: Install tar & core dependencies
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+
       - name: git checkout
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
@@ -170,11 +170,11 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
+      - name: Install tar & core dependencies
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+
       - name: git checkout
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
@@ -236,11 +236,11 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
+      - name: Install tar & core dependencies
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+
       - name: git checkout
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
