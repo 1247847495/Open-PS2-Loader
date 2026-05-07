@@ -21,7 +21,8 @@ jobs:
         run: |
           git clone https://github.com/1247847495/ps2sdk.git
           cd ps2sdk
-          ./install.sh
+          export PS2SDKSRC=$PWD
+           make clean && make -j$(nproc) && sudo make install
           echo "PS2SDK=$GITHUB_WORKSPACE/ps2sdk" >> $GITHUB_ENV
           echo "PATH=$PATH:$GITHUB_WORKSPACE/ps2sdk/bin" >> $GITHUB_ENV
 
