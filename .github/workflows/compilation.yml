@@ -15,16 +15,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+
+      - name: Install PS2DEV toolchain
+        run: |
+          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          cd ~/ps2dev
+          ./build-toolchain.sh
+          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install Custom PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git
-          cd ps2sdk
-          export PS2SDKSRC=$PWD
-           make clean && make -j$(nproc) && sudo make install
-          echo "PS2SDK=$GITHUB_WORKSPACE/ps2sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$GITHUB_WORKSPACE/ps2sdk/bin" >> $GITHUB_ENV
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          cd ~/ps2sdk
+          make
+          make install
+          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -67,15 +74,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+
+      - name: Install PS2DEV toolchain
+        run: |
+          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          cd ~/ps2dev
+          ./build-toolchain.sh
+          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install Custom PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git
-          cd ps2sdk
-          ./install.sh
-          echo "PS2SDK=$GITHUB_WORKSPACE/ps2sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$GITHUB_WORKSPACE/ps2sdk/bin" >> $GITHUB_ENV
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          cd ~/ps2sdk
+          make
+          make install
+          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -85,13 +100,10 @@ jobs:
         run: |
           echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
 
-      - name: Compile -> make ${{ matrix.extra }} ${{ matrix.pademu }} NOT_PACKED=1
+      - name: Compile
         run: |
           make --trace ${{ matrix.pademu }} ${{ matrix.extra }} NOT_PACKED=1
           mv opl.elf OPNPS2LD-${{ env.OPL_VERSION }}-${{ matrix.pademu }}-${{ matrix.extra }}.ELF
-
-      - name: Create detailed changelog
-        run: sh ./make_changelog.sh
 
       - name: Upload variants artifact ELF
         uses: actions/upload-artifact@v4
@@ -117,33 +129,39 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+
+      - name: Install PS2DEV toolchain
+        run: |
+          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          cd ~/ps2dev
+          ./build-toolchain.sh
+          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install Custom PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git
-          cd ps2sdk
-          ./install.sh
-          echo "PS2SDK=$GITHUB_WORKSPACE/ps2sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$GITHUB_WORKSPACE/ps2sdk/bin" >> $GITHUB_ENV
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          cd ~/ps2sdk
+          make
+          make install
+          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git fetch --prune --unshallow
 
-      - name: Compile -> make download_lng languages
+      - name: Compile languages
         run: make --trace download_lng languages
 
       - name: Create artifact
         run: sh ./lng_pack.sh
 
       - name: Upload release artifact
-        if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
           name: OPNPS2LD-LANGS
-          path: |
-            OPNPS2LD-LANGS-*.zip
+          path: OPNPS2LD-LANGS-*.zip
 
   build-debug:
     strategy:
@@ -156,25 +174,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev
+
+      - name: Install PS2DEV toolchain
+        run: |
+          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          cd ~/ps2dev
+          ./build-toolchain.sh
+          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install Custom PS2SDK
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git
-          cd ps2sdk
-          ./install.sh
-          echo "PS2SDK=$GITHUB_WORKSPACE/ps2sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$GITHUB_WORKSPACE/ps2sdk/bin" >> $GITHUB_ENV
+          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
+          cd ~/ps2sdk
+          make
+          make install
+          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git fetch --prune --unshallow
 
       - name: Get version
-        run: |
-          echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
+        run: echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
 
-      - name: Compile -> make debug
+      - name: Compile debug
         run: |
           make ${{ matrix.debug }} --trace
           mv opl.elf opl-${{ matrix.debug }}-${{ env.OPL_VERSION }}.elf
@@ -200,9 +225,6 @@ jobs:
     needs: [build, build-variants, build-lang]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/362053534-patch-1'
-    env:
-      USERNAME: ${{ secrets.USERNAME }}
-      PASSWORD: ${{ secrets.PASSWORD }}
     steps:
       - name: git checkout
         uses: actions/checkout@v4
@@ -210,24 +232,23 @@ jobs:
       - run: git fetch --prune --unshallow
 
       - name: Get version
-        run: |
-          echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
+        run: echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
       - name: Prepare artifacts for release
         run: |
-          echo packing release of OPL ${{ env.OPL_VERSION }}
-          cp INFO/* OPNPS2LD/
-          cp INFO/* OPNPS2LD-VARIANTS/
+          sudo apt install -y p7zip-full
+          cp INFO/* OPNPS2LD/ || true
+          cp INFO/* OPNPS2LD-VARIANTS/ || true
           7z a -t7z OPNPS2LD-${{ env.OPL_VERSION }}.7z OPNPS2LD/*
           7z a -t7z OPNPS2LD-VARIANTS-${{ env.OPL_VERSION }}.7z OPNPS2LD-VARIANTS/*
           7z a -t7z OPNPS2LD-LANGS-${{ env.OPL_VERSION }}.7z OPNPS2LD-LANGS/*
           cp -f OPNPS2LD-${{ env.OPL_VERSION }}.7z OPNPS2LD.7z
           cp -f OPNPS2LD-VARIANTS-${{ env.OPL_VERSION }}.7z OPNPS2LD-VARIANTS.7z
           cp -f OPNPS2LD-LANGS-${{ env.OPL_VERSION }}.7z OPNPS2LD-LANGS.7z
-          cp -f OPNPS2LD/OPNPS2LD-${{ env.OPL_VERSION }}.ELF OPNPS2LD.ELF
+          cp -f OPNPS2LD/OPNPS2LD-${{ env.OPL_VERSION }}.ELF OPNPS2LD.ELF || true
 
       - name: Create prerelease
         if: github.ref == 'refs/heads/362053534-patch-1'
