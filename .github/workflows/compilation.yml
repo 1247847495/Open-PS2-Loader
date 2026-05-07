@@ -15,8 +15,8 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
-      - name: Install tar & core dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+      - name: Install dependencies
+        run: apt update && apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
 
       - name: git checkout
         uses: actions/checkout@v4
@@ -95,8 +95,8 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
-      - name: Install tar & core dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+      - name: Install dependencies
+        run: apt update && apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
 
       - name: git checkout
         uses: actions/checkout@v4
@@ -170,8 +170,8 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
-      - name: Install tar & core dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+      - name: Install dependencies
+        run: apt update && apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
 
       - name: git checkout
         uses: actions/checkout@v4
@@ -236,8 +236,8 @@ jobs:
       PS2SDK: /home/runner/ps2dev/ps2sdk
       PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
-      - name: Install tar & core dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
+      - name: Install dependencies
+        run: apt update && apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools tar
 
       - name: git checkout
         uses: actions/checkout@v4
@@ -322,7 +322,7 @@ jobs:
 
       - name: Prepare artifacts for release
         run: |
-          sudo apt install -y p7zip-full
+          apt install -y p7zip-full
           cp INFO/* OPNPS2LD/ || true
           cp INFO/* OPNPS2LD-VARIANTS/ || true
           7z a -t7z OPNPS2LD-${{ env.OPL_VERSION }}.7z OPNPS2LD/*
