@@ -15,11 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
 
-      - name: Install PS2DEV toolchain
+      - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
           cd ~/ps2dev
           ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
@@ -37,6 +37,13 @@ jobs:
         run: |
           git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
           cd ~/ps2sdk-ports
+          make
+          make install
+
+      - name: Install YOUR ps2-packer
+        run: |
+          git clone https://github.com/1247847495/packer.git ~/ps2-packer
+          cd ~/ps2-packer
           make
           make install
 
@@ -81,11 +88,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
 
-      - name: Install PS2DEV toolchain
+      - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
           cd ~/ps2dev
           ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
@@ -103,6 +110,13 @@ jobs:
         run: |
           git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
           cd ~/ps2sdk-ports
+          make
+          make install
+
+      - name: Install YOUR ps2-packer
+        run: |
+          git clone https://github.com/1247847495/packer.git ~/ps2-packer
+          cd ~/ps2-packer
           make
           make install
 
@@ -130,7 +144,7 @@ jobs:
     needs: build-variants
     steps:
       - name: Merge Artifacts
-        uses: upload-artifact/merge@v4
+        uses: actions/upload-artifact/merge@v4
         with:
           name: OPNPS2LD-VARIANTS
           pattern: OPNPS2LD-VARIANTS*
@@ -143,11 +157,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
 
-      - name: Install PS2DEV toolchain
+      - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
           cd ~/ps2dev
           ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
@@ -165,6 +179,13 @@ jobs:
         run: |
           git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
           cd ~/ps2sdk-ports
+          make
+          make install
+
+      - name: Install YOUR ps2-packer
+        run: |
+          git clone https://github.com/1247847495/packer.git ~/ps2-packer
+          cd ~/ps2-packer
           make
           make install
 
@@ -195,11 +216,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
 
-      - name: Install PS2DEV toolchain
+      - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/ps2dev/ps2dev.git ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
           cd ~/ps2dev
           ./build-all.sh
           echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
@@ -217,6 +238,13 @@ jobs:
         run: |
           git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
           cd ~/ps2sdk-ports
+          make
+          make install
+
+      - name: Install YOUR ps2-packer
+        run: |
+          git clone https://github.com/1247847495/packer.git ~/ps2-packer
+          cd ~/ps2-packer
           make
           make install
 
@@ -243,7 +271,7 @@ jobs:
     needs: build-debug
     steps:
       - name: Merge Artifacts
-        uses: upload-artifact/merge@v4
+        uses: actions/upload-artifact/merge@v4
         with:
           name: OPNPS2LD-DEBUG
           pattern: opl-*
