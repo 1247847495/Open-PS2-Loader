@@ -10,42 +10,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PS2DEV: /home/runner/ps2dev
+      PS2SDK: /home/runner/ps2dev/ps2sdk
+      PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
       - name: git checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
-          cd ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git $PS2DEV
+          cd $PS2DEV
           ./build-all.sh
-          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
-          cd ~/ps2sdk
-          make
+          git clone https://github.com/1247847495/ps2sdk.git $PS2SDK
+          cd $PS2SDK
+          make -j$(nproc)
           make install
-          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk-ports
         run: |
-          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
-          cd ~/ps2sdk-ports
-          make
+          git clone https://github.com/1247847495/ps2sdk-ports.git $PS2SDK-ports
+          cd $PS2SDK-ports
+          make -j$(nproc)
           make install
 
       - name: Install YOUR ps2-packer
         run: |
           git clone https://github.com/1247847495/packer.git ~/ps2-packer
           cd ~/ps2-packer
-          make
+          make -j$(nproc)
           make install
+
+      - name: Install YOUR language repo
+        run: |
+          git clone https://github.com/1247847495/Open-PS2-Loader-lang.git lng
+          cp -rf lng/* . || true
+          rm -rf lng
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -83,50 +90,56 @@ jobs:
         extra: [EXTRA_FEATURES=0, EXTRA_FEATURES=1]
         pademu: [PADEMU=0, PADEMU=1]
     runs-on: ubuntu-latest
+    env:
+      PS2DEV: /home/runner/ps2dev
+      PS2SDK: /home/runner/ps2dev/ps2sdk
+      PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
       - name: git checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
-          cd ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git $PS2DEV
+          cd $PS2DEV
           ./build-all.sh
-          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
-          cd ~/ps2sdk
-          make
+          git clone https://github.com/1247847495/ps2sdk.git $PS2SDK
+          cd $PS2SDK
+          make -j$(nproc)
           make install
-          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk-ports
         run: |
-          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
-          cd ~/ps2sdk-ports
-          make
+          git clone https://github.com/1247847495/ps2sdk-ports.git $PS2SDK-ports
+          cd $PS2SDK-ports
+          make -j$(nproc)
           make install
 
       - name: Install YOUR ps2-packer
         run: |
           git clone https://github.com/1247847495/packer.git ~/ps2-packer
           cd ~/ps2-packer
-          make
+          make -j$(nproc)
           make install
+
+      - name: Install YOUR language repo
+        run: |
+          git clone https://github.com/1247847495/Open-PS2-Loader-lang.git lng
+          cp -rf lng/* . || true
+          rm -rf lng
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git fetch --prune --unshallow
 
       - name: Get version
-        run: |
-          echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
+        run: echo "OPL_VERSION=$(make oplversion)" >> $GITHUB_ENV
 
       - name: Compile
         run: |
@@ -152,42 +165,49 @@ jobs:
 
   build-lang:
     runs-on: ubuntu-latest
+    env:
+      PS2DEV: /home/runner/ps2dev
+      PS2SDK: /home/runner/ps2dev/ps2sdk
+      PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
       - name: git checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
-          cd ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git $PS2DEV
+          cd $PS2DEV
           ./build-all.sh
-          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
-          cd ~/ps2sdk
-          make
+          git clone https://github.com/1247847495/ps2sdk.git $PS2SDK
+          cd $PS2SDK
+          make -j$(nproc)
           make install
-          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk-ports
         run: |
-          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
-          cd ~/ps2sdk-ports
-          make
+          git clone https://github.com/1247847495/ps2sdk-ports.git $PS2SDK-ports
+          cd $PS2SDK-ports
+          make -j$(nproc)
           make install
 
       - name: Install YOUR ps2-packer
         run: |
           git clone https://github.com/1247847495/packer.git ~/ps2-packer
           cd ~/ps2-packer
-          make
+          make -j$(nproc)
           make install
+
+      - name: Install YOUR language repo
+        run: |
+          git clone https://github.com/1247847495/Open-PS2-Loader-lang.git lng
+          cp -rf lng/* . || true
+          rm -rf lng
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -211,42 +231,49 @@ jobs:
       matrix:
         debug: [iopcore_debug, ingame_debug, eesio_debug, iopcore_ppctty_debug, ingame_ppctty_debug, DTL_T10000=1]
     runs-on: ubuntu-latest
+    env:
+      PS2DEV: /home/runner/ps2dev
+      PS2SDK: /home/runner/ps2dev/ps2sdk
+      PATH: /home/runner/ps2dev/bin:/home/runner/ps2dev/ee/bin:/home/runner/ps2dev/iop/bin:$PATH
     steps:
       - name: git checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext
+        run: sudo apt update && sudo apt install -y git make gcc g++ texinfo flex bison libucl-dev cmake patch gettext libarchive-tools
 
       - name: Install YOUR ps2dev
         run: |
-          git clone https://github.com/1247847495/ps2dev.git ~/ps2dev
-          cd ~/ps2dev
+          git clone https://github.com/1247847495/ps2dev.git $PS2DEV
+          cd $PS2DEV
           ./build-all.sh
-          echo "PS2DEV=$HOME/ps2dev" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/ps2dev/bin:$HOME/ps2dev/ee/bin:$HOME/ps2dev/iop/bin" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk
         run: |
-          git clone https://github.com/1247847495/ps2sdk.git ~/ps2sdk
-          cd ~/ps2sdk
-          make
+          git clone https://github.com/1247847495/ps2sdk.git $PS2SDK
+          cd $PS2SDK
+          make -j$(nproc)
           make install
-          echo "PS2SDK=$HOME/ps2sdk" >> $GITHUB_ENV
 
       - name: Install YOUR ps2sdk-ports
         run: |
-          git clone https://github.com/1247847495/ps2sdk-ports.git ~/ps2sdk-ports
-          cd ~/ps2sdk-ports
-          make
+          git clone https://github.com/1247847495/ps2sdk-ports.git $PS2SDK-ports
+          cd $PS2SDK-ports
+          make -j$(nproc)
           make install
 
       - name: Install YOUR ps2-packer
         run: |
           git clone https://github.com/1247847495/packer.git ~/ps2-packer
           cd ~/ps2-packer
-          make
+          make -j$(nproc)
           make install
+
+      - name: Install YOUR language repo
+        run: |
+          git clone https://github.com/1247847495/Open-PS2-Loader-lang.git lng
+          cp -rf lng/* . || true
+          rm -rf lng
 
       - run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
